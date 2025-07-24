@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const postSchema = z.object({
   content: z.string().min(10, "Post must be at least 10 characters.").max(500, "Post cannot exceed 500 characters."),
@@ -28,7 +29,7 @@ type CommunityPost = {
   content: string;
 };
 
-const initialPosts = [
+const initialPostsData = [
     {
       id: 1,
       author: "Mark Johnson",
@@ -54,14 +55,16 @@ const initialPosts = [
 
 export default function CommunityPage() {
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
-  
+  const [isClient, setIsClient] = useState(false);
+
   useEffect(() => {
     const postsWithTimestamps = [
-      { ...initialPosts[0], timestamp: new Date(Date.now() - 1000 * 60 * 5) }, // 5 minutes ago
-      { ...initialPosts[1], timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2) }, // 2 hours ago
-      { ...initialPosts[2], timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24) }, // 1 day ago
+      { ...initialPostsData[0], timestamp: new Date(Date.now() - 1000 * 60 * 5) }, // 5 minutes ago
+      { ...initialPostsData[1], timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2) }, // 2 hours ago
+      { ...initialPostsData[2], timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24) }, // 1 day ago
     ];
     setCommunityPosts(postsWithTimestamps);
+    setIsClient(true);
   }, []);
 
   const form = useForm<z.infer<typeof postSchema>>({
@@ -119,28 +122,48 @@ export default function CommunityPage() {
 
         <div className="space-y-6">
             <h2 className="text-2xl font-semibold font-headline">Recent Posts</h2>
-            {communityPosts.map((post, index) => (
-                <div key={post.id}>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-                            <Avatar>
-                                <AvatarImage src={post.avatar} alt={post.author} data-ai-hint={post.aiHint} />
-                                <AvatarFallback>{post.author.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="w-full">
-                                <p className="font-semibold">{post.author}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {formatDistanceToNow(post.timestamp, { addSuffix: true })}
-                                </p>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="whitespace-pre-wrap">{post.content}</p>
-                        </CardContent>
-                    </Card>
-                    {index < communityPosts.length - 1 && <Separator className="my-6 md:hidden"/>}
+            {!isClient ? (
+                <div className="space-y-6">
+                    {[...Array(3)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <div className="w-full space-y-2">
+                                    <Skeleton className="h-4 w-1/4" />
+                                    <Skeleton className="h-3 w-1/3" />
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-3/4 mt-2" />
+                            </CardContent>
+                        </Card>
+                    ))}
                 </div>
-            ))}
+            ) : (
+                communityPosts.map((post, index) => (
+                    <div key={post.id}>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+                                <Avatar>
+                                    <AvatarImage src={post.avatar} alt={post.author} data-ai-hint={post.aiHint} />
+                                    <AvatarFallback>{post.author.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="w-full">
+                                    <p className="font-semibold">{post.author}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {formatDistanceToNow(post.timestamp, { addSuffix: true })}
+                                    </p>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="whitespace-pre-wrap">{post.content}</p>
+                            </CardContent>
+                        </Card>
+                        {index < communityPosts.length - 1 && <Separator className="my-6 md:hidden"/>}
+                    </div>
+                ))
+            )}
         </div>
       </div>
     </AppLayout>
