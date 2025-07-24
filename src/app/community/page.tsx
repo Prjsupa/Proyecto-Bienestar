@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
-import { Check, MessageCircle } from "lucide-react";
+import { Check, MessageCircle, Paperclip, X } from "lucide-react";
 
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 const postSchema = z.object({
   content: z.string().min(10, "Post must be at least 10 characters.").max(500, "Post cannot exceed 500 characters."),
+  file: z.any().optional(),
 });
 
 const questionSchema = z.object({
   question: z.string().min(15, "Question must be at least 15 characters.").max(500, "Question cannot exceed 500 characters."),
+  file: z.any().optional(),
 });
 
 
@@ -52,7 +56,7 @@ type QAPost = {
     } | null;
 }
 
-const initialPostsData = [
+const initialPostsData: Omit<CommunityPost, 'timestamp'>[] = [
     {
       id: 1,
       author: "Mark Johnson",
@@ -119,6 +123,11 @@ export default function CommunityPage() {
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
   const [qaPosts, setQAPosts] = useState<QAPost[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
+  const [selectedQuestionFile, setSelectedQuestionFile] = useState<File | null>(null);
+
+  const postFileInputRef = useRef<HTMLInputElement>(null);
+  const questionFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const postsWithTimestamps = initialPostsData.map((post, index) => ({
@@ -144,14 +153,30 @@ export default function CommunityPage() {
     defaultValues: { question: "" },
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: (file: File | null) => void) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert("File size cannot exceed 5MB.");
+        return;
+      }
+      setFile(file);
+    }
+  };
+
+
   function onPostSubmit(values: z.infer<typeof postSchema>) {
-    console.log("New post:", values);
+    console.log("New post:", {...values, file: selectedPostFile?.name});
     postForm.reset();
+    setSelectedPostFile(null);
+    if(postFileInputRef.current) postFileInputRef.current.value = "";
   }
   
   function onQuestionSubmit(values: z.infer<typeof questionSchema>) {
-    console.log("New question:", values);
+    console.log("New question:", {...values, file: selectedQuestionFile?.name});
     questionForm.reset();
+    setSelectedQuestionFile(null);
+    if(questionFileInputRef.current) questionFileInputRef.current.value = "";
   }
 
   const renderCommunitySkeletons = () => (
@@ -239,7 +264,51 @@ export default function CommunityPage() {
                         </FormItem>
                       )}
                     />
-                    <div className="flex justify-end">
+                     {selectedPostFile && (
+                      <div className="flex items-center justify-between p-2 text-sm text-muted-foreground bg-muted rounded-md">
+                          <div className="flex items-center gap-2 truncate">
+                            <Paperclip className="w-4 h-4" />
+                            <span className="truncate">{selectedPostFile.name}</span>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6"
+                            onClick={() => {
+                                setSelectedPostFile(null)
+                                if(postFileInputRef.current) postFileInputRef.current.value = "";
+                            }}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                       <FormField
+                        control={postForm.control}
+                        name="file"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                  <>
+                                    <input 
+                                      type="file" 
+                                      className="hidden" 
+                                      ref={postFileInputRef}
+                                      onChange={(e) => handleFileChange(e, setSelectedPostFile)}
+                                      accept="image/*,video/*,application/pdf,.doc,.docx"
+                                    />
+                                    <Button type="button" variant="outline" onClick={() => postFileInputRef.current?.click()}>
+                                        <Paperclip className="w-4 h-4 mr-2"/>
+                                        Attach File
+                                    </Button>
+                                  </>
+                                </FormControl>
+                                <FormMessage/>
+                            </FormItem>
+                        )}
+                       />
+
                       <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Publish</Button>
                     </div>
                   </form>
@@ -298,7 +367,50 @@ export default function CommunityPage() {
                         </FormItem>
                       )}
                     />
-                    <div className="flex justify-end">
+                    {selectedQuestionFile && (
+                        <div className="flex items-center justify-between p-2 text-sm text-muted-foreground bg-muted rounded-md">
+                           <div className="flex items-center gap-2 truncate">
+                                <Paperclip className="w-4 h-4" />
+                                <span className="truncate">{selectedQuestionFile.name}</span>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => {
+                                    setSelectedQuestionFile(null);
+                                    if(questionFileInputRef.current) questionFileInputRef.current.value = "";
+                                }}
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                       <FormField
+                        control={questionForm.control}
+                        name="file"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                  <>
+                                    <input 
+                                      type="file" 
+                                      className="hidden" 
+                                      ref={questionFileInputRef}
+                                      onChange={(e) => handleFileChange(e, setSelectedQuestionFile)}
+                                      accept="image/*,video/*,application/pdf,.doc,.docx"
+                                    />
+                                    <Button type="button" variant="outline" onClick={() => questionFileInputRef.current?.click()}>
+                                        <Paperclip className="w-4 h-4 mr-2"/>
+                                        Attach File
+                                    </Button>
+                                  </>
+                                </FormControl>
+                                <FormMessage/>
+                            </FormItem>
+                        )}
+                       />
                       <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Submit Question</Button>
                     </div>
                   </form>
