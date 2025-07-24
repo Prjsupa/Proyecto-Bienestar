@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
-import { Check, MessageCircle, Paperclip, X } from "lucide-react";
+import { Check, MessageCircle, Paperclip, X, CornerDownRight } from "lucide-react";
 
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -30,6 +31,19 @@ const questionSchema = z.object({
   file: z.any().optional(),
 });
 
+const replySchema = z.object({
+  replyContent: z.string().min(1, "Reply cannot be empty.").max(500, "Reply cannot exceed 500 characters."),
+});
+
+type Reply = {
+    id: number;
+    author: string;
+    avatar: string;
+    aiHint: string;
+    timestamp: Date;
+    content: string;
+    isProfessional?: boolean;
+}
 
 type CommunityPost = {
   id: number;
@@ -38,6 +52,7 @@ type CommunityPost = {
   aiHint: string;
   timestamp: Date;
   content: string;
+  replies: Reply[];
 };
 
 type QAPost = {
@@ -56,7 +71,7 @@ type QAPost = {
     } | null;
 }
 
-const initialPostsData: Omit<CommunityPost, 'timestamp'>[] = [
+const initialPostsData: Omit<CommunityPost, 'timestamp' | 'replies'>[] = [
     {
       id: 1,
       author: "Mark Johnson",
@@ -79,6 +94,18 @@ const initialPostsData: Omit<CommunityPost, 'timestamp'>[] = [
       content: "Completed my first 5k run today! The couch to 5k program on the app is fantastic. Highly recommend it for any beginners out there. The feeling of accomplishment is unreal.",
     },
 ];
+
+const initialRepliesData: Omit<Reply, 'timestamp'>[][] = [
+    [
+        { id: 1, author: 'Coach Sarah', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman coach', content: 'Awesome work Mark! Form is everything. Keep it up!', isProfessional: true },
+        { id: 2, author: 'Alex', avatar: 'https://placehold.co/40x40.png', aiHint: 'person gym', content: 'Congrats! That\'s a huge achievement.' },
+    ],
+    [
+        { id: 3, author: 'Michael Star', avatar: 'https://placehold.co/40x40.png', aiHint: 'man physiotherapist', content: 'Consistency is key, Jane. Try incorporating dynamic stretches before your sessions and holding static stretches after. PNF stretching could also be very beneficial for you.', isProfessional: true },
+    ],
+    [],
+]
+
 
 const initialQAData: Omit<QAPost, 'timestamp'>[] = [
     {
@@ -106,7 +133,7 @@ const initialQAData: Omit<QAPost, 'timestamp'>[] = [
             specialty: 'Physiotherapist',
             avatar: 'https://placehold.co/40x40.png',
             aiHint: 'man physiotherapist',
-            content: "Hi David, it's wise to listen to your body. Pain during squats could be due to form. Ensure your knees are tracking over your feet and not caving inwards. Try filming yourself or having a professional check your form. If the pain persists, it's best to get it checked out to rule out any underlying issues. For now, try reducing the weight and focusing on form.",
+            content: "Hi David, it's wise to listen to your body. Pain during squats could be due to form. Ensure your knees are tracking over your feet and not caving inwards. Try filming yourself or have a professional check your form. If the pain persists, it's best to get it checked out to rule out any underlying issues. For now, try reducing the weight and focusing on form.",
         }
     },
     {
@@ -125,14 +152,20 @@ export default function CommunityPage() {
   const [isClient, setIsClient] = useState(false);
   const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
   const [selectedQuestionFile, setSelectedQuestionFile] = useState<File | null>(null);
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
 
   const postFileInputRef = useRef<HTMLInputElement>(null);
   const questionFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    setIsClient(true);
     const postsWithTimestamps = initialPostsData.map((post, index) => ({
       ...post,
-      timestamp: new Date(Date.now() - 1000 * 60 * (5 * (index + 1) * (index + 1))), 
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * (5 * (index + 1))),
+      replies: initialRepliesData[index]?.map((reply, replyIndex) => ({
+          ...reply,
+          timestamp: new Date(Date.now() - 1000 * 60 * (3 * (replyIndex + 1))),
+      })) || [],
     }));
      const qaWithTimestamps = initialQAData.map((qa, index) => ({
       ...qa,
@@ -140,7 +173,6 @@ export default function CommunityPage() {
     }));
     setCommunityPosts(postsWithTimestamps);
     setQAPosts(qaWithTimestamps);
-    setIsClient(true);
   }, []);
   
   const postForm = useForm<z.infer<typeof postSchema>>({
@@ -151,6 +183,11 @@ export default function CommunityPage() {
   const questionForm = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
     defaultValues: { question: "" },
+  });
+
+  const replyForm = useForm<z.infer<typeof replySchema>>({
+    resolver: zodResolver(replySchema),
+    defaultValues: { replyContent: "" },
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: (file: File | null) => void) => {
@@ -177,6 +214,25 @@ export default function CommunityPage() {
     questionForm.reset();
     setSelectedQuestionFile(null);
     if(questionFileInputRef.current) questionFileInputRef.current.value = "";
+  }
+
+  function onReplySubmit(postId: number, values: z.infer<typeof replySchema>) {
+    console.log(`Replying to post ${postId}:`, values.replyContent);
+    // In a real app, you'd send this to a server
+    const newReply: Reply = {
+        id: Date.now(),
+        author: 'Sofia Davis', // Assuming the current user is Sofia
+        avatar: 'https://github.com/shadcn.png',
+        aiHint: 'person smiling',
+        timestamp: new Date(),
+        content: values.replyContent,
+        isProfessional: false // Change to true if a professional is replying
+    };
+    setCommunityPosts(posts => posts.map(post => 
+        post.id === postId ? {...post, replies: [...post.replies, newReply]} : post
+    ));
+    replyForm.reset();
+    setReplyingTo(null);
   }
 
   const renderCommunitySkeletons = () => (
@@ -335,6 +391,66 @@ export default function CommunityPage() {
                   <CardContent>
                     <p className="whitespace-pre-wrap">{post.content}</p>
                   </CardContent>
+                  <CardFooter className="flex-col items-start gap-4">
+                     <Button variant="ghost" size="sm" onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}>
+                        <CornerDownRight className="w-4 h-4 mr-2"/>
+                        Reply
+                     </Button>
+
+                     {post.replies.length > 0 && (
+                        <div className="w-full space-y-4 pl-8 border-l border-border ml-4">
+                            {post.replies.map(reply => (
+                                <div key={reply.id} className="flex gap-3">
+                                    <Avatar className="w-8 h-8">
+                                        <AvatarImage src={reply.avatar} alt={reply.author} data-ai-hint={reply.aiHint} />
+                                        <AvatarFallback>{reply.author.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-semibold text-sm">{reply.author}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {formatDistanceToNow(reply.timestamp, { addSuffix: true })}
+                                            </p>
+                                            {reply.isProfessional && (
+                                                 <Badge variant="outline" className="border-primary/50 text-primary text-xs">
+                                                    <Check className="w-3 h-3 mr-1" />
+                                                    Professional
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{reply.content}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                     )}
+
+                     {replyingTo === post.id && (
+                        <div className="w-full pl-8 ml-4">
+                            <Form {...replyForm}>
+                                <form onSubmit={replyForm.handleSubmit(data => onReplySubmit(post.id, data))} className="flex items-start gap-3">
+                                    <Avatar className="w-8 h-8 mt-1">
+                                        <AvatarImage src="https://github.com/shadcn.png" alt="Your avatar" data-ai-hint="person smiling"/>
+                                        <AvatarFallback>You</AvatarFallback>
+                                    </Avatar>
+                                    <FormField
+                                        control={replyForm.control}
+                                        name="replyContent"
+                                        render={({ field }) => (
+                                            <FormItem className="flex-1">
+                                                <FormControl>
+                                                    <Input placeholder="Write a reply..." {...field} />
+                                                </FormControl>
+                                                <FormMessage/>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <Button type="submit" size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">Send</Button>
+                                </form>
+                            </Form>
+                        </div>
+                     )}
+                  </CardFooter>
                 </Card>
               ))}
             </div>
