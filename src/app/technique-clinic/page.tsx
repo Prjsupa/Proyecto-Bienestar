@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, ArrowRight, Barbell, Search, Video } from "lucide-react";
+import { Upload, ArrowRight, Dumbbell, Search, Video } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -74,7 +74,7 @@ export default function TechniqueClinicPage() {
       <div className="max-w-7xl mx-auto">
         <div className="space-y-2 mb-8">
           <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
-            <Barbell className="w-8 h-8" />
+            <Dumbbell className="w-8 h-8" />
             Clínica de la Técnica
           </h1>
           <p className="text-muted-foreground">

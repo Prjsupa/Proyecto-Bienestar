@@ -10,7 +10,6 @@ import {
   Users,
   Dumbbell,
   Menu,
-  Barbell,
 } from "lucide-react";
 
 import {
@@ -41,7 +40,7 @@ const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/recipes", icon: UtensilsCrossed, label: "Recipes" },
   { href: "/community", icon: Users, label: "Community" },
-  { href: "/technique-clinic", icon: Barbell, label: "Técnica" },
+  { href: "/technique-clinic", icon: Dumbbell, label: "Técnica" },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
