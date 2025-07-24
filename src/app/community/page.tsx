@@ -6,19 +6,26 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
+import { Check, MessageCircle } from "lucide-react";
 
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 const postSchema = z.object({
   content: z.string().min(10, "Post must be at least 10 characters.").max(500, "Post cannot exceed 500 characters."),
 });
+
+const questionSchema = z.object({
+  question: z.string().min(15, "Question must be at least 15 characters.").max(500, "Question cannot exceed 500 characters."),
+});
+
 
 type CommunityPost = {
   id: number;
@@ -28,6 +35,22 @@ type CommunityPost = {
   timestamp: Date;
   content: string;
 };
+
+type QAPost = {
+    id: number;
+    author: string;
+    avatar: string;
+    aiHint: string;
+    timestamp: Date;
+    question: string;
+    answer: {
+        professional: string;
+        specialty: string;
+        avatar: string;
+        aiHint: string;
+        content: string;
+    } | null;
+}
 
 const initialPostsData = [
     {
@@ -53,118 +76,287 @@ const initialPostsData = [
     },
 ];
 
+const initialQAData: Omit<QAPost, 'timestamp'>[] = [
+    {
+        id: 1,
+        author: 'Laura Evans',
+        avatar: 'https://placehold.co/40x40.png',
+        aiHint: 'woman thinking',
+        question: 'What are the best post-workout meals for muscle recovery? I always feel so sore the next day.',
+        answer: {
+            professional: 'Dr. Emily Carter',
+            specialty: 'Nutritionist',
+            avatar: 'https://placehold.co/40x40.png',
+            aiHint: 'woman doctor smiling',
+            content: "Great question, Laura! For muscle recovery, aim for a meal with a 3:1 or 4:1 ratio of carbohydrates to protein within 45 minutes of your workout. A smoothie with fruit and protein powder, or grilled chicken with sweet potato are excellent choices. This helps replenish glycogen stores and repair muscle fibers.",
+        }
+    },
+    {
+        id: 2,
+        author: 'David Chen',
+        avatar: 'https://placehold.co/40x40.png',
+        aiHint: 'man stretching',
+        question: 'I have a slight pain in my right knee when I do squats. Should I be concerned?',
+        answer: {
+            professional: 'Michael Star',
+            specialty: 'Physiotherapist',
+            avatar: 'https://placehold.co/40x40.png',
+            aiHint: 'man physiotherapist',
+            content: "Hi David, it's wise to listen to your body. Pain during squats could be due to form. Ensure your knees are tracking over your feet and not caving inwards. Try filming yourself or having a professional check your form. If the pain persists, it's best to get it checked out to rule out any underlying issues. For now, try reducing the weight and focusing on form.",
+        }
+    },
+    {
+        id: 3,
+        author: 'Maria Garcia',
+        avatar: 'https://placehold.co/40x40.png',
+        aiHint: 'woman confused',
+        question: 'How much cardio is too much? I want to lose weight but I don\'t want to lose muscle mass.',
+        answer: null,
+    }
+]
+
 export default function CommunityPage() {
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
+  const [qaPosts, setQAPosts] = useState<QAPost[]>([]);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    const postsWithTimestamps = [
-      { ...initialPostsData[0], timestamp: new Date(Date.now() - 1000 * 60 * 5) }, // 5 minutes ago
-      { ...initialPostsData[1], timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2) }, // 2 hours ago
-      { ...initialPostsData[2], timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24) }, // 1 day ago
-    ];
+    const postsWithTimestamps = initialPostsData.map((post, index) => ({
+      ...post,
+      timestamp: new Date(Date.now() - 1000 * 60 * (5 * (index + 1) * (index + 1))), 
+    }));
+     const qaWithTimestamps = initialQAData.map((qa, index) => ({
+      ...qa,
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * (3 * (index + 1))),
+    }));
     setCommunityPosts(postsWithTimestamps);
+    setQAPosts(qaWithTimestamps);
     setIsClient(true);
   }, []);
-
-  const form = useForm<z.infer<typeof postSchema>>({
+  
+  const postForm = useForm<z.infer<typeof postSchema>>({
     resolver: zodResolver(postSchema),
     defaultValues: { content: "" },
   });
+  
+  const questionForm = useForm<z.infer<typeof questionSchema>>({
+    resolver: zodResolver(questionSchema),
+    defaultValues: { question: "" },
+  });
 
-  function onSubmit(values: z.infer<typeof postSchema>) {
+  function onPostSubmit(values: z.infer<typeof postSchema>) {
     console.log("New post:", values);
-    form.reset();
-    // Here you would typically optimistic-update the UI and send to a server
+    postForm.reset();
   }
+  
+  function onQuestionSubmit(values: z.infer<typeof questionSchema>) {
+    console.log("New question:", values);
+    questionForm.reset();
+  }
+
+  const renderCommunitySkeletons = () => (
+    <div className="space-y-6">
+      {[...Array(3)].map((_, i) => (
+        <Card key={i}>
+          <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="w-full space-y-2">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4 mt-2" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  const renderQaSkeletons = () => (
+    <div className="space-y-6">
+      {[...Array(2)].map((_, i) => (
+        <Card key={i}>
+          <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="w-full space-y-2">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-3 w-1/3" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-5/6" />
+          </CardContent>
+          <CardFooter>
+             <Skeleton className="h-20 w-full rounded-md" />
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  )
+
 
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto">
-        <div className="space-y-4 mb-8">
-            <h1 className="text-3xl font-bold font-headline">Community Forum</h1>
-            <p className="text-muted-foreground">
-                Share your workout tips, ask questions, and connect with fellow VitaNova members.
-            </p>
+      <div className="max-w-4xl mx-auto">
+        <div className="space-y-2 mb-8">
+          <h1 className="text-3xl font-bold font-headline">Community Hub</h1>
+          <p className="text-muted-foreground">
+            Connect with peers and get expert advice to supercharge your wellness journey.
+          </p>
         </div>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <h2 className="text-lg font-semibold font-headline">Share your thoughts</h2>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="content"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Textarea
-                          placeholder="What's on your mind? Share a workout tip or a recent success!"
-                          className="resize-none"
-                          rows={4}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end">
-                    <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Publish</Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="feed" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="feed">Community Feed</TabsTrigger>
+            <TabsTrigger value="q-and-a">Ask a Professional</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="feed" className="mt-6">
+            <Card className="mb-8">
+              <CardHeader>
+                <h2 className="text-lg font-semibold font-headline">Share your thoughts</h2>
+              </CardHeader>
+              <CardContent>
+                <Form {...postForm}>
+                  <form onSubmit={postForm.handleSubmit(onPostSubmit)} className="space-y-4">
+                    <FormField
+                      control={postForm.control}
+                      name="content"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Textarea
+                              placeholder="What's on your mind? Share a workout tip or a recent success!"
+                              className="resize-none"
+                              rows={4}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex justify-end">
+                      <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Publish</Button>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
 
-        <div className="space-y-6">
-            <h2 className="text-2xl font-semibold font-headline">Recent Posts</h2>
-            {!isClient ? (
-                <div className="space-y-6">
-                    {[...Array(3)].map((_, i) => (
-                        <Card key={i}>
-                            <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-                                <Skeleton className="h-10 w-10 rounded-full" />
-                                <div className="w-full space-y-2">
-                                    <Skeleton className="h-4 w-1/4" />
-                                    <Skeleton className="h-3 w-1/3" />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <Skeleton className="h-4 w-full" />
-                                <Skeleton className="h-4 w-3/4 mt-2" />
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            ) : (
-                communityPosts.map((post, index) => (
-                    <div key={post.id}>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold font-headline">Recent Posts</h2>
+              {!isClient ? renderCommunitySkeletons() : communityPosts.map((post) => (
+                <Card key={post.id}>
+                  <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+                    <Avatar>
+                      <AvatarImage src={post.avatar} alt={post.author} data-ai-hint={post.aiHint} />
+                      <AvatarFallback>{post.author.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="w-full">
+                      <p className="font-semibold">{post.author}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(post.timestamp, { addSuffix: true })}
+                      </p>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="whitespace-pre-wrap">{post.content}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="q-and-a" className="mt-6">
+            <Card className="mb-8">
+              <CardHeader>
+                <h2 className="text-lg font-semibold font-headline">Ask our Experts</h2>
+                <p className="text-sm text-muted-foreground">Have a question about nutrition, workouts, or recovery? Our professionals are here to help.</p>
+              </CardHeader>
+              <CardContent>
+                <Form {...questionForm}>
+                  <form onSubmit={questionForm.handleSubmit(onQuestionSubmit)} className="space-y-4">
+                    <FormField
+                      control={questionForm.control}
+                      name="question"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Your Question</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="For example: 'What's the best way to warm up for a run?'"
+                              className="resize-none"
+                              rows={3}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex justify-end">
+                      <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Submit Question</Button>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+            
+            <div className="space-y-6">
+                <h2 className="text-2xl font-semibold font-headline">Answered Questions</h2>
+                {!isClient ? renderQaSkeletons() : qaPosts.map((qa) => (
+                    <Card key={qa.id}>
+                        <CardHeader>
+                             <div className="flex items-center gap-4">
                                 <Avatar>
-                                    <AvatarImage src={post.avatar} alt={post.author} data-ai-hint={post.aiHint} />
-                                    <AvatarFallback>{post.author.charAt(0)}</AvatarFallback>
+                                    <AvatarImage src={qa.avatar} alt={qa.author} data-ai-hint={qa.aiHint} />
+                                    <AvatarFallback>{qa.author.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <div className="w-full">
-                                    <p className="font-semibold">{post.author}</p>
+                                <div>
+                                    <p className="font-semibold">{qa.author}</p>
                                     <p className="text-xs text-muted-foreground">
-                                        {formatDistanceToNow(post.timestamp, { addSuffix: true })}
+                                        asked {formatDistanceToNow(qa.timestamp, { addSuffix: true })}
                                     </p>
                                 </div>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="whitespace-pre-wrap">{post.content}</p>
-                            </CardContent>
-                        </Card>
-                        {index < communityPosts.length - 1 && <Separator className="my-6 md:hidden"/>}
-                    </div>
-                ))
-            )}
-        </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="font-semibold text-base mb-4">{qa.question}</p>
+                            {qa.answer ? (
+                                <div className="bg-secondary/50 p-4 rounded-lg">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage src={qa.answer.avatar} alt={qa.answer.professional} data-ai-hint={qa.answer.aiHint} />
+                                            <AvatarFallback>{qa.answer.professional.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-semibold text-sm">{qa.answer.professional}</p>
+                                            <p className="text-xs text-muted-foreground">{qa.answer.specialty}</p>
+                                        </div>
+                                        <Badge variant="outline" className="ml-auto border-primary/50 text-primary">
+                                            <Check className="w-3 h-3 mr-1" />
+                                            Professional
+                                        </Badge>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{qa.answer.content}</p>
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center text-sm text-muted-foreground p-4 bg-secondary/50 rounded-lg">
+                                    <MessageCircle className="w-4 h-4 mr-2"/>
+                                    Awaiting response from a professional.
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );
