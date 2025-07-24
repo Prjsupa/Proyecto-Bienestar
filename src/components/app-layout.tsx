@@ -10,7 +10,7 @@ import {
   Users,
   Dumbbell,
   Menu,
-  Send,
+  Video,
 } from "lucide-react";
 
 import {
@@ -40,6 +40,7 @@ import { VitaNovaIcon } from "./icons";
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/recipes", icon: UtensilsCrossed, label: "Recipes" },
+  { href: "/live", icon: Video, label: "En Vivo" },
   { href: "/community", icon: Users, label: "Community" },
   { href: "/technique-clinic", icon: Dumbbell, label: "Técnica" },
 ];
