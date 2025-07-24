@@ -23,13 +23,21 @@ type Plan = "basic" | "premium" | "family";
 export default function DashboardPage() {
   const [userPlan, setUserPlan] = useState<Plan | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const [greeting, setGreeting] = useState("Welcome!");
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     // In a real app, this would be fetched from an API
     const storedPlan = "premium" as Plan; // or 'basic', 'family'
+    const name = "Alex";
     setUserPlan(storedPlan);
-    setUserName("Alex"); // fetch user name
+    setUserName(name); 
+    
+    const hours = new Date().getHours();
+    if (hours < 12) setGreeting(`Good morning, ${name}!`);
+    else if (hours < 18) setGreeting(`Good afternoon, ${name}!`);
+    else setGreeting(`Good evening, ${name}!`);
+
     setProgress(Math.floor(Math.random() * (75 - 40 + 1)) + 40);
   }, []);
 
@@ -37,14 +45,6 @@ export default function DashboardPage() {
     basic: { name: "Basic Plan", features: ["Access to 10 new recipes weekly", "Basic workout plans"] },
     premium: { name: "Premium Plan", features: ["Unlimited recipes", "Personalized workout plans", "1-on-1 coach chat"] },
     family: { name: "Family Plan", features: ["All Premium features", "Up to 4 family member profiles", "Family meal planner"] }
-  };
-  
-  const greeting = () => {
-    if (!userName) return "Welcome!";
-    const hours = new Date().getHours();
-    if (hours < 12) return `Good morning, ${userName}!`;
-    if (hours < 18) return `Good afternoon, ${userName}!`;
-    return `Good evening, ${userName}!`;
   };
   
   if (!userPlan || !userName) {
@@ -59,7 +59,7 @@ export default function DashboardPage() {
     <AppLayout>
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-3xl font-bold font-headline">{greeting()}</h1>
+          <h1 className="text-3xl font-bold font-headline">{greeting}</h1>
           <p className="text-muted-foreground">Here's your wellness snapshot for today.</p>
         </div>
 
