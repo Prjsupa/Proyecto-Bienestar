@@ -204,6 +204,16 @@ export default function CommunityPage() {
 
   function onPostSubmit(values: z.infer<typeof postSchema>) {
     console.log("New post:", {...values, file: selectedPostFile?.name});
+    const newPost: CommunityPost = {
+        id: Date.now(),
+        author: 'Sofia Davis',
+        avatar: 'https://github.com/shadcn.png',
+        aiHint: 'person smiling',
+        timestamp: new Date(),
+        content: values.content,
+        replies: []
+    }
+    setCommunityPosts(posts => [newPost, ...posts]);
     postForm.reset();
     setSelectedPostFile(null);
     if(postFileInputRef.current) postFileInputRef.current.value = "";
@@ -211,6 +221,16 @@ export default function CommunityPage() {
   
   function onQuestionSubmit(values: z.infer<typeof questionSchema>) {
     console.log("New question:", {...values, file: selectedQuestionFile?.name});
+    const newQA: QAPost = {
+        id: Date.now(),
+        author: 'Sofia Davis',
+        avatar: 'https://github.com/shadcn.png',
+        aiHint: 'person thinking',
+        timestamp: new Date(),
+        question: values.question,
+        answer: null
+    }
+    setQAPosts(qas => [newQA, ...qas]);
     questionForm.reset();
     setSelectedQuestionFile(null);
     if(questionFileInputRef.current) questionFileInputRef.current.value = "";
@@ -343,7 +363,7 @@ export default function CommunityPage() {
                        <FormField
                         control={postForm.control}
                         name="file"
-                        render={({ field }) => (
+                        render={() => (
                             <FormItem>
                                 <FormControl>
                                   <>
@@ -506,7 +526,7 @@ export default function CommunityPage() {
                        <FormField
                         control={questionForm.control}
                         name="file"
-                        render={({ field }) => (
+                        render={() => (
                             <FormItem>
                                 <FormControl>
                                   <>
@@ -589,3 +609,4 @@ export default function CommunityPage() {
     </AppLayout>
   );
 }
+
