@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, ArrowRight, Dumbbell, Search, Video } from "lucide-react";
+import { Upload, ArrowRight, Dumbbell, Send, Video } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -62,8 +62,8 @@ export default function TechniqueClinicPage() {
         return;
     }
     toast({
-        title: "Video Submitted!",
-        description: "Your technique analysis will be available soon.",
+        title: "Video Enviado!",
+        description: "Tu video ha sido enviado a nuestros coaches para revisión.",
     });
     console.log("Submitting file:", selectedFile.name);
     // Here you would typically upload the file and handle the form data
@@ -78,7 +78,7 @@ export default function TechniqueClinicPage() {
             Clínica de la Técnica
           </h1>
           <p className="text-muted-foreground">
-            Analiza y perfecciona tus movimientos con la ayuda de nuestros expertos y la tecnología de IA.
+            Perfecciona tus movimientos con la ayuda de nuestros coaches expertos.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export default function TechniqueClinicPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Analiza tu Técnica</CardTitle>
-                <CardDescription>Sube un video de tu ejercicio para recibir un análisis detallado.</CardDescription>
+                <CardDescription>Sube un video de tu ejercicio para que un profesional lo revise.</CardDescription>
               </CardHeader>
               <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-4">
@@ -126,8 +126,8 @@ export default function TechniqueClinicPage() {
                 </CardContent>
                 <CardFooter>
                   <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                    <Video className="w-4 h-4 mr-2"/>
-                    Analizar Video
+                    <Send className="w-4 h-4 mr-2"/>
+                    Enviar para Revisión
                   </Button>
                 </CardFooter>
               </form>

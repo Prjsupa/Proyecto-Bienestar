@@ -10,6 +10,7 @@ import {
   Users,
   Dumbbell,
   Menu,
+  Send,
 } from "lucide-react";
 
 import {
