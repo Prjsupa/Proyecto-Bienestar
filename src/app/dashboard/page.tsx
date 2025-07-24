@@ -24,7 +24,8 @@ export default function DashboardPage() {
   const [userPlan, setUserPlan] = useState<Plan | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [greeting, setGreeting] = useState("Welcome!");
-  const [progress, setProgress] = useState(0);
+  const [workoutProgress, setWorkoutProgress] = useState(0);
+  const [mealProgress, setMealProgress] = useState(0);
 
   useEffect(() => {
     // In a real app, this would be fetched from an API
@@ -38,7 +39,8 @@ export default function DashboardPage() {
     else if (hours < 18) setGreeting(`Good afternoon, ${name}!`);
     else setGreeting(`Good evening, ${name}!`);
 
-    setProgress(Math.floor(Math.random() * (75 - 40 + 1)) + 40);
+    setWorkoutProgress(60);
+    setMealProgress(57);
   }, []);
 
   const planDetails = {
@@ -50,7 +52,19 @@ export default function DashboardPage() {
   if (!userPlan || !userName) {
     return (
       <AppLayout>
-        <div>Loading dashboard...</div>
+        <div className="flex flex-col gap-6 animate-pulse">
+            <div className="h-10 bg-muted rounded-md w-1/2"></div>
+            <div className="h-4 bg-muted rounded-md w-1/3"></div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <Card><CardHeader className="h-24 bg-muted rounded-t-lg"></CardHeader><CardContent className="h-20 bg-muted rounded-b-lg"></CardContent></Card>
+              <Card><CardHeader className="h-24 bg-muted rounded-t-lg"></CardHeader><CardContent className="h-20 bg-muted rounded-b-lg"></CardContent></Card>
+              <Card><CardHeader className="h-24 bg-muted rounded-t-lg"></CardHeader><CardContent className="h-20 bg-muted rounded-b-lg"></CardContent></Card>
+            </div>
+             <div className="grid gap-6 lg:grid-cols-2">
+                <Card><CardContent className="h-40 bg-muted rounded-lg"></CardContent></Card>
+                <Card><CardContent className="h-40 bg-muted rounded-lg"></CardContent></Card>
+             </div>
+        </div>
       </AppLayout>
     );
   }
@@ -91,12 +105,12 @@ export default function DashboardPage() {
                     <span>Workouts</span>
                     <span>3/5</span>
                 </div>
-                <Progress value={60} aria-label="60% of workouts complete" />
+                <Progress value={workoutProgress} aria-label={`${workoutProgress}% of workouts complete`} />
                 <div className="flex justify-between text-sm font-medium pt-2">
                     <span>Healthy Meals</span>
                     <span>12/21</span>
                 </div>
-                <Progress value={57} aria-label="57% of meals healthy" />
+                <Progress value={mealProgress} aria-label={`${mealProgress}% of meals healthy`} />
             </CardContent>
           </Card>
           
