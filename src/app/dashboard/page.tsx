@@ -17,6 +17,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Users, UtensilsCrossed, Dumbbell, ArrowRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 type Plan = "basic" | "premium" | "family";
 
@@ -26,6 +28,7 @@ export default function DashboardPage() {
   const [greeting, setGreeting] = useState("Welcome!");
   const [workoutProgress, setWorkoutProgress] = useState(0);
   const [mealProgress, setMealProgress] = useState(0);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     // In a real app, this would be fetched from an API
@@ -41,6 +44,7 @@ export default function DashboardPage() {
 
     setWorkoutProgress(60);
     setMealProgress(57);
+    setIsClient(true);
   }, []);
 
   const planDetails = {
@@ -49,20 +53,22 @@ export default function DashboardPage() {
     family: { name: "Family Plan", features: ["All Premium features", "Up to 4 family member profiles", "Family meal planner"] }
   };
   
-  if (!userPlan || !userName) {
+  if (!isClient || !userPlan || !userName) {
     return (
       <AppLayout>
-        <div className="flex flex-col gap-6 animate-pulse">
-            <div className="h-10 bg-muted rounded-md w-1/2"></div>
-            <div className="h-4 bg-muted rounded-md w-1/3"></div>
+        <div className="flex flex-col gap-6">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-1/2" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Card><CardHeader className="h-24 bg-muted rounded-t-lg"></CardHeader><CardContent className="h-20 bg-muted rounded-b-lg"></CardContent></Card>
-              <Card><CardHeader className="h-24 bg-muted rounded-t-lg"></CardHeader><CardContent className="h-20 bg-muted rounded-b-lg"></CardContent></Card>
-              <Card><CardHeader className="h-24 bg-muted rounded-t-lg"></CardHeader><CardContent className="h-20 bg-muted rounded-b-lg"></CardContent></Card>
+              <Card><CardHeader className="h-24"></CardHeader><CardContent className="h-20"></CardContent></Card>
+              <Card><CardHeader className="h-24"></CardHeader><CardContent className="h-20"></CardContent></Card>
+              <Card><CardHeader className="h-24"></CardHeader><CardContent className="h-20"></CardContent></Card>
             </div>
              <div className="grid gap-6 lg:grid-cols-2">
-                <Card><CardContent className="h-40 bg-muted rounded-lg"></CardContent></Card>
-                <Card><CardContent className="h-40 bg-muted rounded-lg"></CardContent></Card>
+                <Card><CardContent className="h-40"></CardContent></Card>
+                <Card><CardContent className="h-40"></CardContent></Card>
              </div>
         </div>
       </AppLayout>
@@ -177,3 +183,5 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
+
+    
