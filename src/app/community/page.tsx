@@ -6,12 +6,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
-import { Check, MessageCircle, Paperclip, X, CornerDownRight } from "lucide-react";
+import { Check, MessageCircle, Paperclip, X, CornerDownRight, Annoyed } from "lucide-react";
 
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,6 +54,17 @@ type CommunityPost = {
   content: string;
   replies: Reply[];
 };
+
+type ProfessionalPost = {
+    id: number;
+    author: string;
+    specialty: string;
+    avatar: string;
+    aiHint: string;
+    timestamp: Date;
+    title: string;
+    content: string;
+}
 
 type QAPost = {
     id: number;
@@ -146,9 +157,31 @@ const initialQAData: Omit<QAPost, 'timestamp'>[] = [
     }
 ]
 
+const initialProfessionalPostsData: Omit<ProfessionalPost, 'timestamp'>[] = [
+    {
+        id: 1,
+        author: "Coach Sarah",
+        specialty: "Head Coach",
+        avatar: 'https://placehold.co/40x40.png',
+        aiHint: "woman coach",
+        title: "¡Nueva clase en vivo esta semana!",
+        content: "¡Hola equipo! Este miércoles a las 18:00 tendremos una clase de HIIT en vivo. ¡Será un desafío total! Habrá modificaciones para todos los niveles. ¡No se la pierdan en la sección En Vivo!",
+    },
+    {
+        id: 2,
+        author: "Dr. Emily Carter",
+        specialty: "Nutritionist",
+        avatar: 'https://placehold.co/40x40.png',
+        aiHint: "woman doctor smiling",
+        title: "La importancia de la hidratación",
+        content: "Recordatorio amistoso: ¡manténganse hidratados! Beber suficiente agua es crucial para la energía, la recuperación muscular y la salud en general. Intenta llevar una botella de agua contigo durante todo el día. #hidratacion #salud",
+    }
+]
+
 export default function CommunityPage() {
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
   const [qaPosts, setQAPosts] = useState<QAPost[]>([]);
+  const [professionalPosts, setProfessionalPosts] = useState<ProfessionalPost[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
   const [selectedQuestionFile, setSelectedQuestionFile] = useState<File | null>(null);
@@ -170,8 +203,13 @@ export default function CommunityPage() {
       ...qa,
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * (3 * (index + 1))),
     }));
+    const professionalPostsWithTimestamps = initialProfessionalPostsData.map((post, index) => ({
+        ...post,
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * (24 * (index + 1))),
+    }))
     setCommunityPosts(postsWithTimestamps);
     setQAPosts(qaWithTimestamps);
+    setProfessionalPosts(professionalPostsWithTimestamps);
     setIsClient(true);
   }, []);
   
@@ -255,7 +293,7 @@ export default function CommunityPage() {
     setReplyingTo(null);
   }
 
-  const renderCommunitySkeletons = () => (
+  const renderSkeletons = () => (
     <div className="space-y-6">
       {[...Array(3)].map((_, i) => (
         <Card key={i}>
@@ -275,29 +313,6 @@ export default function CommunityPage() {
     </div>
   );
 
-  const renderQaSkeletons = () => (
-    <div className="space-y-6">
-      {[...Array(2)].map((_, i) => (
-        <Card key={i}>
-          <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="w-full space-y-2">
-                <Skeleton className="h-4 w-1/4" />
-                <Skeleton className="h-3 w-1/3" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-4 w-full mb-2" />
-            <Skeleton className="h-4 w-5/6" />
-          </CardContent>
-          <CardFooter>
-             <Skeleton className="h-20 w-full rounded-md" />
-          </CardFooter>
-        </Card>
-      ))}
-    </div>
-  )
-
 
   return (
     <AppLayout>
@@ -310,15 +325,16 @@ export default function CommunityPage() {
         </div>
 
         <Tabs defaultValue="feed" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="feed">Community Feed</TabsTrigger>
             <TabsTrigger value="q-and-a">Ask a Professional</TabsTrigger>
+            <TabsTrigger value="announcements">Professional Announcements</TabsTrigger>
           </TabsList>
           
           <TabsContent value="feed" className="mt-6">
             <Card className="mb-8">
               <CardHeader>
-                <h2 className="text-lg font-semibold font-headline">Share your thoughts</h2>
+                <CardTitle className="text-lg font-headline">Share your thoughts</CardTitle>
               </CardHeader>
               <CardContent>
                 <Form {...postForm}>
@@ -394,7 +410,7 @@ export default function CommunityPage() {
 
             <div className="space-y-6">
               <h2 className="text-2xl font-semibold font-headline">Recent Posts</h2>
-              {!isClient ? renderCommunitySkeletons() : communityPosts.map((post) => (
+              {!isClient ? renderSkeletons() : communityPosts.map((post) => (
                 <Card key={post.id}>
                   <CardHeader className="flex flex-row items-center gap-4 space-y-0">
                     <Avatar>
@@ -483,7 +499,7 @@ export default function CommunityPage() {
           <TabsContent value="q-and-a" className="mt-6">
             <Card className="mb-8">
               <CardHeader>
-                <h2 className="text-lg font-semibold font-headline">Ask our Experts</h2>
+                <CardTitle className="text-lg font-headline">Ask our Experts</CardTitle>
                 <p className="text-sm text-muted-foreground">Have a question about nutrition, workouts, or recovery? Our professionals are here to help.</p>
               </CardHeader>
               <CardContent>
@@ -560,7 +576,7 @@ export default function CommunityPage() {
             
             <div className="space-y-6">
                 <h2 className="text-2xl font-semibold font-headline">Answered Questions</h2>
-                {!isClient ? renderQaSkeletons() : qaPosts.map((qa) => (
+                {!isClient ? renderSkeletons() : qaPosts.map((qa) => (
                     <Card key={qa.id}>
                         <CardHeader>
                              <div className="flex items-center gap-4">
@@ -608,10 +624,42 @@ export default function CommunityPage() {
                     </Card>
                 ))}
             </div>
+          </TabsContent>
 
+          <TabsContent value="announcements" className="mt-6">
+            <div className="space-y-6">
+                <h2 className="text-2xl font-semibold font-headline">Professional Announcements</h2>
+                 {!isClient ? renderSkeletons() : professionalPosts.map((post) => (
+                    <Card key={post.id}>
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <Avatar>
+                                    <AvatarImage src={post.avatar} alt={post.author} data-ai-hint={post.aiHint} />
+                                    <AvatarFallback>{post.author.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="font-semibold">{post.author}</p>
+                                    <p className="text-xs text-muted-foreground">{post.specialty}</p>
+                                </div>
+                                {isClient && (
+                                    <p className="text-xs text-muted-foreground ml-auto">
+                                        {formatDistanceToNow(post.timestamp, { addSuffix: true })}
+                                    </p>
+                                )}
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
+                            <p className="text-muted-foreground whitespace-pre-wrap">{post.content}</p>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
     </AppLayout>
   );
 }
+
+    
