@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -20,13 +21,12 @@ import { Users, UtensilsCrossed, Dumbbell, ArrowRight } from "lucide-react";
 type Plan = "basic" | "premium" | "family";
 
 export default function DashboardPage() {
-  const [userPlan, setUserPlan] = useState<Plan>("premium");
-  const [userName, setUserName] = useState("Alex");
+  const [userPlan, setUserPlan] = useState<Plan | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     // In a real app, this would be fetched from an API
-    // and we wouldn't use Math.random
     const storedPlan = "premium" as Plan; // or 'basic', 'family'
     setUserPlan(storedPlan);
     setUserName("Alex"); // fetch user name
@@ -40,11 +40,20 @@ export default function DashboardPage() {
   };
   
   const greeting = () => {
+    if (!userName) return "Welcome!";
     const hours = new Date().getHours();
     if (hours < 12) return `Good morning, ${userName}!`;
     if (hours < 18) return `Good afternoon, ${userName}!`;
     return `Good evening, ${userName}!`;
   };
+  
+  if (!userPlan || !userName) {
+    return (
+      <AppLayout>
+        <div>Loading dashboard...</div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
