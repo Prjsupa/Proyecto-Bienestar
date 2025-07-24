@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -17,34 +19,51 @@ const postSchema = z.object({
   content: z.string().min(10, "Post must be at least 10 characters.").max(500, "Post cannot exceed 500 characters."),
 });
 
-const communityPosts = [
-  {
-    id: 1,
-    author: "Mark Johnson",
-    avatar: "https://placehold.co/40x40.png",
-    aiHint: "man lifting weights",
-    timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-    content: "Just hit a new PR on my deadlift! The key was focusing on my form, especially keeping my back straight. Remember to engage your lats before pulling. Stay strong everyone! #deadlift #PR",
-  },
-  {
-    id: 2,
-    author: "Jane Doe",
-    avatar: "https://placehold.co/40x40.png",
-    aiHint: "woman yoga",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    content: "Anyone have tips for improving flexibility for yoga? I'm struggling with forward folds. I've been trying to hold stretches for 30 seconds but not seeing much progress.",
-  },
-  {
-    id: 3,
-    author: "Carlos Rodriguez",
-    avatar: "https://placehold.co/40x40.png",
-    aiHint: "man running",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    content: "Completed my first 5k run today! The couch to 5k program on the app is fantastic. Highly recommend it for any beginners out there. The feeling of accomplishment is unreal.",
-  },
+type CommunityPost = {
+  id: number;
+  author: string;
+  avatar: string;
+  aiHint: string;
+  timestamp: Date;
+  content: string;
+};
+
+const initialPosts = [
+    {
+      id: 1,
+      author: "Mark Johnson",
+      avatar: "https://placehold.co/40x40.png",
+      aiHint: "man lifting weights",
+      content: "Just hit a new PR on my deadlift! The key was focusing on my form, especially keeping my back straight. Remember to engage your lats before pulling. Stay strong everyone! #deadlift #PR",
+    },
+    {
+      id: 2,
+      author: "Jane Doe",
+      avatar: "https://placehold.co/40x40.png",
+      aiHint: "woman yoga",
+      content: "Anyone have tips for improving flexibility for yoga? I'm struggling with forward folds. I've been trying to hold stretches for 30 seconds but not seeing much progress.",
+    },
+    {
+      id: 3,
+      author: "Carlos Rodriguez",
+      avatar: "https://placehold.co/40x40.png",
+      aiHint: "man running",
+      content: "Completed my first 5k run today! The couch to 5k program on the app is fantastic. Highly recommend it for any beginners out there. The feeling of accomplishment is unreal.",
+    },
 ];
 
 export default function CommunityPage() {
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
+  
+  useEffect(() => {
+    const postsWithTimestamps = [
+      { ...initialPosts[0], timestamp: new Date(Date.now() - 1000 * 60 * 5) }, // 5 minutes ago
+      { ...initialPosts[1], timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2) }, // 2 hours ago
+      { ...initialPosts[2], timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24) }, // 1 day ago
+    ];
+    setCommunityPosts(postsWithTimestamps);
+  }, []);
+
   const form = useForm<z.infer<typeof postSchema>>({
     resolver: zodResolver(postSchema),
     defaultValues: { content: "" },
