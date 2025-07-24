@@ -158,7 +158,6 @@ export default function CommunityPage() {
   const questionFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setIsClient(true);
     const postsWithTimestamps = initialPostsData.map((post, index) => ({
       ...post,
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * (5 * (index + 1))),
@@ -173,6 +172,7 @@ export default function CommunityPage() {
     }));
     setCommunityPosts(postsWithTimestamps);
     setQAPosts(qaWithTimestamps);
+    setIsClient(true);
   }, []);
   
   const postForm = useForm<z.infer<typeof postSchema>>({
@@ -403,9 +403,11 @@ export default function CommunityPage() {
                     </Avatar>
                     <div className="w-full">
                       <p className="font-semibold">{post.author}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(post.timestamp, { addSuffix: true })}
-                      </p>
+                      {isClient && (
+                          <p className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(post.timestamp, { addSuffix: true })}
+                          </p>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -428,9 +430,11 @@ export default function CommunityPage() {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2">
                                             <p className="font-semibold text-sm">{reply.author}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {formatDistanceToNow(reply.timestamp, { addSuffix: true })}
-                                            </p>
+                                            {isClient && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    {formatDistanceToNow(reply.timestamp, { addSuffix: true })}
+                                                </p>
+                                            )}
                                             {reply.isProfessional && (
                                                  <Badge variant="outline" className="border-primary/50 text-primary text-xs">
                                                     <Check className="w-3 h-3 mr-1" />
@@ -566,9 +570,11 @@ export default function CommunityPage() {
                                 </Avatar>
                                 <div>
                                     <p className="font-semibold">{qa.author}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        asked {formatDistanceToNow(qa.timestamp, { addSuffix: true })}
-                                    </p>
+                                    {isClient && (
+                                        <p className="text-xs text-muted-foreground">
+                                            asked {formatDistanceToNow(qa.timestamp, { addSuffix: true })}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </CardHeader>
@@ -609,4 +615,3 @@ export default function CommunityPage() {
     </AppLayout>
   );
 }
-
