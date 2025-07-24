@@ -11,6 +11,7 @@ import {
   Dumbbell,
   Menu,
   Video,
+  CalendarPlus,
 } from "lucide-react";
 
 import {
@@ -43,6 +44,7 @@ const navItems = [
   { href: "/live", icon: Video, label: "En Vivo" },
   { href: "/community", icon: Users, label: "Community" },
   { href: "/technique-clinic", icon: Dumbbell, label: "Técnica" },
+  { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita" },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
