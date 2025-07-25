@@ -22,9 +22,6 @@ export default function SchedulePage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const today = new Date();
-  const futureDate = addDays(today, 30);
-
   const handleSchedule = () => {
     if (!date || !selectedTime) {
       toast({
@@ -65,7 +62,6 @@ export default function SchedulePage() {
                     selected={date}
                     onSelect={setDate}
                     disabled={(day) => getDay(day) === 0 || getDay(day) === 6}
-                    initialFocus
                     className="rounded-md border"
                     locale={es}
                 />
