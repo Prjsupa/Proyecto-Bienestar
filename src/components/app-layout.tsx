@@ -39,10 +39,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VitaNovaIcon } from "./icons";
 
 const navItems = [
-  { href: "/dashboard", icon: Home, label: "Dashboard" },
-  { href: "/recipes", icon: UtensilsCrossed, label: "Recipes" },
+  { href: "/dashboard", icon: Home, label: "Panel" },
+  { href: "/recipes", icon: UtensilsCrossed, label: "Recetas" },
   { href: "/live", icon: Video, label: "En Vivo" },
-  { href: "/community", icon: Users, label: "Community" },
+  { href: "/community", icon: Users, label: "Comunidad" },
   { href: "/technique-clinic", icon: Dumbbell, label: "Técnica" },
   { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita" },
 ];
@@ -82,7 +82,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-sidebar-accent">
                     <Avatar>
                         <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                        <AvatarFallback>CN</AvatarFallback>
+                        <AvatarFallback>SD</AvatarFallback>
                     </Avatar>
                     <div className="group-data-[collapsible=icon]:hidden">
                         <p className="font-semibold text-sm">Sofia Davis</p>
@@ -100,11 +100,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem>Perfil</DropdownMenuItem>
+                <DropdownMenuItem>Configuración</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/">Log out</Link>
+                  <Link href="/">Cerrar Sesión</Link>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -124,7 +124,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon">
                   <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
+                  <span className="sr-only">Alternar menú de navegación</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col p-0 w-72">
@@ -140,7 +140,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex w-full items-center justify-end gap-4">
              <Button variant="ghost" size="icon" className="rounded-full">
               <Bell className="h-5 w-5" />
-              <span className="sr-only">Toggle notifications</span>
+              <span className="sr-only">Alternar notificaciones</span>
             </Button>
           </div>
         </header>
@@ -149,3 +149,4 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
+

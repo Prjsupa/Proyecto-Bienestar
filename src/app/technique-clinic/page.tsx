@@ -19,10 +19,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 const exercises = [
-  { name: "Squat", image: "https://placehold.co/600x400.png", aiHint: "person squatting" },
-  { name: "Deadlift", image: "https://placehold.co/600x400.png", aiHint: "person deadlifting" },
-  { name: "Bench Press", image: "https://placehold.co/600x400.png", aiHint: "person bench pressing" },
-  { name: "Overhead Press", image: "https://placehold.co/600x400.png", aiHint: "person overhead press" },
+  { name: "Sentadilla", image: "https://placehold.co/600x400.png", aiHint: "person squatting" },
+  { name: "Peso Muerto", image: "https://placehold.co/600x400.png", aiHint: "person deadlifting" },
+  { name: "Press de Banca", image: "https://placehold.co/600x400.png", aiHint: "person bench pressing" },
+  { name: "Press Militar", image: "https://placehold.co/600x400.png", aiHint: "person overhead press" },
 ];
 
 export default function TechniqueClinicPage() {
@@ -40,8 +40,8 @@ export default function TechniqueClinicPage() {
       } else {
         toast({
           variant: "destructive",
-          title: "Invalid File Type",
-          description: "Please select a video file.",
+          title: "Tipo de Archivo Inválido",
+          description: "Por favor, selecciona un archivo de video.",
         });
       }
     }
@@ -56,17 +56,17 @@ export default function TechniqueClinicPage() {
     if (!selectedFile) {
         toast({
             variant: "destructive",
-            title: "No file selected",
-            description: "Please select a video to analyze.",
+            title: "No se ha seleccionado ningún archivo",
+            description: "Por favor, selecciona un video para analizar.",
         });
         return;
     }
     toast({
-        title: "Video Enviado!",
+        title: "¡Video Enviado!",
         description: "Tu video ha sido enviado a nuestros coaches para revisión.",
     });
-    console.log("Submitting file:", selectedFile.name);
-    // Here you would typically upload the file and handle the form data
+    console.log("Subiendo archivo:", selectedFile.name);
+    // Aquí normalmente subirías el archivo y manejarías los datos del formulario
   }
 
   return (
@@ -107,15 +107,15 @@ export default function TechniqueClinicPage() {
                     ) : (
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         <Upload className="w-8 h-8" />
-                        <span className="font-semibold">Click to upload a video</span>
-                        <span className="text-xs">MP4, AVI, MOV up to 50MB</span>
+                        <span className="font-semibold">Haz clic para subir un video</span>
+                        <span className="text-xs">MP4, AVI, MOV hasta 50MB</span>
                       </div>
                     )}
                   </div>
                  
                   <Select required>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select exercise" />
+                      <SelectValue placeholder="Seleccionar ejercicio" />
                     </SelectTrigger>
                     <SelectContent>
                       {exercises.map(ex => <SelectItem key={ex.name} value={ex.name}>{ex.name}</SelectItem>)}
@@ -173,3 +173,4 @@ export default function TechniqueClinicPage() {
     </AppLayout>
   );
 }
+

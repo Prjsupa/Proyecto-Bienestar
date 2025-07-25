@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -7,12 +8,12 @@ import { VitaNovaIcon } from '@/components/icons';
 
 const plans = [
     {
-        name: "Basic",
+        name: "Básico",
         price: "$5",
         features: [
             "Acceso a dieta estándar",
         ],
-        cta: "Choose Basic"
+        cta: "Elegir Básico"
     },
     {
         name: "Premium",
@@ -20,18 +21,18 @@ const plans = [
         features: [
             "Acceso a rutinas y dieta semi-estándar",
         ],
-        cta: "Choose Premium"
+        cta: "Elegir Premium"
     },
     {
-        name: "Family",
-        price: "$100/mo",
+        name: "Familiar",
+        price: "$100/mes",
         features: [
             "Todas las características",
             "Coaching avanzado y personalizado",
             "Recetas ilimitadas",
             "Chat 1 a 1 con el coach",
         ],
-        cta: "Choose Family"
+        cta: "Elegir Familiar"
     }
 ];
 
@@ -40,19 +41,19 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-16 flex items-center bg-background/80 backdrop-blur-sm">
-        <Link href="/" className="flex items-center justify-center" aria-label="VitaNova Home">
+        <Link href="/" className="flex items-center justify-center" aria-label="VitaNova Inicio">
           <VitaNovaIcon className="h-6 w-6 text-primary" />
           <span className="sr-only">VitaNova</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Button variant="ghost" asChild>
             <Link href="/login">
-              Login
+              Iniciar Sesión
             </Link>
           </Button>
           <Button className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
             <Link href="/register">
-              Get Started
+              Comenzar
             </Link>
           </Button>
         </nav>
@@ -64,21 +65,21 @@ export default function LandingPage() {
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline text-primary-foreground/90">
-                    Your Personalized Path to Wellness
+                    Tu Camino Personalizado hacia el Bienestar
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl font-body">
-                    VitaNova offers tailored health plans, delicious recipes, and a supportive community to help you achieve your wellness goals.
+                    VitaNova ofrece planes de salud a medida, recetas deliciosas y una comunidad de apoyo para ayudarte a alcanzar tus metas de bienestar.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
                     <Link href="/register">
-                      Join Now
+                      Únete Ahora
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
                     <Link href="#features">
-                      Learn More
+                      Saber Más
                     </Link>
                   </Button>
                 </div>
@@ -87,7 +88,7 @@ export default function LandingPage() {
                 src="https://placehold.co/600x400.png"
                 width="600"
                 height="400"
-                alt="Hero"
+                alt="Héroe"
                 data-ai-hint="healthy food"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
               />
@@ -98,10 +99,10 @@ export default function LandingPage() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline">Key Features</div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-primary-foreground/90">A Healthier Life, Simplified</h2>
+                <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline">Características Clave</div>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-primary-foreground/90">Una Vida Más Sana, Simplificada</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed font-body">
-                  We provide the tools and support you need to thrive. Explore our features designed for your success.
+                  Te proporcionamos las herramientas y el apoyo que necesitas para prosperar. Explora nuestras funciones diseñadas para tu éxito.
                 </p>
               </div>
             </div>
@@ -111,10 +112,10 @@ export default function LandingPage() {
                   <div className="p-3 rounded-full bg-accent/20 text-accent-foreground">
                     <Leaf className="h-8 w-8" />
                   </div>
-                  <CardTitle className="font-headline mt-4">Personalized Plans</CardTitle>
+                  <CardTitle className="font-headline mt-4">Planes Personalizados</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center font-body text-muted-foreground">
-                  Choose a plan that fits your lifestyle and goals, from basic wellness to family health.
+                  Elige un plan que se ajuste a tu estilo de vida y objetivos, desde bienestar básico hasta salud familiar.
                 </CardContent>
               </Card>
               <Card className="hover:shadow-lg transition-shadow duration-300">
@@ -122,10 +123,10 @@ export default function LandingPage() {
                    <div className="p-3 rounded-full bg-accent/20 text-accent-foreground">
                     <UtensilsCrossed className="h-8 w-8" />
                   </div>
-                  <CardTitle className="font-headline mt-4">Healthy Recipes</CardTitle>
+                  <CardTitle className="font-headline mt-4">Recetas Saludables</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center font-body text-muted-foreground">
-                  Access a library of delicious and nutritious recipes tailored to your dietary needs.
+                  Accede a una biblioteca de recetas deliciosas y nutritivas adaptadas a tus necesidades dietéticas.
                 </CardContent>
               </Card>
               <Card className="hover:shadow-lg transition-shadow duration-300">
@@ -133,10 +134,10 @@ export default function LandingPage() {
                    <div className="p-3 rounded-full bg-accent/20 text-accent-foreground">
                     <Dumbbell className="h-8 w-8" />
                   </div>
-                  <CardTitle className="font-headline mt-4">Workout Techniques</CardTitle>
+                  <CardTitle className="font-headline mt-4">Técnicas de Entrenamiento</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center font-body text-muted-foreground">
-                  Learn proper workout techniques to maximize results and prevent injuries.
+                  Aprende técnicas de entrenamiento adecuadas para maximizar resultados y prevenir lesiones.
                 </CardContent>
               </Card>
               <Card className="hover:shadow-lg transition-shadow duration-300">
@@ -144,10 +145,10 @@ export default function LandingPage() {
                    <div className="p-3 rounded-full bg-accent/20 text-accent-foreground">
                     <Users className="h-8 w-8" />
                   </div>
-                  <CardTitle className="font-headline mt-4">Community Support</CardTitle>
+                  <CardTitle className="font-headline mt-4">Apoyo Comunitario</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center font-body text-muted-foreground">
-                  Connect with others, share your progress, and stay motivated together.
+                  Conéctate con otros, comparte tu progreso y manténganse motivados juntos.
                 </CardContent>
               </Card>
             </div>
@@ -157,10 +158,10 @@ export default function LandingPage() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-background px-3 py-1 text-sm font-headline">Pricing Plans</div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-primary-foreground/90">Find the Perfect Plan</h2>
+                <div className="inline-block rounded-lg bg-background px-3 py-1 text-sm font-headline">Planes de Precios</div>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-primary-foreground/90">Encuentra el Plan Perfecto</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed font-body">
-                  Whether you're starting out or need advanced features, we have a plan for you.
+                  Ya sea que estés comenzando o necesites funciones avanzadas, tenemos un plan para ti.
                 </p>
               </div>
             </div>
@@ -193,16 +194,17 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; 2024 VitaNova. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">&copy; 2024 VitaNova. Todos los derechos reservados.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Terms of Service
+            Términos de Servicio
           </Link>
           <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Privacy
+            Privacidad
           </Link>
         </nav>
       </footer>
     </div>
   );
 }
+

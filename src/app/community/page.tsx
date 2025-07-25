@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 import { Check, MessageCircle, Paperclip, X, CornerDownRight, Annoyed } from "lucide-react";
 
 import { AppLayout } from "@/components/app-layout";
@@ -22,17 +23,17 @@ import { Input } from "@/components/ui/input";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const postSchema = z.object({
-  content: z.string().min(10, "Post must be at least 10 characters.").max(500, "Post cannot exceed 500 characters."),
+  content: z.string().min(10, "La publicación debe tener al menos 10 caracteres.").max(500, "La publicación no puede exceder los 500 caracteres."),
   file: z.any().optional(),
 });
 
 const questionSchema = z.object({
-  question: z.string().min(15, "Question must be at least 15 characters.").max(500, "Question cannot exceed 500 characters."),
+  question: z.string().min(15, "La pregunta debe tener al menos 15 caracteres.").max(500, "La pregunta no puede exceder los 500 caracteres."),
   file: z.any().optional(),
 });
 
 const replySchema = z.object({
-  replyContent: z.string().min(1, "Reply cannot be empty.").max(500, "Reply cannot exceed 500 characters."),
+  replyContent: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
 });
 
 type Reply = {
@@ -88,31 +89,31 @@ const initialPostsData: Omit<CommunityPost, 'timestamp' | 'replies'>[] = [
       author: "Mark Johnson",
       avatar: "https://placehold.co/40x40.png",
       aiHint: "man lifting weights",
-      content: "Just hit a new PR on my deadlift! The key was focusing on my form, especially keeping my back straight. Remember to engage your lats before pulling. Stay strong everyone! #deadlift #PR",
+      content: "¡Acabo de alcanzar un nuevo récord personal en peso muerto! La clave fue concentrarme en la forma, especialmente en mantener la espalda recta. Recuerden activar los dorsales antes de tirar. ¡Manténganse fuertes todos! #pesomuerto #PR",
     },
     {
       id: 2,
       author: "Jane Doe",
       avatar: "https://placehold.co/40x40.png",
       aiHint: "woman yoga",
-      content: "Anyone have tips for improving flexibility for yoga? I'm struggling with forward folds. I've been trying to hold stretches for 30 seconds but not seeing much progress.",
+      content: "¿Alguien tiene consejos para mejorar la flexibilidad para el yoga? Me cuestan las flexiones hacia adelante. He estado intentando mantener los estiramientos durante 30 segundos pero no veo mucho progreso.",
     },
     {
       id: 3,
       author: "Carlos Rodriguez",
       avatar: "https://placehold.co/40x40.png",
       aiHint: "man running",
-      content: "Completed my first 5k run today! The couch to 5k program on the app is fantastic. Highly recommend it for any beginners out there. The feeling of accomplishment is unreal.",
+      content: "¡Hoy completé mi primera carrera de 5k! El programa 'Del sofá a los 5k' de la app es fantástico. Lo recomiendo mucho para cualquier principiante. La sensación de logro es increíble.",
     },
 ];
 
 const initialRepliesData: Omit<Reply, 'timestamp'>[][] = [
     [
-        { id: 1, author: 'Coach Sarah', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman coach', content: 'Awesome work Mark! Form is everything. Keep it up!', isProfessional: true },
-        { id: 2, author: 'Alex', avatar: 'https://placehold.co/40x40.png', aiHint: 'person gym', content: 'Congrats! That\'s a huge achievement.' },
+        { id: 1, author: 'Coach Sarah', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman coach', content: '¡Impresionante trabajo Mark! La forma lo es todo. ¡Sigue así!', isProfessional: true },
+        { id: 2, author: 'Alex', avatar: 'https://placehold.co/40x40.png', aiHint: 'person gym', content: '¡Felicidades! Es un gran logro.' },
     ],
     [
-        { id: 3, author: 'Michael Star', avatar: 'https://placehold.co/40x40.png', aiHint: 'man physiotherapist', content: 'Consistency is key, Jane. Try incorporating dynamic stretches before your sessions and holding static stretches after. PNF stretching could also be very beneficial for you.', isProfessional: true },
+        { id: 3, author: 'Michael Star', avatar: 'https://placehold.co/40x40.png', aiHint: 'man physiotherapist', content: 'La constancia es clave, Jane. Intenta incorporar estiramientos dinámicos antes de tus sesiones y mantén estiramientos estáticos después. El estiramiento FNP también podría ser muy beneficioso para ti.', isProfessional: true },
     ],
     [],
 ]
@@ -124,13 +125,13 @@ const initialQAData: Omit<QAPost, 'timestamp'>[] = [
         author: 'Laura Evans',
         avatar: 'https://placehold.co/40x40.png',
         aiHint: 'woman thinking',
-        question: 'What are the best post-workout meals for muscle recovery? I always feel so sore the next day.',
+        question: '¿Cuáles son las mejores comidas post-entrenamiento para la recuperación muscular? Siempre me siento muy adolorida al día siguiente.',
         answer: {
-            professional: 'Dr. Emily Carter',
-            specialty: 'Nutritionist',
+            professional: 'Dra. Emily Carter',
+            specialty: 'Nutricionista',
             avatar: 'https://placehold.co/40x40.png',
             aiHint: 'woman doctor smiling',
-            content: "Great question, Laura! For muscle recovery, aim for a meal with a 3:1 or 4:1 ratio of carbohydrates to protein within 45 minutes of your workout. A smoothie with fruit and protein powder, or grilled chicken with sweet potato are excellent choices. This helps replenish glycogen stores and repair muscle fibers.",
+            content: "¡Gran pregunta, Laura! Para la recuperación muscular, apunta a una comida con una proporción de 3:1 o 4:1 de carbohidratos a proteínas dentro de los 45 minutos posteriores a tu entrenamiento. Un batido con fruta y proteína en polvo, o pollo a la parrilla con batata son excelentes opciones. Esto ayuda a reponer las reservas de glucógeno y a reparar las fibras musculares.",
         }
     },
     {
@@ -138,13 +139,13 @@ const initialQAData: Omit<QAPost, 'timestamp'>[] = [
         author: 'David Chen',
         avatar: 'https://placehold.co/40x40.png',
         aiHint: 'man stretching',
-        question: 'I have a slight pain in my right knee when I do squats. Should I be concerned?',
+        question: 'Tengo un ligero dolor en la rodilla derecha cuando hago sentadillas. ¿Debería preocuparme?',
         answer: {
             professional: 'Michael Star',
-            specialty: 'Physiotherapist',
+            specialty: 'Fisioterapeuta',
             avatar: 'https://placehold.co/40x40.png',
             aiHint: 'man physiotherapist',
-            content: "Hi David, it's wise to listen to your body. Pain during squats could be due to form. Ensure your knees are tracking over your feet and not caving inwards. Try filming yourself or have a professional check your form. If the pain persists, it's best to get it checked out to rule out any underlying issues. For now, try reducing the weight and focusing on form.",
+            content: "Hola David, es prudente escuchar a tu cuerpo. El dolor durante las sentadillas podría deberse a la forma. Asegúrate de que tus rodillas sigan la línea de tus pies y no se vayan hacia adentro. Intenta grabarte o que un profesional revise tu forma. Si el dolor persiste, es mejor que te lo revisen para descartar cualquier problema subyacente. Por ahora, intenta reducir el peso y concéntrate en la forma.",
         }
     },
     {
@@ -152,7 +153,7 @@ const initialQAData: Omit<QAPost, 'timestamp'>[] = [
         author: 'Maria Garcia',
         avatar: 'https://placehold.co/40x40.png',
         aiHint: 'woman confused',
-        question: 'How much cardio is too much? I want to lose weight but I don\'t want to lose muscle mass.',
+        question: '¿Cuánto cardio es demasiado? Quiero perder peso pero no quiero perder masa muscular.',
         answer: null,
     }
 ]
@@ -161,7 +162,7 @@ const initialProfessionalPostsData: Omit<ProfessionalPost, 'timestamp'>[] = [
     {
         id: 1,
         author: "Coach Sarah",
-        specialty: "Head Coach",
+        specialty: "Entrenadora Principal",
         avatar: 'https://placehold.co/40x40.png',
         aiHint: "woman coach",
         title: "¡Nueva clase en vivo esta semana!",
@@ -169,8 +170,8 @@ const initialProfessionalPostsData: Omit<ProfessionalPost, 'timestamp'>[] = [
     },
     {
         id: 2,
-        author: "Dr. Emily Carter",
-        specialty: "Nutritionist",
+        author: "Dra. Emily Carter",
+        specialty: "Nutricionista",
         avatar: 'https://placehold.co/40x40.png',
         aiHint: "woman doctor smiling",
         title: "La importancia de la hidratación",
@@ -232,7 +233,7 @@ export default function CommunityPage() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
-        alert("File size cannot exceed 5MB.");
+        alert("El archivo no puede exceder los 5MB.");
         return;
       }
       setFile(file);
@@ -241,7 +242,7 @@ export default function CommunityPage() {
 
 
   function onPostSubmit(values: z.infer<typeof postSchema>) {
-    console.log("New post:", {...values, file: selectedPostFile?.name});
+    console.log("Nueva publicación:", {...values, file: selectedPostFile?.name});
     const newPost: CommunityPost = {
         id: Date.now(),
         author: 'Sofia Davis',
@@ -258,7 +259,7 @@ export default function CommunityPage() {
   }
   
   function onQuestionSubmit(values: z.infer<typeof questionSchema>) {
-    console.log("New question:", {...values, file: selectedQuestionFile?.name});
+    console.log("Nueva pregunta:", {...values, file: selectedQuestionFile?.name});
     const newQA: QAPost = {
         id: Date.now(),
         author: 'Sofia Davis',
@@ -275,16 +276,16 @@ export default function CommunityPage() {
   }
 
   function onReplySubmit(postId: number, values: z.infer<typeof replySchema>) {
-    console.log(`Replying to post ${postId}:`, values.replyContent);
-    // In a real app, you'd send this to a server
+    console.log(`Respondiendo a la publicación ${postId}:`, values.replyContent);
+    // En una app real, esto se enviaría a un servidor
     const newReply: Reply = {
         id: Date.now(),
-        author: 'Sofia Davis', // Assuming the current user is Sofia
+        author: 'Sofia Davis', // Asumiendo que el usuario actual es Sofia
         avatar: 'https://github.com/shadcn.png',
         aiHint: 'person smiling',
         timestamp: new Date(),
         content: values.replyContent,
-        isProfessional: false // Change to true if a professional is replying
+        isProfessional: false // Cambiar a true si un profesional responde
     };
     setCommunityPosts(posts => posts.map(post => 
         post.id === postId ? {...post, replies: [...post.replies, newReply]} : post
@@ -318,23 +319,23 @@ export default function CommunityPage() {
     <AppLayout>
       <div className="max-w-4xl mx-auto">
         <div className="space-y-2 mb-8">
-          <h1 className="text-3xl font-bold font-headline">Community Hub</h1>
+          <h1 className="text-3xl font-bold font-headline">Centro de Comunidad</h1>
           <p className="text-muted-foreground">
-            Connect with peers and get expert advice to supercharge your wellness journey.
+            Conecta con compañeros y obtén consejos de expertos para potenciar tu viaje de bienestar.
           </p>
         </div>
 
         <Tabs defaultValue="feed" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="feed">Community Feed</TabsTrigger>
-            <TabsTrigger value="q-and-a">Ask a Professional</TabsTrigger>
-            <TabsTrigger value="announcements">Professional Announcements</TabsTrigger>
+            <TabsTrigger value="feed">Comunidad</TabsTrigger>
+            <TabsTrigger value="q-and-a">Pregúntale a un Profesional</TabsTrigger>
+            <TabsTrigger value="announcements">Anuncios de Profesionales</TabsTrigger>
           </TabsList>
           
           <TabsContent value="feed" className="mt-6">
             <Card className="mb-8">
               <CardHeader>
-                <CardTitle className="text-lg font-headline">Share your thoughts</CardTitle>
+                <CardTitle className="text-lg font-headline">Comparte tus ideas</CardTitle>
               </CardHeader>
               <CardContent>
                 <Form {...postForm}>
@@ -346,7 +347,7 @@ export default function CommunityPage() {
                         <FormItem>
                           <FormControl>
                             <Textarea
-                              placeholder="What's on your mind? Share a workout tip or a recent success!"
+                              placeholder="¿Qué tienes en mente? ¡Comparte un consejo de entrenamiento o un éxito reciente!"
                               className="resize-none"
                               rows={4}
                               {...field}
@@ -392,7 +393,7 @@ export default function CommunityPage() {
                                     />
                                     <Button type="button" variant="outline" onClick={() => postFileInputRef.current?.click()}>
                                         <Paperclip className="w-4 h-4 mr-2"/>
-                                        Attach File
+                                        Adjuntar Archivo
                                     </Button>
                                   </>
                                 </FormControl>
@@ -401,7 +402,7 @@ export default function CommunityPage() {
                         )}
                        />
 
-                      <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Publish</Button>
+                      <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Publicar</Button>
                     </div>
                   </form>
                 </Form>
@@ -409,7 +410,7 @@ export default function CommunityPage() {
             </Card>
 
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold font-headline">Recent Posts</h2>
+              <h2 className="text-2xl font-semibold font-headline">Publicaciones Recientes</h2>
               {!isClient ? renderSkeletons() : communityPosts.map((post) => (
                 <Card key={post.id}>
                   <CardHeader className="flex flex-row items-center gap-4 space-y-0">
@@ -421,7 +422,7 @@ export default function CommunityPage() {
                       <p className="font-semibold">{post.author}</p>
                       {isClient && (
                           <p className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(post.timestamp, { addSuffix: true })}
+                              {formatDistanceToNow(post.timestamp, { addSuffix: true, locale: es })}
                           </p>
                       )}
                     </div>
@@ -432,7 +433,7 @@ export default function CommunityPage() {
                   <CardFooter className="flex-col items-start gap-4">
                      <Button variant="ghost" size="sm" onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}>
                         <CornerDownRight className="w-4 h-4 mr-2"/>
-                        Reply
+                        Responder
                      </Button>
 
                      {post.replies.length > 0 && (
@@ -448,13 +449,13 @@ export default function CommunityPage() {
                                             <p className="font-semibold text-sm">{reply.author}</p>
                                             {isClient && (
                                                 <p className="text-xs text-muted-foreground">
-                                                    {formatDistanceToNow(reply.timestamp, { addSuffix: true })}
+                                                    {formatDistanceToNow(reply.timestamp, { addSuffix: true, locale: es })}
                                                 </p>
                                             )}
                                             {reply.isProfessional && (
                                                  <Badge variant="outline" className="border-primary/50 text-primary text-xs">
                                                     <Check className="w-3 h-3 mr-1" />
-                                                    Professional
+                                                    Profesional
                                                 </Badge>
                                             )}
                                         </div>
@@ -471,7 +472,7 @@ export default function CommunityPage() {
                                 <form onSubmit={replyForm.handleSubmit(data => onReplySubmit(post.id, data))} className="flex items-start gap-3">
                                     <Avatar className="w-8 h-8 mt-1">
                                         <AvatarImage src="https://github.com/shadcn.png" alt="Your avatar" data-ai-hint="person smiling"/>
-                                        <AvatarFallback>You</AvatarFallback>
+                                        <AvatarFallback>Tú</AvatarFallback>
                                     </Avatar>
                                     <FormField
                                         control={replyForm.control}
@@ -479,13 +480,13 @@ export default function CommunityPage() {
                                         render={({ field }) => (
                                             <FormItem className="flex-1">
                                                 <FormControl>
-                                                    <Input placeholder="Write a reply..." {...field} />
+                                                    <Input placeholder="Escribe una respuesta..." {...field} />
                                                 </FormControl>
                                                 <FormMessage/>
                                             </FormItem>
                                         )}
                                     />
-                                    <Button type="submit" size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">Send</Button>
+                                    <Button type="submit" size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">Enviar</Button>
                                 </form>
                             </Form>
                         </div>
@@ -499,8 +500,8 @@ export default function CommunityPage() {
           <TabsContent value="q-and-a" className="mt-6">
             <Card className="mb-8">
               <CardHeader>
-                <CardTitle className="text-lg font-headline">Ask our Experts</CardTitle>
-                <p className="text-sm text-muted-foreground">Have a question about nutrition, workouts, or recovery? Our professionals are here to help.</p>
+                <CardTitle className="text-lg font-headline">Pregúntale a nuestros Expertos</CardTitle>
+                <p className="text-sm text-muted-foreground">¿Tienes preguntas sobre nutrición, entrenamientos o recuperación? Nuestros profesionales están aquí para ayudarte.</p>
               </CardHeader>
               <CardContent>
                 <Form {...questionForm}>
@@ -510,10 +511,10 @@ export default function CommunityPage() {
                       name="question"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Your Question</FormLabel>
+                          <FormLabel>Tu Pregunta</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="For example: 'What's the best way to warm up for a run?'"
+                              placeholder="Por ejemplo: '¿Cuál es la mejor forma de calentar para una carrera?'"
                               className="resize-none"
                               rows={3}
                               {...field}
@@ -559,7 +560,7 @@ export default function CommunityPage() {
                                     />
                                     <Button type="button" variant="outline" onClick={() => questionFileInputRef.current?.click()}>
                                         <Paperclip className="w-4 h-4 mr-2"/>
-                                        Attach File
+                                        Adjuntar Archivo
                                     </Button>
                                   </>
                                 </FormControl>
@@ -567,7 +568,7 @@ export default function CommunityPage() {
                             </FormItem>
                         )}
                        />
-                      <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Submit Question</Button>
+                      <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Enviar Pregunta</Button>
                     </div>
                   </form>
                 </Form>
@@ -575,7 +576,7 @@ export default function CommunityPage() {
             </Card>
             
             <div className="space-y-6">
-                <h2 className="text-2xl font-semibold font-headline">Answered Questions</h2>
+                <h2 className="text-2xl font-semibold font-headline">Preguntas Respondidas</h2>
                 {!isClient ? renderSkeletons() : qaPosts.map((qa) => (
                     <Card key={qa.id}>
                         <CardHeader>
@@ -588,7 +589,7 @@ export default function CommunityPage() {
                                     <p className="font-semibold">{qa.author}</p>
                                     {isClient && (
                                         <p className="text-xs text-muted-foreground">
-                                            asked {formatDistanceToNow(qa.timestamp, { addSuffix: true })}
+                                            preguntó {formatDistanceToNow(qa.timestamp, { addSuffix: true, locale: es })}
                                         </p>
                                     )}
                                 </div>
@@ -609,7 +610,7 @@ export default function CommunityPage() {
                                         </div>
                                         <Badge variant="outline" className="ml-auto border-primary/50 text-primary">
                                             <Check className="w-3 h-3 mr-1" />
-                                            Professional
+                                            Profesional
                                         </Badge>
                                     </div>
                                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">{qa.answer.content}</p>
@@ -617,7 +618,7 @@ export default function CommunityPage() {
                             ) : (
                                 <div className="flex items-center justify-center text-sm text-muted-foreground p-4 bg-secondary/50 rounded-lg">
                                     <MessageCircle className="w-4 h-4 mr-2"/>
-                                    Awaiting response from a professional.
+                                    Esperando respuesta de un profesional.
                                 </div>
                             )}
                         </CardContent>
@@ -628,7 +629,7 @@ export default function CommunityPage() {
 
           <TabsContent value="announcements" className="mt-6">
             <div className="space-y-6">
-                <h2 className="text-2xl font-semibold font-headline">Professional Announcements</h2>
+                <h2 className="text-2xl font-semibold font-headline">Anuncios de Profesionales</h2>
                  {!isClient ? renderSkeletons() : professionalPosts.map((post) => (
                     <Card key={post.id}>
                         <CardHeader>
@@ -643,7 +644,7 @@ export default function CommunityPage() {
                                 </div>
                                 {isClient && (
                                     <p className="text-xs text-muted-foreground ml-auto">
-                                        {formatDistanceToNow(post.timestamp, { addSuffix: true })}
+                                        {formatDistanceToNow(post.timestamp, { addSuffix: true, locale: es })}
                                     </p>
                                 )}
                             </div>
@@ -662,4 +663,3 @@ export default function CommunityPage() {
   );
 }
 
-    

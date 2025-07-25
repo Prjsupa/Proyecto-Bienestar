@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -6,7 +7,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -15,48 +15,48 @@ import { Clock, Zap } from 'lucide-react';
 
 const recipes = [
   {
-    title: "Avocado Toast with Egg",
-    category: "Breakfast",
+    title: "Tostada de Aguacate con Huevo",
+    category: "Desayuno",
     time: "10 min",
     availability: "Disponible por 30 días",
     image: "https://placehold.co/600x400.png",
     aiHint: "avocado toast",
   },
   {
-    title: "Grilled Chicken Salad",
-    category: "Lunch",
+    title: "Ensalada de Pollo a la Parrilla",
+    category: "Almuerzo",
     time: "25 min",
     availability: "Disponible por 30 días",
     image: "https://placehold.co/600x400.png",
     aiHint: "chicken salad",
   },
   {
-    title: "Salmon with Asparagus",
-    category: "Dinner",
+    title: "Salmón con Espárragos",
+    category: "Cena",
     time: "30 min",
     availability: "Disponible por 30 días",
     image: "https://placehold.co/600x400.png",
     aiHint: "salmon asparagus",
   },
   {
-    title: "Berry Smoothie Bowl",
-    category: "Breakfast",
+    title: "Tazón de Batido de Bayas",
+    category: "Desayuno",
     time: "5 min",
     availability: "Disponible por 30 días",
     image: "https://placehold.co/600x400.png",
     aiHint: "smoothie bowl",
   },
   {
-    title: "Quinoa Power Bowl",
-    category: "Lunch",
+    title: "Tazón de Quinoa Energético",
+    category: "Almuerzo",
     time: "20 min",
     availability: "Disponible por 30 días",
     image: "https://placehold.co/600x400.png",
     aiHint: "quinoa bowl",
   },
   {
-    title: "Lentil Soup",
-    category: "Dinner",
+    title: "Sopa de Lentejas",
+    category: "Cena",
     time: "45 min",
     availability: "Disponible por 30 días",
     image: "https://placehold.co/600x400.png",
@@ -69,9 +69,9 @@ export default function RecipesPage() {
     <AppLayout>
       <div className="space-y-4">
         <div>
-            <h1 className="text-3xl font-bold font-headline">Recipes</h1>
+            <h1 className="text-3xl font-bold font-headline">Recetas</h1>
             <p className="text-muted-foreground">
-                Discover delicious and healthy meals to fuel your day.
+                Descubre comidas deliciosas y saludables para energizar tu día.
             </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -110,3 +110,4 @@ export default function RecipesPage() {
     </AppLayout>
   );
 }
+

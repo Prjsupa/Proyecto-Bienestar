@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -31,15 +32,15 @@ import { useToast } from "@/hooks/use-toast"
 import { VitaNovaIcon } from "@/components/icons"
 
 const plans = [
-  { id: "basic", name: "Basic", price: "$5", description: "Acceso a dieta estándar" },
+  { id: "basic", name: "Básico", price: "$5", description: "Acceso a dieta estándar" },
   { id: "premium", name: "Premium", price: "$32", description: "Acceso a rutinas y dieta semi-estándar" },
-  { id: "family", name: "Family", price: "$100/mo", description: "Todas las características, coaching avanzado y más." },
+  { id: "family", name: "Familiar", price: "$100/mes", description: "Todas las características, coaching avanzado y más." },
 ]
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email." }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
-  plan: z.string().min(1, { message: "Please select a plan." }),
+  email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
+  password: z.string().min(8, { message: "La contraseña debe tener al menos 8 caracteres." }),
+  plan: z.string().min(1, { message: "Por favor, selecciona un plan." }),
 })
 
 export default function RegisterPage() {
@@ -64,8 +65,8 @@ export default function RegisterPage() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values)
     toast({
-      title: "Account Created!",
-      description: "Welcome to VitaNova. Redirecting to your dashboard...",
+      title: "¡Cuenta Creada!",
+      description: "Bienvenido a VitaNova. Redirigiendo a tu panel de control...",
     })
     router.push("/dashboard")
   }
@@ -78,9 +79,9 @@ export default function RegisterPage() {
       </Link>
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-headline">Create an account</CardTitle>
+          <CardTitle className="text-2xl font-headline">Crear una cuenta</CardTitle>
           <CardDescription>
-            Join VitaNova today. Choose your plan and start your wellness journey.
+            Únete a VitaNova hoy. Elige tu plan y comienza tu viaje de bienestar.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -128,9 +129,9 @@ export default function RegisterPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>Correo Electrónico</FormLabel>
                       <FormControl>
-                        <Input placeholder="name@example.com" {...field} />
+                        <Input placeholder="nombre@ejemplo.com" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -141,7 +142,7 @@ export default function RegisterPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>Contraseña</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="••••••••" {...field} />
                       </FormControl>
@@ -152,16 +153,16 @@ export default function RegisterPage() {
               </div>
 
               <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                Sign Up
+                Registrarse
               </Button>
             </form>
           </Form>
         </CardContent>
         <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
+                ¿Ya tienes una cuenta?{" "}
                 <Link href="/login" className="underline text-accent-foreground/80 font-semibold">
-                    Login
+                    Iniciar Sesión
                 </Link>
             </p>
         </CardFooter>
@@ -169,3 +170,4 @@ export default function RegisterPage() {
     </div>
   )
 }
+

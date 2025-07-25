@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { addDays, format } from "date-fns";
+import { es } from "date-fns/locale";
 import { CalendarPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -35,8 +36,8 @@ export default function SchedulePage() {
     }
 
     toast({
-      title: "Cita Agendada!",
-      description: `Tu cita con la nutricionista ha sido agendada para el ${format(date, "PPP")} a las ${selectedTime}.`,
+      title: "¡Cita Agendada!",
+      description: `Tu cita con la nutricionista ha sido agendada para el ${format(date, "PPP", { locale: es })} a las ${selectedTime}.`,
     });
 
     setDate(new Date());
@@ -66,12 +67,13 @@ export default function SchedulePage() {
                     disabled={(day) => day < today || day > futureDate}
                     initialFocus
                     className="rounded-md border"
+                    locale={es}
                 />
             </div>
             <div className="space-y-6 p-4 sm:p-0">
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold font-headline">
-                  Horarios Disponibles para {date ? format(date, "PPP") : "..."}
+                  Horarios Disponibles para {date ? format(date, "PPP", { locale: es }) : "..."}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                     Selecciona uno de los horarios disponibles a continuación.
@@ -103,7 +105,7 @@ export default function SchedulePage() {
               <div className="flex-1">
                 {date && selectedTime ? (
                     <p className="text-sm text-muted-foreground">
-                        Cita seleccionada: <span className="font-semibold text-foreground">{format(date, "PPP")} a las {selectedTime}</span>
+                        Cita seleccionada: <span className="font-semibold text-foreground">{format(date, "PPP", { locale: es })} a las {selectedTime}</span>
                     </p>
                 ) : (
                     <p className="text-sm text-muted-foreground">
@@ -120,3 +122,4 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
+

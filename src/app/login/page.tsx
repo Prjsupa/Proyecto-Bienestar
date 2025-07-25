@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -28,10 +29,10 @@ import { useToast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: "Por favor, introduce una dirección de correo electrónico válida.",
   }),
   password: z.string().min(1, {
-    message: "Password is required.",
+    message: "La contraseña es obligatoria.",
   }),
 })
 
@@ -50,8 +51,8 @@ export default function LoginPage() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values)
     toast({
-      title: "Login Successful",
-      description: "Redirecting to your dashboard...",
+      title: "Inicio de Sesión Exitoso",
+      description: "Redirigiendo a tu panel de control...",
     })
     router.push("/dashboard")
   }
@@ -64,9 +65,9 @@ export default function LoginPage() {
         </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl font-headline">Login</CardTitle>
+          <CardTitle className="text-2xl font-headline">Iniciar Sesión</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account.
+            Introduce tu correo electrónico para acceder a tu cuenta.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -77,9 +78,9 @@ export default function LoginPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Correo Electrónico</FormLabel>
                     <FormControl>
-                      <Input placeholder="name@example.com" {...field} />
+                      <Input placeholder="nombre@ejemplo.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -90,7 +91,7 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Contraseña</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
@@ -99,14 +100,14 @@ export default function LoginPage() {
                 )}
               />
               <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                Login
+                Iniciar Sesión
               </Button>
             </form>
           </Form>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
+            ¿No tienes una cuenta?{" "}
             <Link href="/register" className="underline text-accent-foreground/80 font-semibold">
-              Sign up
+              Regístrate
             </Link>
           </div>
         </CardContent>
@@ -114,3 +115,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

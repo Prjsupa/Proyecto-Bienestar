@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -31,7 +32,7 @@ const liveSessions = [
   },
   {
     title: "Taller de Nutrición: Meal Prep",
-    instructor: "Dr. Emily Carter",
+    instructor: "Dra. Emily Carter",
     date: "Miércoles 12:00",
     availability: "Disponible por 7 días",
     image: "https://placehold.co/600x400.png",
@@ -94,3 +95,4 @@ export default function LivePage() {
     </AppLayout>
   );
 }
+

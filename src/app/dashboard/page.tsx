@@ -25,7 +25,7 @@ type Plan = "basic" | "premium" | "family";
 export default function DashboardPage() {
   const [userPlan, setUserPlan] = useState<Plan | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
-  const [greeting, setGreeting] = useState("Welcome!");
+  const [greeting, setGreeting] = useState("¡Bienvenido!");
   const [workoutProgress, setWorkoutProgress] = useState(0);
   const [mealProgress, setMealProgress] = useState(0);
   const [isClient, setIsClient] = useState(false);
@@ -38,9 +38,9 @@ export default function DashboardPage() {
     setUserName(name); 
     
     const hours = new Date().getHours();
-    if (hours < 12) setGreeting(`Good morning, ${name}!`);
-    else if (hours < 18) setGreeting(`Good afternoon, ${name}!`);
-    else setGreeting(`Good evening, ${name}!`);
+    if (hours < 12) setGreeting(`¡Buenos días, ${name}!`);
+    else if (hours < 18) setGreeting(`¡Buenas tardes, ${name}!`);
+    else setGreeting(`¡Buenas noches, ${name}!`);
 
     setWorkoutProgress(60);
     setMealProgress(57);
@@ -48,9 +48,9 @@ export default function DashboardPage() {
   }, []);
 
   const planDetails = {
-    basic: { name: "Basic Plan", features: ["Acceso a dieta estándar"] },
-    premium: { name: "Premium Plan", features: ["Acceso a rutinas y dieta semi-estándar"] },
-    family: { name: "Family Plan", features: ["Todas las características", "Coaching avanzado y personalizado", "Recetas ilimitadas", "Chat 1 a 1 con el coach"] }
+    basic: { name: "Plan Básico", features: ["Acceso a dieta estándar"] },
+    premium: { name: "Plan Premium", features: ["Acceso a rutinas y dieta semi-estándar"] },
+    family: { name: "Plan Familiar", features: ["Todas las características", "Coaching avanzado y personalizado", "Recetas ilimitadas", "Chat 1 a 1 con el coach"] }
   };
   
   if (!isClient || !userPlan || !userName) {
@@ -80,14 +80,14 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-3xl font-bold font-headline">{greeting}</h1>
-          <p className="text-muted-foreground">Here's your wellness snapshot for today.</p>
+          <p className="text-muted-foreground">Aquí tienes tu resumen de bienestar para hoy.</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader>
               <CardTitle className="font-headline flex items-center justify-between">
-                <span>Your Plan</span>
+                <span>Tu Plan</span>
                 <Badge variant="secondary" className="bg-accent/50 text-accent-foreground">{planDetails[userPlan].name}</Badge>
               </CardTitle>
             </CardHeader>
@@ -97,40 +97,40 @@ export default function DashboardPage() {
               </ul>
             </CardContent>
             <CardFooter>
-                 <Button variant="outline" size="sm">Manage Plan</Button>
+                 <Button variant="outline" size="sm">Gestionar Plan</Button>
             </CardFooter>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline">Weekly Progress</CardTitle>
-              <CardDescription>You're doing great this week!</CardDescription>
+              <CardTitle className="font-headline">Progreso Semanal</CardTitle>
+              <CardDescription>¡Lo estás haciendo genial esta semana!</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
                 <div className="flex justify-between text-sm font-medium">
-                    <span>Workouts</span>
+                    <span>Entrenamientos</span>
                     <span>3/5</span>
                 </div>
-                <Progress value={workoutProgress} aria-label={`${workoutProgress}% of workouts complete`} />
+                <Progress value={workoutProgress} aria-label={`${workoutProgress}% de los entrenamientos completados`} />
                 <div className="flex justify-between text-sm font-medium pt-2">
-                    <span>Healthy Meals</span>
+                    <span>Comidas Saludables</span>
                     <span>12/21</span>
                 </div>
-                <Progress value={mealProgress} aria-label={`${mealProgress}% of meals healthy`} />
+                <Progress value={mealProgress} aria-label={`${mealProgress}% de las comidas saludables`} />
             </CardContent>
           </Card>
           
            {userPlan !== 'basic' && (
              <Card className="bg-gradient-to-tr from-primary/80 to-accent/80 text-primary-foreground">
                 <CardHeader>
-                    <CardTitle className="font-headline">Personalized Coaching</CardTitle>
-                    <CardDescription className="text-primary-foreground/80">Your coach is available to help you.</CardDescription>
+                    <CardTitle className="font-headline">Coaching Personalizado</CardTitle>
+                    <CardDescription className="text-primary-foreground/80">Tu coach está disponible para ayudarte.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-sm">"Remember to stay hydrated during your workout today, Alex!" - Coach Sarah</p>
+                    <p className="text-sm">"¡Recuerda mantenerte hidratado durante tu entrenamiento de hoy, Alex!" - Coach Sarah</p>
                 </CardContent>
                 <CardFooter>
-                    <Button variant="secondary" className="bg-background/20 hover:bg-background/30 text-primary-foreground">Chat with Coach</Button>
+                    <Button variant="secondary" className="bg-background/20 hover:bg-background/30 text-primary-foreground">Chatear con el Coach</Button>
                 </CardFooter>
              </Card>
            )}
@@ -139,41 +139,41 @@ export default function DashboardPage() {
         <div className="grid gap-6 lg:grid-cols-2">
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline flex items-center gap-2"><UtensilsCrossed className="w-5 h-5" /> Today's Recipe</CardTitle>
+                    <CardTitle className="font-headline flex items-center gap-2"><UtensilsCrossed className="w-5 h-5" /> Receta del Día</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col sm:flex-row gap-4">
                     <Image 
                         src="https://placehold.co/400x300.png"
-                        alt="Recipe"
+                        alt="Receta"
                         width={150}
                         height={100}
                         className="rounded-lg object-cover"
                         data-ai-hint="quinoa salad"
                     />
                     <div className="space-y-2">
-                        <h3 className="font-semibold font-headline">Quinoa & Avocado Salad</h3>
-                        <p className="text-sm text-muted-foreground">A refreshing and protein-packed meal perfect for lunch.</p>
+                        <h3 className="font-semibold font-headline">Ensalada de Quinoa y Aguacate</h3>
+                        <p className="text-sm text-muted-foreground">Una comida refrescante y llena de proteínas, perfecta para el almuerzo.</p>
                         <Button asChild variant="link" className="p-0 h-auto">
-                            <Link href="/recipes">View Recipe <ArrowRight className="w-4 h-4 ml-1" /></Link>
+                            <Link href="/recipes">Ver Receta <ArrowRight className="w-4 h-4 ml-1" /></Link>
                         </Button>
                     </div>
                 </CardContent>
             </Card>
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline flex items-center gap-2"><Users className="w-5 h-5" /> Community Buzz</CardTitle>
+                    <CardTitle className="font-headline flex items-center gap-2"><Users className="w-5 h-5" /> Novedades de la Comunidad</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-center gap-3">
-                        <Image src="https://placehold.co/40x40.png" alt="User avatar" width={40} height={40} className="rounded-full" data-ai-hint="person smiling" />
-                        <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Mark R.</span> shared a new deadlift technique.</p>
+                        <Image src="https://placehold.co/40x40.png" alt="Avatar de usuario" width={40} height={40} className="rounded-full" data-ai-hint="person smiling" />
+                        <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Mark R.</span> compartió una nueva técnica de peso muerto.</p>
                     </div>
                      <div className="flex items-center gap-3">
-                        <Image src="https://placehold.co/40x40.png" alt="User avatar" width={40} height={40} className="rounded-full" data-ai-hint="woman jogging" />
-                        <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Jane D.</span> is looking for a running partner.</p>
+                        <Image src="https://placehold.co/40x40.png" alt="Avatar de usuario" width={40} height={40} className="rounded-full" data-ai-hint="woman jogging" />
+                        <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Jane D.</span> está buscando un compañero para correr.</p>
                     </div>
                      <Button asChild variant="link" className="p-0 h-auto">
-                        <Link href="/community">Join Conversation <ArrowRight className="w-4 h-4 ml-1" /></Link>
+                        <Link href="/community">Únete a la Conversación <ArrowRight className="w-4 h-4 ml-1" /></Link>
                     </Button>
                 </CardContent>
             </Card>
@@ -183,3 +183,4 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
+
