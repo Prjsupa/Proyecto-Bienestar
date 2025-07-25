@@ -1,9 +1,43 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Leaf, Dumbbell, UtensilsCrossed, Users } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Leaf, Dumbbell, UtensilsCrossed, Users, Check } from 'lucide-react';
 import { VitaNovaIcon } from '@/components/icons';
+
+const plans = [
+    {
+        name: "Basic",
+        price: "$9.99/mo",
+        features: [
+            "Core features for individual wellness",
+            "Access to 10 new recipes weekly",
+            "Basic workout plans"
+        ],
+        cta: "Choose Basic"
+    },
+    {
+        name: "Premium",
+        price: "$19.99/mo",
+        features: [
+            "Advanced features and personalized coaching",
+            "Unlimited recipes",
+            "1-on-1 coach chat"
+        ],
+        cta: "Choose Premium"
+    },
+    {
+        name: "Family",
+        price: "$29.99/mo",
+        features: [
+            "All features for up to 4 family members",
+            "Family meal planner",
+            "All Premium features included"
+        ],
+        cta: "Choose Family"
+    }
+];
+
 
 export default function LandingPage() {
   return (
@@ -119,6 +153,44 @@ export default function LandingPage() {
                   Connect with others, share your progress, and stay motivated together.
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </section>
+        <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-secondary">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <div className="inline-block rounded-lg bg-background px-3 py-1 text-sm font-headline">Pricing Plans</div>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-primary-foreground/90">Find the Perfect Plan</h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed font-body">
+                  Whether you're starting out or need advanced features, we have a plan for you.
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid max-w-5xl items-center gap-8 pt-12 sm:grid-cols-1 md:grid-cols-3 md:gap-12">
+              {plans.map((plan) => (
+                <Card key={plan.name} className="flex flex-col hover:shadow-xl transition-shadow duration-300">
+                    <CardHeader className="text-center">
+                        <CardTitle className="font-headline text-2xl">{plan.name}</CardTitle>
+                        <p className="text-4xl font-bold font-headline">{plan.price}</p>
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-4">
+                       <ul className="space-y-2 text-muted-foreground">
+                        {plan.features.map((feature) => (
+                            <li key={feature} className="flex items-start">
+                                <Check className="w-4 h-4 mr-2 mt-1 text-primary"/>
+                                <span>{feature}</span>
+                            </li>
+                        ))}
+                       </ul>
+                    </CardContent>
+                    <CardFooter>
+                         <Button asChild className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                            <Link href="/register">{plan.cta}</Link>
+                        </Button>
+                    </CardFooter>
+                </Card>
+              ))}
             </div>
           </div>
         </section>
