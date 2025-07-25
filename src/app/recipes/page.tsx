@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Zap } from 'lucide-react';
@@ -110,4 +111,3 @@ export default function RecipesPage() {
     </AppLayout>
   );
 }
-
