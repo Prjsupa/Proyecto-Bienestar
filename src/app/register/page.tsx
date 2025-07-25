@@ -75,13 +75,12 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
       <Link href="/" className="absolute top-4 left-4 flex items-center gap-2 text-foreground font-semibold">
         <VitaNovaIcon className="h-6 w-6" />
-        <span className="font-headline">VitaNova</span>
       </Link>
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-headline">Crear una cuenta</CardTitle>
           <CardDescription>
-            Únete a VitaNova hoy. Elige tu plan y comienza tu viaje de bienestar.
+            Únete hoy. Elige tu plan y comienza tu viaje de bienestar.
           </CardDescription>
         </CardHeader>
         <CardContent>

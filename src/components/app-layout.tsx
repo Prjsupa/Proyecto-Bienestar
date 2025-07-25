@@ -55,9 +55,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2">
           <VitaNovaIcon className="w-8 h-8 text-primary" />
-          <span className="font-headline text-2xl font-semibold text-primary-foreground/90">
-            VitaNova
-          </span>
         </Link>
       </SidebarHeader>
       <SidebarContent>

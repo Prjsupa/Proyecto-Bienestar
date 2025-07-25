@@ -41,9 +41,9 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-16 flex items-center bg-background/80 backdrop-blur-sm">
-        <Link href="/" className="flex items-center justify-center" aria-label="VitaNova Inicio">
+        <Link href="/" className="flex items-center justify-center" aria-label="Inicio">
           <VitaNovaIcon className="h-6 w-6 text-primary" />
-          <span className="sr-only">VitaNova</span>
+          <span className="sr-only">Inicio</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Button variant="ghost" asChild>
@@ -68,7 +68,7 @@ export default function LandingPage() {
                     Tu Camino Personalizado hacia el Bienestar
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl font-body">
-                    VitaNova ofrece planes de salud a medida, recetas deliciosas y una comunidad de apoyo para ayudarte a alcanzar tus metas de bienestar.
+                    Planes de salud a medida, recetas deliciosas y una comunidad de apoyo para ayudarte a alcanzar tus metas de bienestar.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -194,7 +194,7 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; 2024 VitaNova. Todos los derechos reservados.</p>
+        <p className="text-xs text-muted-foreground">&copy; 2024. Todos los derechos reservados.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             Términos de Servicio
