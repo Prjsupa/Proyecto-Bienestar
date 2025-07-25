@@ -31,9 +31,9 @@ import { useToast } from "@/hooks/use-toast"
 import { VitaNovaIcon } from "@/components/icons"
 
 const plans = [
-  { id: "basic", name: "Basic", price: "$5", description: "Core features for individual wellness." },
-  { id: "premium", name: "Premium", price: "$32", description: "Advanced features and personalized coaching." },
-  { id: "family", name: "Family", price: "$100/mo", description: "All features for up to 4 family members." },
+  { id: "basic", name: "Basic", price: "$5", description: "Acceso a dieta estándar" },
+  { id: "premium", name: "Premium", price: "$32", description: "Acceso a rutinas y dieta semi-estándar" },
+  { id: "family", name: "Family", price: "$100/mo", description: "All features, advanced coaching and more." },
 ]
 
 const formSchema = z.object({

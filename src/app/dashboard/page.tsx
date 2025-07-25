@@ -48,9 +48,9 @@ export default function DashboardPage() {
   }, []);
 
   const planDetails = {
-    basic: { name: "Basic Plan", features: ["Access to 10 new recipes weekly", "Basic workout plans"] },
-    premium: { name: "Premium Plan", features: ["Unlimited recipes", "Personalized workout plans", "1-on-1 coach chat"] },
-    family: { name: "Family Plan", features: ["All Premium features", "Up to 4 family member profiles", "Family meal planner"] }
+    basic: { name: "Basic Plan", features: ["Acceso a dieta estándar"] },
+    premium: { name: "Premium Plan", features: ["Acceso a rutinas y dieta semi-estándar"] },
+    family: { name: "Family Plan", features: ["All features", "Advanced and personalized coaching", "Unlimited recipes", "1-on-1 coach chat"] }
   };
   
   if (!isClient || !userPlan || !userName) {
@@ -183,5 +183,3 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
-
-    

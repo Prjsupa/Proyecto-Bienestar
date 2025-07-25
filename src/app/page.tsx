@@ -10,9 +10,7 @@ const plans = [
         name: "Basic",
         price: "$5",
         features: [
-            "Core features for individual wellness",
-            "Access to 10 new recipes weekly",
-            "Basic workout plans"
+            "Acceso a dieta estándar",
         ],
         cta: "Choose Basic"
     },
@@ -20,9 +18,7 @@ const plans = [
         name: "Premium",
         price: "$32",
         features: [
-            "Advanced features and personalized coaching",
-            "Unlimited recipes",
-            "1-on-1 coach chat"
+            "Acceso a rutinas y dieta semi-estándar",
         ],
         cta: "Choose Premium"
     },
@@ -30,9 +26,10 @@ const plans = [
         name: "Family",
         price: "$100/mo",
         features: [
-            "All features for up to 4 family members",
-            "Family meal planner",
-            "All Premium features included"
+            "All features",
+            "Advanced and personalized coaching",
+            "Unlimited recipes",
+            "1-on-1 coach chat"
         ],
         cta: "Choose Family"
     }
