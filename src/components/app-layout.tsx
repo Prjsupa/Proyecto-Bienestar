@@ -82,20 +82,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-sidebar-accent">
                     <Avatar>
                         <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                        <AvatarFallback>SD</AvatarFallback>
+                        <AvatarFallback>AD</AvatarFallback>
                     </Avatar>
                     <div className="group-data-[collapsible=icon]:hidden">
-                        <p className="font-semibold text-sm">Sofia Davis</p>
-                        <p className="text-xs text-muted-foreground">sofia.davis@email.com</p>
+                        <p className="font-semibold text-sm">Alex Davis</p>
+                        <p className="text-xs text-muted-foreground">usuario@test.com</p>
                     </div>
                 </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">Sofia Davis</p>
+                    <p className="text-sm font-medium leading-none">Alex Davis</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                    sofia.davis@email.com
+                    usuario@test.com
                     </p>
                 </div>
                 </DropdownMenuLabel>
@@ -149,4 +149,3 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
-

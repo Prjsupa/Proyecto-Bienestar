@@ -245,7 +245,7 @@ export default function CommunityPage() {
     console.log("Nueva publicación:", {...values, file: selectedPostFile?.name});
     const newPost: CommunityPost = {
         id: Date.now(),
-        author: 'Sofia Davis',
+        author: 'Alex Davis',
         avatar: 'https://github.com/shadcn.png',
         aiHint: 'person smiling',
         timestamp: new Date(),
@@ -262,7 +262,7 @@ export default function CommunityPage() {
     console.log("Nueva pregunta:", {...values, file: selectedQuestionFile?.name});
     const newQA: QAPost = {
         id: Date.now(),
-        author: 'Sofia Davis',
+        author: 'Alex Davis',
         avatar: 'https://github.com/shadcn.png',
         aiHint: 'person thinking',
         timestamp: new Date(),
@@ -280,7 +280,7 @@ export default function CommunityPage() {
     // En una app real, esto se enviaría a un servidor
     const newReply: Reply = {
         id: Date.now(),
-        author: 'Sofia Davis', // Asumiendo que el usuario actual es Sofia
+        author: 'Alex Davis', // Asumiendo que el usuario actual es Sofia
         avatar: 'https://github.com/shadcn.png',
         aiHint: 'person smiling',
         timestamp: new Date(),
@@ -380,21 +380,21 @@ export default function CommunityPage() {
                        <FormField
                         control={postForm.control}
                         name="file"
-                        render={() => (
+                        render={({ field }) => (
                             <FormItem>
                                 <FormControl>
                                   <Button type="button" variant="outline" onClick={() => postFileInputRef.current?.click()}>
                                       <Paperclip className="w-4 h-4 mr-2"/>
                                       Adjuntar Archivo
-                                      <input 
-                                        type="file" 
-                                        className="hidden" 
-                                        ref={postFileInputRef}
-                                        onChange={(e) => handleFileChange(e, setSelectedPostFile)}
-                                        accept="image/*,video/*,application/pdf,.doc,.docx"
-                                      />
                                   </Button>
                                 </FormControl>
+                                <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  ref={postFileInputRef}
+                                  onChange={(e) => handleFileChange(e, setSelectedPostFile)}
+                                  accept="image/*,video/*,application/pdf,.doc,.docx"
+                                />
                                 <FormMessage/>
                             </FormItem>
                         )}
@@ -470,7 +470,7 @@ export default function CommunityPage() {
                                 <form onSubmit={replyForm.handleSubmit(data => onReplySubmit(post.id, data))} className="flex items-start gap-3">
                                     <Avatar className="w-8 h-8 mt-1">
                                         <AvatarImage src="https://github.com/shadcn.png" alt="Your avatar" data-ai-hint="person smiling"/>
-                                        <AvatarFallback>Tú</AvatarFallback>
+                                        <AvatarFallback>AD</AvatarFallback>
                                     </Avatar>
                                     <FormField
                                         control={replyForm.control}
@@ -545,21 +545,21 @@ export default function CommunityPage() {
                        <FormField
                         control={questionForm.control}
                         name="file"
-                        render={() => (
+                        render={({ field }) => (
                             <FormItem>
                                 <FormControl>
                                   <Button type="button" variant="outline" onClick={() => questionFileInputRef.current?.click()}>
                                       <Paperclip className="w-4 h-4 mr-2"/>
                                       Adjuntar Archivo
-                                      <input 
-                                        type="file" 
-                                        className="hidden" 
-                                        ref={questionFileInputRef}
-                                        onChange={(e) => handleFileChange(e, setSelectedQuestionFile)}
-                                        accept="image/*,video/*,application/pdf,.doc,.docx"
-                                      />
                                   </Button>
                                 </FormControl>
+                                 <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    ref={questionFileInputRef}
+                                    onChange={(e) => handleFileChange(e, setSelectedQuestionFile)}
+                                    accept="image/*,video/*,application/pdf,.doc,.docx"
+                                  />
                                 <FormMessage/>
                             </FormItem>
                         )}
