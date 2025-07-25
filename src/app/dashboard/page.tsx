@@ -32,7 +32,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // In a real app, this would be fetched from an API
-    const storedPlan = "reto" as Plan; // or 'basic', 'premium'
+    const storedPlan = "premium" as Plan; // or 'basic', 'reto'
     const name = "Alex";
     setUserPlan(storedPlan);
     setUserName(name); 
