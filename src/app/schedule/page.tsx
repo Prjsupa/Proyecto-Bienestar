@@ -23,7 +23,7 @@ export default function SchedulePage() {
   const { toast } = useToast();
 
   const today = new Date();
-  const futureDate = addDays(today, 5);
+  const futureDate = addDays(today, 30);
 
   const handleSchedule = () => {
     if (!date || !selectedTime) {
@@ -122,4 +122,3 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
-
