@@ -20,7 +20,7 @@ import { Users, UtensilsCrossed, Dumbbell, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
-type Plan = "basic" | "premium" | "family";
+type Plan = "basic" | "reto" | "premium";
 
 export default function DashboardPage() {
   const [userPlan, setUserPlan] = useState<Plan | null>(null);
@@ -32,7 +32,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // In a real app, this would be fetched from an API
-    const storedPlan = "premium" as Plan; // or 'basic', 'family'
+    const storedPlan = "reto" as Plan; // or 'basic', 'premium'
     const name = "Alex";
     setUserPlan(storedPlan);
     setUserName(name); 
@@ -49,8 +49,8 @@ export default function DashboardPage() {
 
   const planDetails = {
     basic: { name: "Plan Básico", features: ["Acceso a dieta estándar"] },
-    premium: { name: "Plan Premium", features: ["Acceso a rutinas y dieta semi-estándar"] },
-    family: { name: "Plan Familiar", features: ["Todas las características", "Coaching avanzado y personalizado", "Recetas ilimitadas", "Chat 1 a 1 con el coach"] }
+    reto: { name: "Plan Reto", features: ["Acceso a rutinas y dieta semi-estándar"] },
+    premium: { name: "Plan Premium", features: ["Todas las características", "Coaching avanzado y personalizado", "Recetas ilimitadas", "Chat 1 a 1 con el coach"] }
   };
   
   if (!isClient || !userPlan || !userName) {
@@ -183,4 +183,3 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
-

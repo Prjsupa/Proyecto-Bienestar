@@ -16,15 +16,15 @@ const plans = [
         cta: "Elegir Básico"
     },
     {
-        name: "Premium",
+        name: "Reto",
         price: "$32",
         features: [
             "Acceso a rutinas y dieta semi-estándar",
         ],
-        cta: "Elegir Premium"
+        cta: "Elegir Reto"
     },
     {
-        name: "Familiar",
+        name: "Premium",
         price: "$100/mes",
         features: [
             "Todas las características",
@@ -32,7 +32,7 @@ const plans = [
             "Recetas ilimitadas",
             "Chat 1 a 1 con el coach",
         ],
-        cta: "Elegir Familiar"
+        cta: "Elegir Premium"
     }
 ];
 
@@ -207,4 +207,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

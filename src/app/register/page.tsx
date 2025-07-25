@@ -33,8 +33,8 @@ import { VitaNovaIcon } from "@/components/icons"
 
 const plans = [
   { id: "basic", name: "Básico", price: "$5", description: "Acceso a dieta estándar" },
-  { id: "premium", name: "Premium", price: "$32", description: "Acceso a rutinas y dieta semi-estándar" },
-  { id: "family", name: "Familiar", price: "$100/mes", description: "Todas las características, coaching avanzado y más." },
+  { id: "reto", name: "Reto", price: "$32", description: "Acceso a rutinas y dieta semi-estándar" },
+  { id: "premium", name: "Premium", price: "$100/mes", description: "Todas las características, coaching avanzado y más." },
 ]
 
 const formSchema = z.object({
@@ -46,14 +46,14 @@ const formSchema = z.object({
 export default function RegisterPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const [selectedPlan, setSelectedPlan] = useState("premium")
+  const [selectedPlan, setSelectedPlan] = useState("reto")
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
-      plan: "premium",
+      plan: "reto",
     },
   })
 
@@ -170,4 +170,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-
