@@ -6,7 +6,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { addDays, format } from "date-fns";
+import { addDays, format, getDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -64,7 +64,7 @@ export default function SchedulePage() {
                     mode="single"
                     selected={date}
                     onSelect={setDate}
-                    disabled={(day) => day < today || day > futureDate}
+                    disabled={(day) => getDay(day) === 0 || getDay(day) === 6 || day < today || day > futureDate}
                     initialFocus
                     className="rounded-md border"
                     locale={es}
