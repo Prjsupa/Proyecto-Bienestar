@@ -18,7 +18,7 @@ const availableTimes = [
 ];
 
 export default function SchedulePage() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -40,7 +40,7 @@ export default function SchedulePage() {
       description: `Tu cita con la nutricionista ha sido agendada para el ${format(date, "PPP", { locale: es })} a las ${selectedTime}.`,
     });
 
-    setDate(new Date());
+    setDate(undefined);
     setSelectedTime(null);
   };
 
@@ -64,7 +64,7 @@ export default function SchedulePage() {
                     mode="single"
                     selected={date}
                     onSelect={setDate}
-                    disabled={(day) => getDay(day) === 0 || getDay(day) === 6 || day < today || day > futureDate}
+                    disabled={(day) => getDay(day) === 0 || getDay(day) === 6}
                     initialFocus
                     className="rounded-md border"
                     locale={es}
