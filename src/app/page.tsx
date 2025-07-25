@@ -8,7 +8,7 @@ import { VitaNovaIcon } from '@/components/icons';
 const plans = [
     {
         name: "Basic",
-        price: "$9.99/mo",
+        price: "$5",
         features: [
             "Core features for individual wellness",
             "Access to 10 new recipes weekly",
@@ -18,7 +18,7 @@ const plans = [
     },
     {
         name: "Premium",
-        price: "$19.99/mo",
+        price: "$32",
         features: [
             "Advanced features and personalized coaching",
             "Unlimited recipes",
@@ -28,7 +28,7 @@ const plans = [
     },
     {
         name: "Family",
-        price: "$29.99/mo",
+        price: "$100/mo",
         features: [
             "All features for up to 4 family members",
             "Family meal planner",

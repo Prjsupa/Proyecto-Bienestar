@@ -31,9 +31,9 @@ import { useToast } from "@/hooks/use-toast"
 import { VitaNovaIcon } from "@/components/icons"
 
 const plans = [
-  { id: "basic", name: "Basic", price: "$9.99/mo", description: "Core features for individual wellness." },
-  { id: "premium", name: "Premium", price: "$19.99/mo", description: "Advanced features and personalized coaching." },
-  { id: "family", name: "Family", price: "$29.99/mo", description: "All features for up to 4 family members." },
+  { id: "basic", name: "Basic", price: "$5", description: "Core features for individual wellness." },
+  { id: "premium", name: "Premium", price: "$32", description: "Advanced features and personalized coaching." },
+  { id: "family", name: "Family", price: "$100/mo", description: "All features for up to 4 family members." },
 ]
 
 const formSchema = z.object({
@@ -152,7 +152,7 @@ export default function RegisterPage() {
               </div>
 
               <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                Adquirir
+                Sign Up
               </Button>
             </form>
           </Form>
