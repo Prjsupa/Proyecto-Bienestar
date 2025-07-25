@@ -26,10 +26,10 @@ const plans = [
         name: "Family",
         price: "$100/mo",
         features: [
-            "All features",
-            "Advanced and personalized coaching",
-            "Unlimited recipes",
-            "1-on-1 coach chat"
+            "Todas las características",
+            "Coaching avanzado y personalizado",
+            "Recetas ilimitadas",
+            "Chat 1 a 1 con el coach",
         ],
         cta: "Choose Family"
     }

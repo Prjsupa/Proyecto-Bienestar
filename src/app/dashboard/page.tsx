@@ -50,7 +50,7 @@ export default function DashboardPage() {
   const planDetails = {
     basic: { name: "Basic Plan", features: ["Acceso a dieta estándar"] },
     premium: { name: "Premium Plan", features: ["Acceso a rutinas y dieta semi-estándar"] },
-    family: { name: "Family Plan", features: ["All features", "Advanced and personalized coaching", "Unlimited recipes", "1-on-1 coach chat"] }
+    family: { name: "Family Plan", features: ["Todas las características", "Coaching avanzado y personalizado", "Recetas ilimitadas", "Chat 1 a 1 con el coach"] }
   };
   
   if (!isClient || !userPlan || !userName) {
