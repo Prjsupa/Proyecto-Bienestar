@@ -64,7 +64,7 @@ export default function LandingPage() {
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline text-primary-foreground/90">
+                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline text-foreground">
                     Tu Camino Personalizado hacia el Bienestar
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl font-body">
@@ -100,7 +100,7 @@ export default function LandingPage() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline">Características Clave</div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-primary-foreground/90">Una Vida Más Sana, Simplificada</h2>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-foreground">Una Vida Más Sana, Simplificada</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed font-body">
                   Te proporcionamos las herramientas y el apoyo que necesitas para prosperar. Explora nuestras funciones diseñadas para tu éxito.
                 </p>
@@ -109,7 +109,7 @@ export default function LandingPage() {
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-2 lg:max-w-none xl:grid-cols-4 pt-12">
               <Card className="hover:shadow-lg transition-shadow duration-300">
                 <CardHeader className="flex flex-col items-center text-center">
-                  <div className="p-3 rounded-full bg-accent/20 text-accent-foreground">
+                  <div className="p-3 rounded-full bg-accent/20 text-accent">
                     <Leaf className="h-8 w-8" />
                   </div>
                   <CardTitle className="font-headline mt-4">Planes Personalizados</CardTitle>
@@ -120,7 +120,7 @@ export default function LandingPage() {
               </Card>
               <Card className="hover:shadow-lg transition-shadow duration-300">
                 <CardHeader className="flex flex-col items-center text-center">
-                   <div className="p-3 rounded-full bg-accent/20 text-accent-foreground">
+                   <div className="p-3 rounded-full bg-accent/20 text-accent">
                     <UtensilsCrossed className="h-8 w-8" />
                   </div>
                   <CardTitle className="font-headline mt-4">Recetas Saludables</CardTitle>
@@ -131,7 +131,7 @@ export default function LandingPage() {
               </Card>
               <Card className="hover:shadow-lg transition-shadow duration-300">
                 <CardHeader className="flex flex-col items-center text-center">
-                   <div className="p-3 rounded-full bg-accent/20 text-accent-foreground">
+                   <div className="p-3 rounded-full bg-accent/20 text-accent">
                     <Dumbbell className="h-8 w-8" />
                   </div>
                   <CardTitle className="font-headline mt-4">Técnicas de Entrenamiento</CardTitle>
@@ -142,7 +142,7 @@ export default function LandingPage() {
               </Card>
               <Card className="hover:shadow-lg transition-shadow duration-300">
                 <CardHeader className="flex flex-col items-center text-center">
-                   <div className="p-3 rounded-full bg-accent/20 text-accent-foreground">
+                   <div className="p-3 rounded-full bg-accent/20 text-accent">
                     <Users className="h-8 w-8" />
                   </div>
                   <CardTitle className="font-headline mt-4">Apoyo Comunitario</CardTitle>
@@ -159,7 +159,7 @@ export default function LandingPage() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-background px-3 py-1 text-sm font-headline">Planes de Precios</div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-primary-foreground/90">Encuentra el Plan Perfecto</h2>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-foreground">Encuentra el Plan Perfecto</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed font-body">
                   Ya sea que estés comenzando o necesites funciones avanzadas, tenemos un plan para ti.
                 </p>
