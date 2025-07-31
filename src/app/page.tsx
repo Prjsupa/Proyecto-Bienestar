@@ -6,35 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Leaf, Dumbbell, UtensilsCrossed, Users, Check } from 'lucide-react';
 import { VitaNovaIcon } from '@/components/icons';
 
-const plans = [
-    {
-        name: "Básico",
-        price: "$5",
-        features: [
-            "Acceso a dieta estándar",
-        ],
-        cta: "Elegir Básico"
-    },
-    {
-        name: "Reto",
-        price: "$32",
-        features: [
-            "Acceso a rutinas y dieta semi-estándar",
-        ],
-        cta: "Elegir Reto"
-    },
-    {
-        name: "Premium",
-        price: "$100/mes",
-        features: [
-            "Todas las características",
-            "Coaching avanzado y personalizado",
-            "Recetas ilimitadas",
-            "Chat 1 a 1 con el coach",
-        ],
-        cta: "Elegir Premium"
-    }
-];
+const premiumPlan = {
+    name: "Premium",
+    price: "$100/mes",
+    features: [
+        "Todas las características",
+        "Coaching avanzado y personalizado",
+        "Recetas ilimitadas",
+        "Chat 1 a 1 con el coach",
+    ],
+    cta: "Suscribirse Ahora"
+};
 
 
 export default function LandingPage() {
@@ -158,23 +140,22 @@ export default function LandingPage() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-background px-3 py-1 text-sm font-headline">Planes de Precios</div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-foreground">Encuentra el Plan Perfecto</h2>
+                <div className="inline-block rounded-lg bg-background px-3 py-1 text-sm font-headline">Suscripción Premium</div>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline text-foreground">Acceso Total a Tu Bienestar</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed font-body">
-                  Ya sea que estés comenzando o necesites funciones avanzadas, tenemos un plan para ti.
+                  Obtén acceso ilimitado a todas nuestras herramientas, coaching personalizado y contenido exclusivo con nuestro plan premium.
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-8 pt-12 sm:grid-cols-1 md:grid-cols-3 md:gap-12">
-              {plans.map((plan) => (
-                <Card key={plan.name} className="flex flex-col hover:shadow-xl transition-shadow duration-300">
+            <div className="mx-auto max-w-2xl pt-12">
+                <Card className="flex flex-col hover:shadow-xl transition-shadow duration-300">
                     <CardHeader className="text-center">
-                        <CardTitle className="font-headline text-2xl">{plan.name}</CardTitle>
-                        <p className="text-4xl font-bold font-headline">{plan.price}</p>
+                        <CardTitle className="font-headline text-2xl">{premiumPlan.name}</CardTitle>
+                        <p className="text-4xl font-bold font-headline">{premiumPlan.price}</p>
                     </CardHeader>
                     <CardContent className="flex-1 space-y-4">
-                       <ul className="space-y-2 text-muted-foreground">
-                        {plan.features.map((feature) => (
+                       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-muted-foreground">
+                        {premiumPlan.features.map((feature) => (
                             <li key={feature} className="flex items-start">
                                 <Check className="w-4 h-4 mr-2 mt-1 text-primary"/>
                                 <span>{feature}</span>
@@ -183,12 +164,11 @@ export default function LandingPage() {
                        </ul>
                     </CardContent>
                     <CardFooter>
-                         <Button asChild className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                            <Link href="/register">{plan.cta}</Link>
+                         <Button asChild className="w-full bg-accent text-accent-foreground hover:bg-accent/90" size="lg">
+                            <Link href="/register">{premiumPlan.cta}</Link>
                         </Button>
                     </CardFooter>
                 </Card>
-              ))}
             </div>
           </div>
         </section>

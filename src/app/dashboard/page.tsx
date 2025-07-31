@@ -20,10 +20,7 @@ import { Users, UtensilsCrossed, Dumbbell, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
-type Plan = "basic" | "reto" | "premium";
-
 export default function DashboardPage() {
-  const [userPlan, setUserPlan] = useState<Plan | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [greeting, setGreeting] = useState("¡Bienvenido!");
   const [workoutProgress, setWorkoutProgress] = useState(0);
@@ -32,9 +29,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // In a real app, this would be fetched from an API
-    const storedPlan = "premium" as Plan; // or 'basic', 'reto'
     const name = "Alex Davis";
-    setUserPlan(storedPlan);
     setUserName(name); 
     
     const hours = new Date().getHours();
@@ -46,14 +41,8 @@ export default function DashboardPage() {
     setMealProgress(57);
     setIsClient(true);
   }, []);
-
-  const planDetails = {
-    basic: { name: "Plan Básico", features: ["Acceso a dieta estándar"] },
-    reto: { name: "Plan Reto", features: ["Acceso a rutinas y dieta semi-estándar"] },
-    premium: { name: "Plan Premium", features: ["Todas las características", "Coaching avanzado y personalizado", "Recetas ilimitadas", "Chat 1 a 1 con el coach"] }
-  };
   
-  if (!isClient || !userPlan || !userName) {
+  if (!isClient || !userName) {
     return (
       <AppLayout>
         <div className="flex flex-col gap-6">
@@ -86,23 +75,6 @@ export default function DashboardPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline flex items-center justify-between">
-                <span>Tu Plan</span>
-                <Badge variant="secondary" className="bg-accent/50 text-accent-foreground">{planDetails[userPlan].name}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                {planDetails[userPlan].features.map(feature => <li key={feature}>{feature}</li>)}
-              </ul>
-            </CardContent>
-            <CardFooter>
-                 <Button variant="outline" size="sm">Gestionar Plan</Button>
-            </CardFooter>
-          </Card>
-
-          <Card>
-            <CardHeader>
               <CardTitle className="font-headline">Progreso Semanal</CardTitle>
               <CardDescription>¡Lo estás haciendo genial esta semana!</CardDescription>
             </CardHeader>
@@ -120,20 +92,18 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           
-           {userPlan !== 'basic' && (
-             <Card className="bg-gradient-to-tr from-primary/80 to-accent/80 text-primary-foreground">
-                <CardHeader>
-                    <CardTitle className="font-headline">Coaching Personalizado</CardTitle>
-                    <CardDescription className="text-primary-foreground/80">Tu coach está disponible para ayudarte.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm">"¡Recuerda mantenerte hidratado durante tu entrenamiento de hoy, Alex!" - Coach Sarah</p>
-                </CardContent>
-                <CardFooter>
-                    <Button variant="secondary" className="bg-background/20 hover:bg-background/30 text-primary-foreground">Chatear con el Coach</Button>
-                </CardFooter>
-             </Card>
-           )}
+           <Card className="bg-gradient-to-tr from-primary/80 to-accent/80 text-primary-foreground lg:col-span-2">
+              <CardHeader>
+                  <CardTitle className="font-headline">Coaching Personalizado</CardTitle>
+                  <CardDescription className="text-primary-foreground/80">Tu coach está disponible para ayudarte.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <p className="text-sm">"¡Recuerda mantenerte hidratado durante tu entrenamiento de hoy, Alex!" - Coach Sarah</p>
+              </CardContent>
+              <CardFooter>
+                  <Button variant="secondary" className="bg-background/20 hover:bg-background/30 text-primary-foreground">Chatear con el Coach</Button>
+              </CardFooter>
+           </Card>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
