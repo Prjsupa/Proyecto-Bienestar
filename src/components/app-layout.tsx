@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -59,6 +60,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const supabase = createClient();
     setLoading(true);
 
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+
+    checkUser();
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -69,7 +78,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [pathname]);
   
   const getInitials = (name: string) => {
     if (!name) return "U";
