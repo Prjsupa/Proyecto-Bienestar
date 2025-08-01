@@ -13,6 +13,8 @@ import {
   Video,
   CalendarPlus,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 
 import {
   SidebarProvider,
@@ -37,6 +39,8 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VitaNovaIcon } from "./icons";
+import { createClient } from "@/utils/supabase/client";
+import { Skeleton } from "./ui/skeleton";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Panel" },
@@ -49,6 +53,31 @@ const navItems = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.getUser();
+      if (!error) {
+        setUser(data.user);
+      }
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, []);
+  
+  const getInitials = (name: string) => {
+    const names = name.split(' ');
+    if (names.length > 1) {
+        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  }
+  
+  const displayName = user?.user_metadata?.name || "Usuario";
 
   const sidebarContent = (
     <>
@@ -74,37 +103,47 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-sidebar-accent">
-                    <Avatar>
-                        <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                        <AvatarFallback>AD</AvatarFallback>
-                    </Avatar>
-                    <div className="group-data-[collapsible=icon]:hidden">
-                        <p className="font-semibold text-sm">Alex Davis</p>
-                        <p className="text-xs text-muted-foreground">usuario@test.com</p>
+         {loading ? (
+             <div className="flex items-center gap-3 p-2">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="w-full space-y-2 group-data-[collapsible=icon]:hidden">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                </div>
+            </div>
+         ) : (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-sidebar-accent">
+                        <Avatar>
+                            <AvatarImage src={user?.user_metadata?.avatar_url} alt={displayName} />
+                            <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
+                        </Avatar>
+                        <div className="group-data-[collapsible=icon]:hidden">
+                            <p className="font-semibold text-sm truncate">{displayName}</p>
+                            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                        </div>
                     </div>
-                </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">Alex Davis</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                    usuario@test.com
-                    </p>
-                </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Perfil</DropdownMenuItem>
-                <DropdownMenuItem>Configuración</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/">Cerrar Sesión</Link>
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{displayName}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                        </p>
+                    </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Perfil</DropdownMenuItem>
+                    <DropdownMenuItem>Configuración</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/">Cerrar Sesión</Link>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+         )}
       </SidebarFooter>
     </>
   );
