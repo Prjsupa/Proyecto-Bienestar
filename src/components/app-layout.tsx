@@ -53,67 +53,36 @@ const navItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<{ name: string | null; last_name: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Crear cliente Supabase sólo una vez
-  const supabase = createClient();
-
   useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      setLoading(true);
-      try {
-        // Obtener usuario autenticado
-        const { data: authData, error: authError } = await supabase.auth.getUser();
-        console.log("Auth user data:", authData, authError);
-        if (authError) throw authError;
+    const supabase = createClient();
+    setLoading(true);
 
-        if (authData.user) {
-          setUser(authData.user);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-          // Obtener perfil del usuario desde tabla "usuarios"
-          const { data: profileData, error: profileError } = await supabase
-            .from("usuarios")
-            .select("name, last_name")
-            .eq("id", authData.user.id)
-            .single();
-
-          console.log("Perfil usuario:", profileData, profileError);
-          if (profileError) {
-            // En caso de error, loguear pero no bloquear UI
-            console.error("Error fetching profile:", profileError.message);
-            setProfile(null);
-          } else {
-            setProfile(profileData);
-          }
-        } else {
-          setUser(null);
-          setProfile(null);
-        }
-      } catch (error) {
-        console.error("Error en fetchUserAndProfile:", error);
-        setUser(null);
-        setProfile(null);
-      } finally {
-        setLoading(false);
-      }
+    return () => {
+      subscription.unsubscribe();
     };
-
-    fetchUserAndProfile();
-  }, [supabase]);
-
+  }, []);
+  
   const getInitials = (name: string) => {
-    if (!name) return "US";
-    const names = name.trim().split(" ");
-    if (names.length > 1) {
-      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    if (!name) return "U";
+    const names = name.split(' ');
+    if (names.length > 1 && names[1]) {
+        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
-  };
-
-  const displayName = profile?.name && profile?.last_name
-    ? `${profile.name} ${profile.last_name}`
-    : user?.email || "Usuario";
+  }
+  
+  const displayName = user?.user_metadata?.name && user?.user_metadata?.last_name 
+    ? `${user.user_metadata.name} ${user.user_metadata.last_name}` 
+    : user?.user_metadata?.name ?? user?.email ?? "Usuario";
 
   const sidebarContent = (
     <>
@@ -139,49 +108,49 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        {loading ? (
-          <div className="flex items-center gap-3 p-2">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="w-full space-y-2 group-data-[collapsible=icon]:hidden">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-full" />
+         {loading ? (
+             <div className="flex items-center gap-3 p-2">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="w-full space-y-2 group-data-[collapsible=icon]:hidden">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                </div>
             </div>
-          </div>
-        ) : (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-sidebar-accent">
-                <Avatar>
-                  <AvatarImage src={user?.user_metadata?.avatar_url || undefined} alt={displayName} />
-                  <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
-                </Avatar>
-                <div className="group-data-[collapsible=icon]:hidden">
-                  <p className="font-semibold text-sm truncate">
-                    {displayName}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                </div>
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{displayName}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/profile">Perfil</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>Configuración</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/">Cerrar Sesión</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+         ) : (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-sidebar-accent">
+                        <Avatar>
+                            <AvatarImage src={user?.user_metadata?.avatar_url} alt={displayName} />
+                            <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
+                        </Avatar>
+                        <div className="group-data-[collapsible=icon]:hidden">
+                            <p className="font-semibold text-sm truncate">{displayName}</p>
+                            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                        </div>
+                    </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{displayName}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                        </p>
+                    </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">Perfil</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>Configuración</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/">Cerrar Sesión</Link>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+         )}
       </SidebarFooter>
     </>
   );
@@ -202,7 +171,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col p-0 w-72">
-                <SidebarProvider>
+                 <SidebarProvider>
                   <Sidebar side="left" variant="sidebar" collapsible="none">
                     {sidebarContent}
                   </Sidebar>
@@ -212,7 +181,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex w-full items-center justify-end gap-4">
-            <Button variant="ghost" size="icon" className="rounded-full">
+             <Button variant="ghost" size="icon" className="rounded-full">
               <Bell className="h-5 w-5" />
               <span className="sr-only">Alternar notificaciones</span>
             </Button>
