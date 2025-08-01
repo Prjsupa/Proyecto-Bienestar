@@ -77,7 +77,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return name.substring(0, 2).toUpperCase();
   }
   
-  const displayName = user?.user_metadata?.name || "Usuario";
+  const displayName = user?.user_metadata?.name && user?.user_metadata?.last_name ? `${user.user_metadata.name} ${user.user_metadata.last_name}` : "Usuario";
 
   const sidebarContent = (
     <>
