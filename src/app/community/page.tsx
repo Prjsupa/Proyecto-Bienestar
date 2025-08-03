@@ -128,7 +128,7 @@ export default function CommunityPage() {
             .select(`
                 *,
                 usuarios ( name, last_name ),
-                comunidad_respuestas ( *, usuarios:usuarios_vista(name, last_name) )
+                comunidad_respuestas ( *, usuarios_vista(*) )
             `)
             .order('fecha', { ascending: false });
 
@@ -207,19 +207,21 @@ export default function CommunityPage() {
         imageUrl = publicUrl;
     }
 
-    const { error: insertError } = await supabase
+    const { data: newPostData, error: insertError } = await supabase
         .from('comunidad')
         .insert({
             user_id: currentUser.id,
             mensaje: values.content,
             img_url: imageUrl,
-        });
+        })
+        .select('id')
+        .single();
     
     if (insertError) {
         toast({ variant: 'destructive', title: 'Error al publicar', description: insertError.message });
     } else {
          const newPost: CommunityPost = {
-            id: crypto.randomUUID(), // Optimistic UI update with a random ID
+            id: newPostData.id,
             user_id: currentUser.id,
             mensaje: values.content,
             img_url: imageUrl,
@@ -250,13 +252,25 @@ export default function CommunityPage() {
             user_id: currentUser.id,
             mensaje: values.content,
         })
-        .select('*, usuarios:usuarios_vista(name, last_name)')
+        .select('*, usuarios_vista(name, last_name, email, id)')
         .single();
     
     if (error) {
         toast({ variant: 'destructive', title: 'Error al responder', description: error.message });
     } else {
-        const newReply: Reply = newReplyData as Reply;
+       const newReply: Reply = {
+          id: newReplyData.id,
+          post_id: newReplyData.post_id,
+          user_id: newReplyData.user_id,
+          mensaje: newReplyData.mensaje,
+          fecha: newReplyData.fecha,
+          usuarios_vista: {
+            name: newReplyData.usuarios_vista.name,
+            last_name: newReplyData.usuarios_vista.last_name,
+            email: newReplyData.usuarios_vista.email,
+            id: newReplyData.usuarios_vista.id,
+          },
+        };
 
         setCommunityPosts(posts => posts.map(p => {
             if (p.id === postId) {
@@ -479,7 +493,7 @@ export default function CommunityPage() {
                         {post.comunidad_respuestas && post.comunidad_respuestas.length > 0 && (
                             <div className="w-full space-y-4 pt-4 border-t">
                                 {post.comunidad_respuestas.map(reply => {
-                                    const replyAuthorProfile = reply.usuarios;
+                                    const replyAuthorProfile = reply.usuarios_vista;
                                     const replyAuthorName = replyAuthorProfile ? `${replyAuthorProfile.name} ${replyAuthorProfile.last_name}`.trim() : "Usuario Anónimo";
                                     const replyAuthorInitials = getInitials(replyAuthorProfile?.name, replyAuthorProfile?.last_name);
                                     return (
@@ -683,4 +697,3 @@ export default function CommunityPage() {
     </AppLayout>
   );
 }
-

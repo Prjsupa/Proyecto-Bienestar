@@ -4,13 +4,20 @@ export type PostAuthor = {
     last_name: string | null;
 };
 
+export type AuthorVista = {
+    name: string | null;
+    last_name: string | null;
+    id: string;
+    email: string;
+}
+
 export type Reply = {
     id: string;
     post_id: string;
     user_id: string;
     mensaje: string;
     fecha: string;
-    usuarios: PostAuthor | null;
+    usuarios_vista: AuthorVista | null;
 }
 
 export type CommunityPost = {
@@ -49,4 +56,3 @@ export type ProfessionalPost = {
     title: string;
     content: string;
 }
-
