@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Check, MessageCircle, Paperclip, X, Annoyed, Image as ImageIcon } from "lucide-react";
+import { Check, MessageCircle, Paperclip, X, Annoyed, Image as ImageIcon, MessageSquare } from "lucide-react";
 import Image from "next/image";
 
 import { AppLayout } from "@/components/app-layout";
@@ -23,13 +23,17 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { CommunityPost, QAPost, ProfessionalPost } from "@/types/community";
+import type { CommunityPost, QAPost, ProfessionalPost, Reply } from "@/types/community";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const postSchema = z.object({
   content: z.string().min(10, "La publicación debe tener al menos 10 caracteres.").max(500, "La publicación no puede exceder los 500 caracteres."),
   file: z.any().optional(),
+});
+
+const replySchema = z.object({
+    content: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
 });
 
 const questionSchema = z.object({
@@ -106,6 +110,7 @@ export default function CommunityPage() {
   const [isClient, setIsClient] = useState(false);
   const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
   const [selectedQuestionFile, setSelectedQuestionFile] = useState<File | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
   const postFileInputRef = useRef<HTMLInputElement>(null);
   const questionFileInputRef = useRef<HTMLInputElement>(null);
@@ -125,6 +130,13 @@ export default function CommunityPage() {
                 usuarios (
                     name,
                     last_name
+                ),
+                comunidad_respuestas (
+                    *,
+                    usuarios (
+                        name,
+                        last_name
+                    )
                 )
             `)
             .order('fecha', { ascending: false });
@@ -162,6 +174,11 @@ export default function CommunityPage() {
   const questionForm = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
     defaultValues: { question: "" },
+  });
+
+  const replyForm = useForm<z.infer<typeof replySchema>>({
+    resolver: zodResolver(replySchema),
+    defaultValues: { content: "" },
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: (file: File | null) => void) => {
@@ -218,12 +235,54 @@ export default function CommunityPage() {
             usuarios: {
                 name: currentUser.user_metadata.name,
                 last_name: currentUser.user_metadata.last_name,
-            }
+            },
+            comunidad_respuestas: []
         };
         setCommunityPosts(posts => [newPost, ...posts]);
         postForm.reset();
         setSelectedPostFile(null);
         if(postFileInputRef.current) postFileInputRef.current.value = "";
+    }
+  }
+
+  async function onReplySubmit(values: z.infer<typeof replySchema>, postId: string) {
+    if (!currentUser) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para responder.' });
+        return;
+    }
+
+    const { data: newReplyData, error } = await supabase
+        .from('comunidad_respuestas')
+        .insert({
+            post_id: postId,
+            user_id: currentUser.id,
+            mensaje: values.content,
+        })
+        .select()
+        .single();
+    
+    if (error) {
+        toast({ variant: 'destructive', title: 'Error al responder', description: error.message });
+    } else {
+        const newReply: Reply = {
+            ...newReplyData,
+            usuarios: {
+                name: currentUser.user_metadata.name,
+                last_name: currentUser.user_metadata.last_name
+            }
+        };
+
+        setCommunityPosts(posts => posts.map(p => {
+            if (p.id === postId) {
+                return {
+                    ...p,
+                    comunidad_respuestas: [...(p.comunidad_respuestas || []), newReply]
+                }
+            }
+            return p;
+        }));
+        replyForm.reset();
+        setReplyingTo(null);
     }
   }
   
@@ -392,6 +451,73 @@ export default function CommunityPage() {
                         </div>
                       )}
                     </CardContent>
+                    <CardFooter className="flex-col items-start gap-4">
+                        <div className="flex items-center gap-4 text-muted-foreground">
+                            <button onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)} className="flex items-center gap-2 text-sm hover:text-primary">
+                                <MessageSquare className="w-4 h-4" />
+                                <span>{post.comunidad_respuestas?.length || 0}</span>
+                                <span>Responder</span>
+                            </button>
+                        </div>
+                        {replyingTo === post.id && (
+                             <Form {...replyForm}>
+                                <form onSubmit={replyForm.handleSubmit((values) => onReplySubmit(values, post.id))} className="w-full flex items-start gap-4 pt-4 border-t">
+                                     <Avatar className="h-9 w-9 mt-1">
+                                        <AvatarFallback>{getInitials(currentUser?.user_metadata?.name, currentUser?.user_metadata?.last_name)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1 space-y-2">
+                                        <FormField
+                                            control={replyForm.control}
+                                            name="content"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormControl>
+                                                        <Textarea
+                                                        placeholder="Escribe tu respuesta..."
+                                                        className="resize-none"
+                                                        rows={2}
+                                                        {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <Button type="submit" size="sm" disabled={replyForm.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                                            {replyForm.formState.isSubmitting ? 'Enviando...' : 'Enviar Respuesta'}
+                                        </Button>
+                                    </div>
+                                </form>
+                            </Form>
+                        )}
+                        {post.comunidad_respuestas && post.comunidad_respuestas.length > 0 && (
+                            <div className="w-full space-y-4 pt-4 border-t">
+                                {post.comunidad_respuestas.map(reply => {
+                                    const replyAuthorProfile = reply.usuarios;
+                                    const replyAuthorName = replyAuthorProfile ? `${replyAuthorProfile.name} ${replyAuthorProfile.last_name}`.trim() : "Usuario Anónimo";
+                                    const replyAuthorInitials = getInitials(replyAuthorProfile?.name, replyAuthorProfile?.last_name);
+                                    return (
+                                        <div key={reply.id} className="flex items-start gap-3">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarFallback>{replyAuthorInitials}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 bg-secondary p-3 rounded-lg">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="font-semibold text-sm">{replyAuthorName}</p>
+                                                     {isClient && (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {formatDistanceToNow(new Date(reply.fecha), { addSuffix: true, locale: es })}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </CardFooter>
                   </Card>
                 )
               }) : (

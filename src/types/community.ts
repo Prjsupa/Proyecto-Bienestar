@@ -4,6 +4,15 @@ export type PostAuthor = {
     last_name: string | null;
 };
 
+export type Reply = {
+    id: string;
+    post_id: string;
+    user_id: string;
+    mensaje: string;
+    fecha: string;
+    usuarios: PostAuthor | null;
+}
+
 export type CommunityPost = {
   id: string;
   user_id: string;
@@ -11,28 +20,8 @@ export type CommunityPost = {
   img_url: string | null;
   fecha: string;
   usuarios: PostAuthor | null;
+  comunidad_respuestas?: Reply[];
 };
-
-export type Reply = {
-    id: number;
-    author: string;
-    avatar: string;
-    aiHint: string;
-    timestamp: Date;
-    content: string;
-    isProfessional?: boolean;
-}
-
-export type ProfessionalPost = {
-    id: number;
-    author: string;
-    specialty: string;
-    avatar: string;
-    aiHint: string;
-    timestamp: Date;
-    title: string;
-    content: string;
-}
 
 export type QAPost = {
     id: number;
@@ -48,6 +37,17 @@ export type QAPost = {
         aiHint: string;
         content: string;
     } | null;
+}
+
+export type ProfessionalPost = {
+    id: number;
+    author: string;
+    specialty: string;
+    avatar: string;
+    aiHint: string;
+    timestamp: Date;
+    title: string;
+    content: string;
 }
 
     
