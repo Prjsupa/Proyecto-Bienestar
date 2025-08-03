@@ -7,6 +7,6 @@ export type Recipe = {
   img_url: string | null;
   ingredientes: string[];
   instrucciones: string;
-  fecha_publicado: string;
+  fecha_publicada: string;
   visible: boolean;
 };
