@@ -68,13 +68,12 @@ export default function LoginPage() {
     })
     // Forzamos un refresh para que el middleware de Supabase se ejecute y actualice la sesión
     router.refresh()
-    router.push("/dashboard")
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
        <Link href="/" className="absolute top-4 left-4 flex items-center gap-2 text-foreground font-semibold">
-          
+          <VitaNovaIcon className="h-6 w-6" />
         </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>

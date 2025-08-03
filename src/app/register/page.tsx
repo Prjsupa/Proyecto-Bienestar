@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link";
@@ -119,9 +120,9 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -176,21 +177,20 @@ export default function RegisterPage() {
                     </FormItem>
                   )}
                 />
-              <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                Registrarse
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            ¿Ya tienes una cuenta?{" "}
-            <Link href="/login" className="underline text-accent-foreground/80 font-semibold">
-              Iniciar Sesión
-            </Link>
-          </p>
-        </CardFooter>
+            </CardContent>
+            <CardFooter className="flex-col gap-4">
+                <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                  Registrarse
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  ¿Ya tienes una cuenta?{" "}
+                  <Link href="/login" className="underline text-accent-foreground/80 font-semibold">
+                    Iniciar Sesión
+                  </Link>
+                </p>
+            </CardFooter>
+          </form>
+        </Form>
       </Card>
     </div>
   )

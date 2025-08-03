@@ -58,15 +58,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const supabase = createClient();
-    setLoading(true);
-
-    const checkUser = async () => {
+    
+    const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       setLoading(false);
     };
 
-    checkUser();
+    getUser();
 
     const {
       data: { subscription },
@@ -78,7 +77,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [pathname]);
+  }, []);
   
   const getInitials = (name: string, lastName: string) => {
     if (name && lastName) {
@@ -204,4 +203,3 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
-

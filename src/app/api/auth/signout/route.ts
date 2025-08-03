@@ -3,14 +3,19 @@ import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
+export async function POST(request: Request) {
   const cookieStore = cookies();
-  const supabase = await createClient(cookieStore);
+  const supabase = createClient(cookieStore);
 
-  await supabase.auth.signOut();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  return NextResponse.redirect(`${requestUrl.origin}/login`, {
+  if (session) {
+    await supabase.auth.signOut();
+  }
+
+  return NextResponse.redirect(new URL('/login', request.url), {
     status: 302,
   });
 }

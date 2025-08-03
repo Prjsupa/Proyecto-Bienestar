@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { AppLayout } from "@/components/app-layout";
@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
-import { Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
@@ -20,41 +19,32 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-
+  
   const router = useRouter();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        setName(session.user.user_metadata?.name || "");
-        setLastName(session.user.user_metadata?.last_name || "");
-        setAvatarPreview(session.user.user_metadata?.avatar_url || null);
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        setName(user.user_metadata?.name || "");
+        setLastName(user.user_metadata?.last_name || "");
       } else {
-        router.push("/login");
+        router.push('/login');
       }
       setLoading(false);
-    });
-
-    const getUser = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            setUser(user);
-            setName(user.user_metadata?.name || "");
-            setLastName(user.user_metadata?.last_name || "");
-            setAvatarPreview(user.user_metadata?.avatar_url || null);
-        } else {
-            router.push('/login');
-        }
-        setLoading(false);
     };
     
     getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (!session?.user) {
+        router.push("/login");
+      }
+    });
 
     return () => subscription.unsubscribe();
   }, [router, supabase.auth]);
@@ -69,26 +59,14 @@ export default function ProfilePage() {
     return "US";
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAvatarFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSaveChanges = async () => {
     if (!user) return;
-    
-    // Aquí iría la lógica para subir el `avatarFile` a Supabase Storage
-    // y obtener la URL pública. Por ahora, solo actualizaremos los metadatos.
 
     const { data, error } = await supabase.auth.updateUser({
-      data: { name, lastName, avatar_url: avatarPreview } 
+      data: { 
+        name: name, 
+        last_name: lastName,
+      } 
     });
 
     if (error) {
@@ -98,15 +76,17 @@ export default function ProfilePage() {
         variant: "destructive",
       });
     } else {
-      setUser(data.user);
-      toast({
-        title: "Perfil Actualizado",
-        description: "Tu información ha sido guardada correctamente.",
-      });
+      if (data.user) {
+        setUser(data.user);
+         toast({
+          title: "Perfil Actualizado",
+          description: "Tu información ha sido guardada correctamente.",
+        });
+      }
     }
   };
 
-  const displayName = name && lastName ? `${name} ${lastName}` : name || "Usuario";
+  const displayName = name && lastName ? `${name} ${lastName}` : name || user?.email || "Usuario";
 
   if (loading) {
     return (
@@ -169,20 +149,9 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-6">
                      <div className="relative">
                         <Avatar className="h-24 w-24">
-                            <AvatarImage src={avatarPreview || undefined} alt={displayName} />
+                            <AvatarImage src={user?.user_metadata?.avatar_url || undefined} alt={displayName} />
                             <AvatarFallback className="text-3xl">{getInitials(name, lastName)}</AvatarFallback>
                         </Avatar>
-                        <Button size="icon" className="absolute bottom-0 right-0 rounded-full h-8 w-8" onClick={() => fileInputRef.current?.click()}>
-                            <Camera className="h-4 w-4"/>
-                            <span className="sr-only">Cambiar foto</span>
-                        </Button>
-                        <Input 
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept="image/png, image/jpeg"
-                            onChange={handleFileChange}
-                        />
                     </div>
                     <div>
                          <p className="text-xl font-semibold">{displayName}</p>
@@ -211,4 +180,3 @@ export default function ProfilePage() {
     </AppLayout>
   );
 }
-
