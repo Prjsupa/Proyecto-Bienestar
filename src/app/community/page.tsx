@@ -213,15 +213,14 @@ export default function CommunityPage() {
             user_id: currentUser.id,
             mensaje: values.content,
             img_url: imageUrl,
-        })
-        .select('id')
-        .single();
+            visible: true,
+        });
     
     if (insertError) {
         toast({ variant: 'destructive', title: 'Error al publicar', description: insertError.message });
     } else {
          const newPost: CommunityPost = {
-            id: newPostData.id,
+            id: crypto.randomUUID(), // Optimistic UI
             user_id: currentUser.id,
             mensaje: values.content,
             img_url: imageUrl,
@@ -252,25 +251,13 @@ export default function CommunityPage() {
             user_id: currentUser.id,
             mensaje: values.content,
         })
-        .select('*, usuarios_vista(name, last_name, email, id)')
+        .select('*, usuarios_vista(*)')
         .single();
     
     if (error) {
         toast({ variant: 'destructive', title: 'Error al responder', description: error.message });
     } else {
-       const newReply: Reply = {
-          id: newReplyData.id,
-          post_id: newReplyData.post_id,
-          user_id: newReplyData.user_id,
-          mensaje: newReplyData.mensaje,
-          fecha: newReplyData.fecha,
-          usuarios_vista: {
-            name: newReplyData.usuarios_vista.name,
-            last_name: newReplyData.usuarios_vista.last_name,
-            email: newReplyData.usuarios_vista.email,
-            id: newReplyData.usuarios_vista.id,
-          },
-        };
+       const newReply: Reply = newReplyData as Reply;
 
         setCommunityPosts(posts => posts.map(p => {
             if (p.id === postId) {
@@ -697,3 +684,5 @@ export default function CommunityPage() {
     </AppLayout>
   );
 }
+
+    
