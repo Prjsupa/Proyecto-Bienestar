@@ -2,12 +2,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import type { User } from "@supabase/supabase-js";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Check, MessageCircle, Paperclip, X, CornerDownRight, Annoyed } from "lucide-react";
+import { Check, MessageCircle, Paperclip, X, CornerDownRight, Annoyed, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { createClient } from "@/utils/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import type { CommunityPost, QAPost, ProfessionalPost } from "@/types/community";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -35,57 +40,6 @@ const questionSchema = z.object({
 const replySchema = z.object({
   replyContent: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
 });
-
-type Reply = {
-    id: number;
-    author: string;
-    avatar: string;
-    aiHint: string;
-    timestamp: Date;
-    content: string;
-    isProfessional?: boolean;
-}
-
-type CommunityPost = {
-  id: number;
-  author: string;
-  avatar: string;
-  aiHint: string;
-  timestamp: Date;
-  content: string;
-  replies: Reply[];
-};
-
-type ProfessionalPost = {
-    id: number;
-    author: string;
-    specialty: string;
-    avatar: string;
-    aiHint: string;
-    timestamp: Date;
-    title: string;
-    content: string;
-}
-
-type QAPost = {
-    id: number;
-    author: string;
-    avatar: string;
-    aiHint: string;
-    timestamp: Date;
-    question: string;
-    answer: {
-        professional: string;
-        specialty: string;
-        avatar: string;
-        aiHint: string;
-        content: string;
-    } | null;
-}
-
-const initialPostsData: Omit<CommunityPost, 'timestamp' | 'replies'>[] = [];
-
-const initialRepliesData: Omit<Reply, 'timestamp'>[][] = [];
 
 
 const initialQAData: Omit<QAPost, 'timestamp'>[] = [
@@ -149,39 +103,64 @@ const initialProfessionalPostsData: Omit<ProfessionalPost, 'timestamp'>[] = [
 ]
 
 export default function CommunityPage() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
   const [qaPosts, setQAPosts] = useState<QAPost[]>([]);
   const [professionalPosts, setProfessionalPosts] = useState<ProfessionalPost[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
   const [selectedQuestionFile, setSelectedQuestionFile] = useState<File | null>(null);
-  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
   const postFileInputRef = useRef<HTMLInputElement>(null);
   const questionFileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const supabase = createClient();
 
   useEffect(() => {
-    const postsWithTimestamps = initialPostsData.map((post, index) => ({
-      ...post,
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * (5 * (index + 1))),
-      replies: initialRepliesData[index]?.map((reply, replyIndex) => ({
-          ...reply,
-          timestamp: new Date(Date.now() - 1000 * 60 * (3 * (replyIndex + 1))),
-      })) || [],
-    }));
-     const qaWithTimestamps = initialQAData.map((qa, index) => ({
-      ...qa,
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * (3 * (index + 1))),
-    }));
-    const professionalPostsWithTimestamps = initialProfessionalPostsData.map((post, index) => ({
-        ...post,
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * (24 * (index + 1))),
-    }))
-    setCommunityPosts(postsWithTimestamps);
-    setQAPosts(qaWithTimestamps);
-    setProfessionalPosts(professionalPostsWithTimestamps);
-    setIsClient(true);
-  }, []);
+    const fetchInitialData = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUser(user);
+        
+        setLoadingPosts(true);
+        const { data: postsData, error: postsError } = await supabase
+            .from('comunidad')
+            .select(`
+                *,
+                profiles (
+                    name,
+                    last_name,
+                    avatar_url
+                )
+            `)
+            .order('fecha', { ascending: false });
+
+        if (postsError) {
+            console.error('Error fetching posts:', postsError);
+            toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar las publicaciones.' });
+        } else {
+            setCommunityPosts(postsData as CommunityPost[]);
+        }
+        setLoadingPosts(false);
+        
+        // Mantener datos de ejemplo para las otras pestañas por ahora
+        const qaWithTimestamps = initialQAData.map((qa, index) => ({
+            ...qa,
+            timestamp: new Date(Date.now() - 1000 * 60 * 60 * (3 * (index + 1))),
+        }));
+        const professionalPostsWithTimestamps = initialProfessionalPostsData.map((post, index) => ({
+            ...post,
+            timestamp: new Date(Date.now() - 1000 * 60 * 60 * (24 * (index + 1))),
+        }));
+        setQAPosts(qaWithTimestamps);
+        setProfessionalPosts(professionalPostsWithTimestamps);
+        
+        setIsClient(true);
+    };
+    
+    fetchInitialData();
+  }, [supabase, toast]);
   
   const postForm = useForm<z.infer<typeof postSchema>>({
     resolver: zodResolver(postSchema),
@@ -202,7 +181,7 @@ export default function CommunityPage() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > MAX_FILE_SIZE) {
-        alert("El archivo no puede exceder los 5MB.");
+        toast({ variant: "destructive", title: "Archivo demasiado grande", description: "El archivo no puede exceder los 5MB." });
         return;
       }
       setFile(file);
@@ -210,55 +189,66 @@ export default function CommunityPage() {
   };
 
 
-  function onPostSubmit(values: z.infer<typeof postSchema>) {
-    console.log("Nueva publicación:", {...values, file: selectedPostFile?.name});
-    const newPost: CommunityPost = {
-        id: Date.now(),
-        author: 'Alex Davis',
-        avatar: 'https://github.com/shadcn.png',
-        aiHint: 'person smiling',
-        timestamp: new Date(),
-        content: values.content,
-        replies: []
+  async function onPostSubmit(values: z.infer<typeof postSchema>) {
+    if (!currentUser) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para publicar.' });
+        return;
     }
-    setCommunityPosts(posts => [newPost, ...posts]);
-    postForm.reset();
-    setSelectedPostFile(null);
-    if(postFileInputRef.current) postFileInputRef.current.value = "";
+    
+    let imageUrl: string | null = null;
+    if (selectedPostFile) {
+        const filePath = `${currentUser.id}/${Date.now()}_${selectedPostFile.name}`;
+        const { error: uploadError } = await supabase.storage
+            .from('publicaciones')
+            .upload(filePath, selectedPostFile);
+        
+        if (uploadError) {
+            toast({ variant: 'destructive', title: 'Error al subir imagen', description: uploadError.message });
+            return;
+        }
+
+        const { data: { publicUrl } } = supabase.storage.from('publicaciones').getPublicUrl(filePath);
+        imageUrl = publicUrl;
+    }
+
+    const { data: newPostData, error: insertError } = await supabase
+        .from('comunidad')
+        .insert({
+            user_id: currentUser.id,
+            mensaje: values.content,
+            img_url: imageUrl,
+        })
+        .select(`
+            *,
+            profiles (
+                name,
+                last_name,
+                avatar_url
+            )
+        `)
+        .single();
+    
+    if (insertError) {
+        toast({ variant: 'destructive', title: 'Error al publicar', description: insertError.message });
+    } else if (newPostData) {
+        setCommunityPosts(posts => [newPostData as CommunityPost, ...posts]);
+        postForm.reset();
+        setSelectedPostFile(null);
+        if(postFileInputRef.current) postFileInputRef.current.value = "";
+    }
   }
   
   function onQuestionSubmit(values: z.infer<typeof questionSchema>) {
     console.log("Nueva pregunta:", {...values, file: selectedQuestionFile?.name});
-    const newQA: QAPost = {
-        id: Date.now(),
-        author: 'Alex Davis',
-        avatar: 'https://github.com/shadcn.png',
-        aiHint: 'person thinking',
-        timestamp: new Date(),
-        question: values.question,
-        answer: null
-    }
-    setQAPosts(qas => [newQA, ...qas]);
+    // Lógica para enviar pregunta...
     questionForm.reset();
     setSelectedQuestionFile(null);
     if(questionFileInputRef.current) questionFileInputRef.current.value = "";
   }
 
-  function onReplySubmit(postId: number, values: z.infer<typeof replySchema>) {
+  function onReplySubmit(postId: string, values: z.infer<typeof replySchema>) {
     console.log(`Respondiendo a la publicación ${postId}:`, values.replyContent);
-    // En una app real, esto se enviaría a un servidor
-    const newReply: Reply = {
-        id: Date.now(),
-        author: 'Alex Davis', // Asumiendo que el usuario actual es Sofia
-        avatar: 'https://github.com/shadcn.png',
-        aiHint: 'person smiling',
-        timestamp: new Date(),
-        content: values.replyContent,
-        isProfessional: false // Cambiar a true si un profesional responde
-    };
-    setCommunityPosts(posts => posts.map(post => 
-        post.id === postId ? {...post, replies: [...post.replies, newReply]} : post
-    ));
+    // Lógica para enviar respuesta...
     replyForm.reset();
     setReplyingTo(null);
   }
@@ -267,7 +257,7 @@ export default function CommunityPage() {
     <div className="space-y-6">
       {[...Array(3)].map((_, i) => (
         <Card key={i}>
-          <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+          <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
             <Skeleton className="h-10 w-10 rounded-full" />
             <div className="w-full space-y-2">
               <Skeleton className="h-4 w-1/4" />
@@ -329,7 +319,7 @@ export default function CommunityPage() {
                      {selectedPostFile && (
                       <div className="flex items-center justify-between p-2 text-sm text-muted-foreground bg-muted rounded-md">
                           <div className="flex items-center gap-2 truncate">
-                            <Paperclip className="w-4 h-4" />
+                            <ImageIcon className="w-4 h-4" />
                             <span className="truncate">{selectedPostFile.name}</span>
                           </div>
                           <Button 
@@ -349,12 +339,12 @@ export default function CommunityPage() {
                        <FormField
                         control={postForm.control}
                         name="file"
-                        render={({ field }) => (
+                        render={() => (
                             <FormItem>
                                 <FormControl>
                                   <Button type="button" variant="outline" onClick={() => postFileInputRef.current?.click()}>
                                       <Paperclip className="w-4 h-4 mr-2"/>
-                                      Adjuntar Archivo
+                                      Adjuntar Imagen
                                   </Button>
                                 </FormControl>
                                 <input 
@@ -362,14 +352,16 @@ export default function CommunityPage() {
                                   className="hidden" 
                                   ref={postFileInputRef}
                                   onChange={(e) => handleFileChange(e, setSelectedPostFile)}
-                                  accept="image/*,video/*,application/pdf,.doc,.docx"
+                                  accept="image/*"
                                 />
                                 <FormMessage/>
                             </FormItem>
                         )}
                        />
 
-                      <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90">Publicar</Button>
+                      <Button type="submit" disabled={postForm.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                        {postForm.formState.isSubmitting ? 'Publicando...' : 'Publicar'}
+                      </Button>
                     </div>
                   </form>
                 </Form>
@@ -378,89 +370,44 @@ export default function CommunityPage() {
 
             <div className="space-y-6">
               <h2 className="text-2xl font-semibold font-headline">Publicaciones Recientes</h2>
-              {!isClient ? renderSkeletons() : communityPosts.length > 0 ? communityPosts.map((post) => (
-                <Card key={post.id}>
-                  <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-                    <Avatar>
-                      <AvatarImage src={post.avatar} alt={post.author} data-ai-hint={post.aiHint} />
-                      <AvatarFallback>{post.author.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="w-full">
-                      <p className="font-semibold">{post.author}</p>
-                      {isClient && (
-                          <p className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(post.timestamp, { addSuffix: true, locale: es })}
-                          </p>
+              {loadingPosts ? renderSkeletons() : communityPosts.length > 0 ? communityPosts.map((post) => {
+                const authorProfile = post.profiles;
+                const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario";
+                const authorInitials = authorProfile ? `${authorProfile.name?.[0] ?? ''}${authorProfile.last_name?.[0] ?? ''}` : 'U';
+
+                return (
+                  <Card key={post.id}>
+                    <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
+                      <Avatar>
+                        <AvatarImage src={authorProfile?.avatar_url ?? undefined} alt={authorName} />
+                        <AvatarFallback>{authorInitials}</AvatarFallback>
+                      </Avatar>
+                      <div className="w-full">
+                        <p className="font-semibold">{authorName}</p>
+                        {isClient && (
+                            <p className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(post.fecha), { addSuffix: true, locale: es })}
+                            </p>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="whitespace-pre-wrap">{post.mensaje}</p>
+                       {post.img_url && (
+                        <div className="mt-4">
+                          <Image 
+                            src={post.img_url} 
+                            alt="Imagen de la publicación" 
+                            width={500} 
+                            height={500} 
+                            className="rounded-lg object-cover w-full max-h-[400px]"
+                          />
+                        </div>
                       )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="whitespace-pre-wrap">{post.content}</p>
-                  </CardContent>
-                  <CardFooter className="flex-col items-start gap-4">
-                     <Button variant="ghost" size="sm" onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}>
-                        <CornerDownRight className="w-4 h-4 mr-2"/>
-                        Responder
-                     </Button>
-
-                     {post.replies.length > 0 && (
-                        <div className="w-full space-y-4 pl-8 border-l border-border ml-4">
-                            {post.replies.map(reply => (
-                                <div key={reply.id} className="flex gap-3">
-                                    <Avatar className="w-8 h-8">
-                                        <AvatarImage src={reply.avatar} alt={reply.author} data-ai-hint={reply.aiHint} />
-                                        <AvatarFallback>{reply.author.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-semibold text-sm">{reply.author}</p>
-                                            {isClient && (
-                                                <p className="text-xs text-muted-foreground">
-                                                    {formatDistanceToNow(reply.timestamp, { addSuffix: true, locale: es })}
-                                                </p>
-                                            )}
-                                            {reply.isProfessional && (
-                                                 <Badge variant="outline" className="border-primary/50 text-primary text-xs">
-                                                    <Check className="w-3 h-3 mr-1" />
-                                                    Profesional
-                                                </Badge>
-                                            )}
-                                        </div>
-                                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{reply.content}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                     )}
-
-                     {replyingTo === post.id && (
-                        <div className="w-full pl-8 ml-4">
-                            <Form {...replyForm}>
-                                <form onSubmit={replyForm.handleSubmit(data => onReplySubmit(post.id, data))} className="flex items-start gap-3">
-                                    <Avatar className="w-8 h-8 mt-1">
-                                        <AvatarImage src="https://github.com/shadcn.png" alt="Your avatar" data-ai-hint="person smiling"/>
-                                        <AvatarFallback>AD</AvatarFallback>
-                                    </Avatar>
-                                    <FormField
-                                        control={replyForm.control}
-                                        name="replyContent"
-                                        render={({ field }) => (
-                                            <FormItem className="flex-1">
-                                                <FormControl>
-                                                    <Input placeholder="Escribe una respuesta..." {...field} />
-                                                </FormControl>
-                                                <FormMessage/>
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <Button type="submit" size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">Enviar</Button>
-                                </form>
-                            </Form>
-                        </div>
-                     )}
-                  </CardFooter>
-                </Card>
-              )) : (
+                    </CardContent>
+                  </Card>
+                )
+              }) : (
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8">
@@ -524,7 +471,7 @@ export default function CommunityPage() {
                        <FormField
                         control={questionForm.control}
                         name="file"
-                        render={({ field }) => (
+                        render={() => (
                             <FormItem>
                                 <FormControl>
                                   <Button type="button" variant="outline" onClick={() => questionFileInputRef.current?.click()}>
