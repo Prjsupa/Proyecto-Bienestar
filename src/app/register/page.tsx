@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import Link from "next/link";
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -25,8 +25,8 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { createClient } from "../../../utils/supabase/client"
-
 const supabase = createClient()
 
 const formSchema = z.object({
@@ -64,7 +64,6 @@ export default function RegisterPage() {
         emailRedirectTo: `${window.location.origin}/login`,
       },
     });
-    
 
     if (error) {
       toast({
@@ -74,7 +73,7 @@ export default function RegisterPage() {
       })
       return
     }
-
+    
     // 2. Mostrar mensaje para verificar email
     setIsRegistered(true)
     setEmailToVerify(values.email)
@@ -85,7 +84,7 @@ export default function RegisterPage() {
     })
 
     form.reset()
-  }
+  };
 
   if (isRegistered) {
     return (
@@ -135,7 +134,6 @@ export default function RegisterPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"

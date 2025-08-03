@@ -1,10 +1,11 @@
 
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+
 import { AppLayout } from "@/components/app-layout";
+import { createClient } from '@/utils/supabase/server';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,33 +20,35 @@ import { Progress } from "@/components/ui/progress";
 import { Users, UtensilsCrossed, Dumbbell, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Keep client-side state for workout and meal progress if they are dynamic
+const workoutProgress = 60; // Static for now, can be made dynamic later
+const mealProgress = 57; // Static for now, can be made dynamic later
 
-export default function DashboardPage() {
-  const [userName, setUserName] = useState<string | null>(null);
-  const [greeting, setGreeting] = useState("¡Bienvenido!");
-  const [workoutProgress, setWorkoutProgress] = useState(0);
-  const [mealProgress, setMealProgress] = useState(0);
-  const [isClient, setIsClient] = useState(false);
+export default async function DashboardPage() {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
 
-  useEffect(() => {
-    // In a real app, this would be fetched from an API
-    const name = "Alex Davis";
-    setUserName(name); 
-    
-    const hours = new Date().getHours();
-    if (hours < 12) setGreeting(`¡Buenos días, ${name}!`);
-    else if (hours < 18) setGreeting(`¡Buenas tardes, ${name}!`);
-    else setGreeting(`¡Buenas noches, ${name}!`);
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-    setWorkoutProgress(60);
-    setMealProgress(57);
-    setIsClient(true);
-  }, []);
-  
-  if (!isClient || !userName) {
-    return (
-      <AppLayout>
-        <div className="flex flex-col gap-6">
+  if (error || !user) {
+    redirect('/login');
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('usuarios')
+    .select('name, last_name')
+    .eq('id', user.id)
+    .single();
+
+  // Skeleton loading state (simplified as it's a Server Component)
+  if (profileError && !profile) {
+    // You might want a more sophisticated error UI, or handle the case
+    // where a user exists but has no profile entry.
+    // For now, we'll show a minimal loading-like state or redirect if profile is essential.
+    // redirect('/setup-profile'); // Example: redirect to a profile setup page
+     return (
+      <AppLayout> {/* Assuming AppLayout can handle incomplete data or loading states */}
+         <div className="flex flex-col gap-6">
             <div className="space-y-2">
               <Skeleton className="h-8 w-1/2" />
               <Skeleton className="h-4 w-1/3" />
@@ -59,10 +62,18 @@ export default function DashboardPage() {
                 <Card><CardContent className="h-40"></CardContent></Card>
                 <Card><CardContent className="h-40"></CardContent></Card>
              </div>
-        </div>
+         </div>
       </AppLayout>
     );
   }
+
+  const userName = profile?.name || user.email; // Use fetched name or fallback to email
+  const userLastName = profile?.last_name || '';
+  const hours = new Date().getHours();
+  let greeting = "¡Bienvenido!";
+  if (hours < 12) greeting = `¡Buenos días, ${userName} ${userLastName}!`;
+  else if (hours < 18) greeting = `¡Buenas tardes, ${userName} ${userLastName}!`;
+  else greeting = `¡Buenas noches, ${userName} ${userLastName}!`;
 
   return (
     <AppLayout>
@@ -98,7 +109,7 @@ export default function DashboardPage() {
                   <CardDescription className="text-primary-foreground/80">Tu coach está disponible para ayudarte.</CardDescription>
               </CardHeader>
               <CardContent>
-                  <p className="text-sm">"¡Recuerda mantenerte hidratado durante tu entrenamiento de hoy, Alex!" - Coach Sarah</p>
+                  <p className="text-sm">"¡Recuerda mantenerte hidratado durante tu entrenamiento de hoy, {userName}!" - Coach Sarah</p>
               </CardContent>
               <CardFooter>
                   <Button variant="secondary" className="bg-background/20 hover:bg-background/30 text-primary-foreground">Chatear con el Coach</Button>
