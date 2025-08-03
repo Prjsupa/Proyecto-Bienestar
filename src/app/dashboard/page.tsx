@@ -20,17 +20,16 @@ import { Progress } from "@/components/ui/progress";
 import { Users, UtensilsCrossed, Dumbbell, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Keep client-side state for workout and meal progress if they are dynamic
-const workoutProgress = 60; // Static for now, can be made dynamic later
-const mealProgress = 57; // Static for now, can be made dynamic later
+const workoutProgress = 60;
+const mealProgress = 57;
 
 export default async function DashboardPage() {
   const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = await createClient(cookieStore);
 
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (error || !user) {
+  if (!user) {
     redirect('/login');
   }
 
@@ -40,14 +39,9 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single();
 
-  // Skeleton loading state (simplified as it's a Server Component)
   if (profileError && !profile) {
-    // You might want a more sophisticated error UI, or handle the case
-    // where a user exists but has no profile entry.
-    // For now, we'll show a minimal loading-like state or redirect if profile is essential.
-    // redirect('/setup-profile'); // Example: redirect to a profile setup page
      return (
-      <AppLayout> {/* Assuming AppLayout can handle incomplete data or loading states */}
+      <AppLayout>
          <div className="flex flex-col gap-6">
             <div className="space-y-2">
               <Skeleton className="h-8 w-1/2" />
@@ -67,7 +61,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const userName = profile?.name || user.email; // Use fetched name or fallback to email
+  const userName = profile?.name || user.email;
   const userLastName = profile?.last_name || '';
   const hours = new Date().getHours();
   let greeting = "¡Bienvenido!";
