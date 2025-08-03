@@ -12,7 +12,6 @@ export type CommunityPost = {
   img_url: string | null;
   fecha: string;
   usuarios: PostAuthor | null;
-  replies: Reply[];
 };
 
 export type Reply = {

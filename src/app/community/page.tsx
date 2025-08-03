@@ -110,7 +110,6 @@ export default function CommunityPage() {
   const [professionalPosts, setProfessionalPosts] = useState<ProfessionalPost[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
-  const [selectedQuestionFile, setSelectedQuestionFile] = useState<File | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
   const postFileInputRef = useRef<HTMLInputElement>(null);
@@ -273,6 +272,12 @@ export default function CommunityPage() {
     </div>
   );
 
+  const getInitials = (name?: string | null, lastName?: string | null) => {
+    if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
+    if (name) return name.substring(0, 2).toUpperCase();
+    return "U";
+  };
+
 
   return (
     <AppLayout>
@@ -372,8 +377,8 @@ export default function CommunityPage() {
               <h2 className="text-2xl font-semibold font-headline">Publicaciones Recientes</h2>
               {loadingPosts ? renderSkeletons() : communityPosts.length > 0 ? communityPosts.map((post) => {
                 const authorProfile = post.usuarios;
-                const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario";
-                const authorInitials = authorProfile ? `${authorProfile.name?.[0] ?? ''}${authorProfile.last_name?.[0] ?? ''}` : 'U';
+                const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario Anónimo";
+                const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
 
                 return (
                   <Card key={post.id}>
