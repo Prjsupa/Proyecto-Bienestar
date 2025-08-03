@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/app-layout";
 import { createClient } from "@/utils/supabase/client";
 import { RecipeCard, RecipeSkeleton } from "@/components/recipe-card";
+import { RecipeDetailModal } from "@/components/recipe-detail-modal";
 import { Frown } from "lucide-react";
 import type { Recipe } from "@/types/recipe";
 
@@ -12,6 +13,8 @@ export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -44,6 +47,16 @@ export default function RecipesPage() {
     fetchRecipes();
   }, []);
 
+  const handleRecipeClick = (recipe: Recipe) => {
+    setSelectedRecipe(recipe);
+    setIsModalOpen(true);
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedRecipe(null);
+  }
+
   return (
     <AppLayout>
       <div className="space-y-4">
@@ -69,7 +82,9 @@ export default function RecipesPage() {
         ) : recipes.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {recipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
+              <div key={recipe.id} onClick={() => handleRecipeClick(recipe)} className="cursor-pointer">
+                <RecipeCard recipe={recipe} />
+              </div>
             ))}
           </div>
         ) : (
@@ -82,6 +97,7 @@ export default function RecipesPage() {
           </div>
         )}
       </div>
+      <RecipeDetailModal recipe={selectedRecipe} isOpen={isModalOpen} onClose={handleCloseModal} />
     </AppLayout>
   );
 }

@@ -14,7 +14,7 @@ interface RecipeCardProps {
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
   return (
-    <Card className="overflow-hidden flex flex-col group h-full">
+    <Card className="overflow-hidden flex flex-col group h-full transition-shadow hover:shadow-lg">
       <CardHeader className="p-0 relative">
         <Image
           src={recipe.img_url || "https://placehold.co/600x400.png"}
@@ -29,7 +29,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
         </Badge>
       </CardHeader>
       <CardContent className="p-4 flex-grow flex flex-col">
-        <CardTitle className="font-headline text-xl mb-2">{recipe.titulo}</CardTitle>
+        <CardTitle className="font-headline text-lg mb-2">{recipe.titulo}</CardTitle>
         <p className="text-sm text-muted-foreground line-clamp-2 flex-grow">{recipe.descripcion}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0 mt-2">
