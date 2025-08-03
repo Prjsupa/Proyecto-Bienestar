@@ -88,7 +88,7 @@ export default function ProfilePage() {
     // y obtener la URL pública. Por ahora, solo actualizaremos los metadatos.
 
     const { data, error } = await supabase.auth.updateUser({
-      data: { name, last_name, avatar_url: avatarPreview } 
+      data: { name, lastName, avatar_url: avatarPreview } 
     });
 
     if (error) {
