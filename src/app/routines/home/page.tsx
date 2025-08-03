@@ -29,7 +29,8 @@ export default function RoutinesHomePage() {
         if (error) {
           throw error;
         }
-
+        
+        console.log("Home Routines Data:", data);
         setRoutines(data || []);
       } catch (err: any) {
         console.error("Error fetching home routines:", err);

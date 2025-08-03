@@ -28,7 +28,8 @@ export default function RoutinesGymPage() {
         if (error) {
           throw error;
         }
-
+        
+        console.log("Gym Routines Data:", data);
         setRoutines(data || []);
       } catch (err: any) {
         console.error("Error fetching gym routines:", err);
