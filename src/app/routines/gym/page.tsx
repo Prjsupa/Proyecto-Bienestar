@@ -1,37 +1,44 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/app-layout";
 import { RoutineCard, RoutineSkeleton } from "@/components/routine-card";
 import { Frown } from "lucide-react";
 import type { Routine } from "@/types/routine";
-
-const mockRoutines: Routine[] = [
-    {
-      id: '1',
-      title: "Tren Superior de Acero",
-      category: "Gimnasio",
-      duration: "60 min",
-      level: "Avanzado",
-      img_url: "https://placehold.co/600x400.png",
-      aiHint: "man lifting weights gym"
-    },
-    {
-      id: '2',
-      title: "Día de Pierna",
-      category: "Gimnasio",
-      duration: "75 min",
-      level: "Intermedio",
-      img_url: "https://placehold.co/600x400.png",
-      aiHint: "person doing squats"
-    },
-];
+import { createClient } from "@/utils/supabase/client";
 
 export default function RoutinesGymPage() {
-  // Replace with actual data fetching later
-  const loading = false;
-  const error = null;
-  const routines = mockRoutines;
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRoutines = async () => {
+      const supabase = createClient();
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from("rutinas")
+          .select("*")
+          .eq("visible", true)
+          .eq("entorno", "Gimnasio");
+
+        if (error) {
+          throw error;
+        }
+
+        setRoutines(data || []);
+      } catch (err: any) {
+        console.error("Error fetching gym routines:", err);
+        setError("No se pudieron cargar las rutinas. Por favor, inténtalo de nuevo más tarde.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoutines();
+  }, []);
 
   return (
     <AppLayout>
@@ -45,7 +52,7 @@ export default function RoutinesGymPage() {
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, index) => (
+            {[...Array(4)].map((_, index) => (
               <RoutineSkeleton key={index} />
             ))}
           </div>
