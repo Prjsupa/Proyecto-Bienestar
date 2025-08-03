@@ -198,27 +198,29 @@ export default function CommunityPage() {
         imageUrl = publicUrl;
     }
 
-    const { data: newPostData, error: insertError } = await supabase
+    const { error: insertError } = await supabase
         .from('comunidad')
         .insert({
             user_id: currentUser.id,
             mensaje: values.content,
             img_url: imageUrl,
-        })
-        .select()
-        .single();
+        });
     
     if (insertError) {
         toast({ variant: 'destructive', title: 'Error al publicar', description: insertError.message });
-    } else if (newPostData) {
-        const newPostWithAuthor: CommunityPost = {
-            ...newPostData,
+    } else {
+        const newPost: CommunityPost = {
+            id: crypto.randomUUID(), // Optimistic UI update with a random ID
+            user_id: currentUser.id,
+            mensaje: values.content,
+            img_url: imageUrl,
+            fecha: new Date().toISOString(),
             usuarios: {
                 name: currentUser.user_metadata.name,
                 last_name: currentUser.user_metadata.last_name,
             }
         };
-        setCommunityPosts(posts => [newPostWithAuthor, ...posts]);
+        setCommunityPosts(posts => [newPost, ...posts]);
         postForm.reset();
         setSelectedPostFile(null);
         if(postFileInputRef.current) postFileInputRef.current.value = "";
