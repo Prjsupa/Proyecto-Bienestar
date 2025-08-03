@@ -12,6 +12,7 @@ import {
   Menu,
   Video,
   CalendarPlus,
+  ChevronDown,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -36,15 +37,31 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VitaNovaIcon } from "./icons";
 import { createClient } from "@/utils/supabase/client";
 import { Skeleton } from "./ui/skeleton";
+import { cn } from "@/lib/utils";
+
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Panel" },
   { href: "/recipes", icon: UtensilsCrossed, label: "Recetas" },
+  {
+    href: "/routines",
+    icon: Dumbbell,
+    label: "Rutinas",
+    subItems: [
+      { href: "/routines/home", label: "Casa" },
+      { href: "/routines/gym", label: "Gimnasio" },
+    ],
+  },
   { href: "/live", icon: Video, label: "En Vivo" },
   { href: "/community", icon: Users, label: "Comunidad" },
   { href: "/technique-clinic", icon: Dumbbell, label: "Técnica" },
@@ -104,18 +121,54 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {navItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href}
-                icon={<item.icon />}
-                tooltip={item.label}
-              >
-                <Link href={item.href}>{item.label}</Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {navItems.map((item) =>
+            item.subItems ? (
+              <SidebarMenuItem key={item.href}>
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton
+                      icon={<item.icon />}
+                      tooltip={item.label}
+                      className="justify-between"
+                      isActive={pathname.startsWith(item.href)}
+                      suffix={
+                        <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:-rotate-180" />
+                      }
+                    >
+                      {item.label}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="ml-7 mt-1 flex flex-col border-l border-border pl-3">
+                      {item.subItems.map((subItem) => (
+                        <Link
+                          key={subItem.href}
+                          href={subItem.href}
+                          className={cn(
+                            "py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground",
+                            pathname === subItem.href && "text-foreground"
+                          )}
+                        >
+                          {subItem.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </SidebarMenuItem>
+            ) : (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === item.href}
+                  icon={<item.icon />}
+                  tooltip={item.label}
+                >
+                  <Link href={item.href}>{item.label}</Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          )}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>

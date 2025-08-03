@@ -10,6 +10,8 @@ const PROTECTED_ROUTES = [
   "/community",
   "/technique-clinic",
   "/schedule",
+  "/routines/home",
+  "/routines/gym",
 ];
 
 export async function middleware(request: NextRequest) {
