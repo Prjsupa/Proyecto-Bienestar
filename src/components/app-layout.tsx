@@ -125,17 +125,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             item.subItems ? (
               <SidebarMenuItem key={item.href}>
                 <Collapsible>
-                  <CollapsibleTrigger asChild>
+                  <CollapsibleTrigger className="w-full">
                     <SidebarMenuButton
                       icon={<item.icon />}
                       tooltip={item.label}
-                      className="justify-between"
+                      className="w-full justify-between"
                       isActive={pathname.startsWith(item.href)}
-                      suffix={
-                        <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:-rotate-180" />
-                      }
                     >
                       {item.label}
+                      <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:-rotate-180" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
@@ -210,7 +208,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <DropdownMenuItem>Configuración</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/api/auth/signout">Cerrar Sesión</Link>
+                       <form action="/api/auth/signout" method="post">
+                        <button type="submit" className="w-full text-left">
+                            Cerrar Sesión
+                        </button>
+                      </form>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
