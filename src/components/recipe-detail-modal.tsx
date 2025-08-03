@@ -45,11 +45,7 @@ export function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDetailModal
                             <List className="w-5 h-5 text-primary"/>
                             Ingredientes
                         </h3>
-                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                            {recipe.ingredientes.map((ing, index) => (
-                                <li key={index}>{ing}</li>
-                            ))}
-                        </ul>
+                        <p className="text-muted-foreground whitespace-pre-wrap">{recipe.ingredientes}</p>
                     </div>
                     <div className="md:col-span-3">
                         <h3 className="font-headline text-xl mb-3 flex items-center gap-2">
