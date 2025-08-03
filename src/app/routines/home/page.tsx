@@ -23,7 +23,8 @@ export default function RoutinesHomePage() {
           .from("rutinas")
           .select("*")
           .eq("visible", true)
-          .eq("entorno", "Casa");
+          .eq("entorno", "Casa")
+          .order("fecha", { ascending: false });
 
         if (error) {
           throw error;

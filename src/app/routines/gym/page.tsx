@@ -22,7 +22,8 @@ export default function RoutinesGymPage() {
           .from("rutinas")
           .select("*")
           .eq("visible", true)
-          .eq("entorno", "Gimnasio");
+          .eq("entorno", "Gimnasio")
+          .order("fecha", { ascending: false });
 
         if (error) {
           throw error;
