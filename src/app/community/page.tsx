@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { CommunityPost, QAPost, ProfessionalPost, Reply } from "@/types/community";
+import type { CommunityPost, QAPost, ProfessionalPost, Reply, AuthorVista } from "@/types/community";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -190,14 +190,14 @@ export default function CommunityPage() {
         toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para publicar.' });
         return;
     }
-    
+
     let imageUrl: string | null = null;
     if (selectedPostFile) {
         const filePath = `${currentUser.id}/${Date.now()}_${selectedPostFile.name}`;
         const { error: uploadError } = await supabase.storage
             .from('publicaciones')
             .upload(filePath, selectedPostFile);
-        
+
         if (uploadError) {
             toast({ variant: 'destructive', title: 'Error al subir imagen', description: uploadError.message });
             return;
@@ -207,20 +207,21 @@ export default function CommunityPage() {
         imageUrl = publicUrl;
     }
 
-    const { data: newPostData, error: insertError } = await supabase
+    const newPostForDb = {
+        user_id: currentUser.id,
+        mensaje: values.content,
+        img_url: imageUrl,
+    };
+    
+    const { error: insertError } = await supabase
         .from('comunidad')
-        .insert({
-            user_id: currentUser.id,
-            mensaje: values.content,
-            img_url: imageUrl,
-            visible: true,
-        });
+        .insert(newPostForDb);
     
     if (insertError) {
         toast({ variant: 'destructive', title: 'Error al publicar', description: insertError.message });
     } else {
-         const newPost: CommunityPost = {
-            id: crypto.randomUUID(), // Optimistic UI
+        const newPost: CommunityPost = {
+            id: crypto.randomUUID(), // Use a temporary ID for optimistic update
             user_id: currentUser.id,
             mensaje: values.content,
             img_url: imageUrl,
@@ -257,7 +258,7 @@ export default function CommunityPage() {
     if (error) {
         toast({ variant: 'destructive', title: 'Error al responder', description: error.message });
     } else {
-       const newReply: Reply = newReplyData as Reply;
+       const newReply: Reply = newReplyData as any;
 
         setCommunityPosts(posts => posts.map(p => {
             if (p.id === postId) {
