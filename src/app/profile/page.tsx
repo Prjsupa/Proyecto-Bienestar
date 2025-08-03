@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { AppLayout } from "@/components/app-layout";
@@ -15,80 +15,100 @@ import { createClient } from "@/utils/supabase/client";
 import { Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [name, setName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
   const router = useRouter();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const supabase = createClient();
 
   useEffect(() => {
-    const supabase = createClient();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session?.user) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        setName(session.user.user_metadata?.name || "");
+        setLastName(session.user.user_metadata?.last_name || "");
+        setAvatarPreview(session.user.user_metadata?.avatar_url || null);
+      } else {
         router.push("/login");
-        setLoading(false);
-        return;
       }
-      
-      setUser(session.user);
-      
-      // Fetch profile details from 'usuarios' table
-      const { data: profileData, error: profileError } = await supabase
-        .from('usuarios')
-        .select('name, last_name, avatar_url')
-        .eq('id', session.user.id)
-        .single();
-        
-      if (profileError) {
-        console.error("Error fetching profile:", profileError);
-        toast({
-            title: "Error al cargar el perfil",
-            description: "No se pudieron obtener los detalles de tu perfil.",
-            variant: "destructive",
-        });
-      } else if (profileData) {
-        // Combine auth data with profile data
-        setUser(currentUser => currentUser ? {
-            ...currentUser,
-            user_metadata: {
-                ...currentUser.user_metadata,
-                ...profileData,
-            }
-        } : null);
-      }
-      
       setLoading(false);
     });
 
-    // Initial check in case the auth state is already settled
-    const checkInitialUser = async () => {
+    const getUser = async () => {
         const { data: { user } } = await supabase.auth.getUser();
-        if(!user) {
+        if (user) {
+            setUser(user);
+            setName(user.user_metadata?.name || "");
+            setLastName(user.user_metadata?.last_name || "");
+            setAvatarPreview(user.user_metadata?.avatar_url || null);
+        } else {
             router.push('/login');
         }
-    }
+        setLoading(false);
+    };
     
-    checkInitialUser();
+    getUser();
 
     return () => subscription.unsubscribe();
-  }, [router, toast]);
+  }, [router, supabase.auth]);
 
-  const getInitials = (name: string) => {
-    if(!name) return "";
-    const names = name.split(' ');
-    if (names.length > 1 && names[1]) {
-        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+  const getInitials = (name: string, lastName: string) => {
+    if (name && lastName) {
+      return `${name[0]}${lastName[0]}`.toUpperCase();
     }
-    return name.substring(0, 2).toUpperCase();
+    if (name) {
+      return name.substring(0, 2).toUpperCase();
+    }
+    return "US";
   }
 
-  const displayName = user?.user_metadata?.name && user?.user_metadata?.last_name 
-    ? `${user.user_metadata.name} ${user.user_metadata.last_name}` 
-    : user?.user_metadata?.name ?? "Usuario";
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-  if (loading || !user) {
+  const handleSaveChanges = async () => {
+    if (!user) return;
+    
+    // Aquí iría la lógica para subir el `avatarFile` a Supabase Storage
+    // y obtener la URL pública. Por ahora, solo actualizaremos los metadatos.
+
+    const { data, error } = await supabase.auth.updateUser({
+      data: { name, last_name, avatar_url: avatarPreview } 
+    });
+
+    if (error) {
+      toast({
+        title: "Error al actualizar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      setUser(data.user);
+      toast({
+        title: "Perfil Actualizado",
+        description: "Tu información ha sido guardada correctamente.",
+      });
+    }
+  };
+
+  const displayName = name && lastName ? `${name} ${lastName}` : name || "Usuario";
+
+  if (loading) {
     return (
       <AppLayout>
         <div className="max-w-2xl mx-auto">
@@ -101,7 +121,7 @@ export default function ProfilePage() {
                     <Skeleton className="h-6 w-1/4" />
                     <Skeleton className="h-4 w-2/5" />
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 pt-6">
                     <div className="flex items-center gap-6">
                         <Skeleton className="h-24 w-24 rounded-full" />
                         <div className="space-y-2">
@@ -149,38 +169,46 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-6">
                      <div className="relative">
                         <Avatar className="h-24 w-24">
-                            <AvatarImage src={user.user_metadata?.avatar_url} alt={displayName} />
-                            <AvatarFallback className="text-3xl">{getInitials(displayName)}</AvatarFallback>
+                            <AvatarImage src={avatarPreview || undefined} alt={displayName} />
+                            <AvatarFallback className="text-3xl">{getInitials(name, lastName)}</AvatarFallback>
                         </Avatar>
-                        <Button size="icon" className="absolute bottom-0 right-0 rounded-full h-8 w-8">
+                        <Button size="icon" className="absolute bottom-0 right-0 rounded-full h-8 w-8" onClick={() => fileInputRef.current?.click()}>
                             <Camera className="h-4 w-4"/>
                             <span className="sr-only">Cambiar foto</span>
                         </Button>
+                        <Input 
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/png, image/jpeg"
+                            onChange={handleFileChange}
+                        />
                     </div>
                     <div>
                          <p className="text-xl font-semibold">{displayName}</p>
-                         <p className="text-sm text-muted-foreground">{user.email}</p>
+                         <p className="text-sm text-muted-foreground">{user?.email}</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="firstName">Nombre</Label>
-                        <Input id="firstName" defaultValue={user.user_metadata?.name} />
+                        <Input id="firstName" value={name} onChange={(e) => setName(e.target.value)} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="lastName">Apellido</Label>
-                        <Input id="lastName" defaultValue={user.user_metadata?.last_name} />
+                        <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
                     </div>
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="email">Correo electrónico</Label>
-                    <Input id="email" type="email" defaultValue={user.email} disabled />
+                    <Input id="email" type="email" defaultValue={user?.email} disabled />
                 </div>
-                <Button className="bg-accent text-accent-foreground hover:bg-accent/90">Guardar Cambios</Button>
+                <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSaveChanges}>Guardar Cambios</Button>
             </CardContent>
         </Card>
       </div>
     </AppLayout>
   );
 }
+

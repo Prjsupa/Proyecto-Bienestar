@@ -80,18 +80,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, [pathname]);
   
-  const getInitials = (name: string) => {
-    if (!name) return "U";
-    const names = name.split(' ');
-    if (names.length > 1 && names[1]) {
-        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+  const getInitials = (name: string, lastName: string) => {
+    if (name && lastName) {
+        return `${name[0]}${lastName[0]}`.toUpperCase();
     }
-    return name.substring(0, 2).toUpperCase();
+    if (name) {
+        return name.substring(0, 2).toUpperCase();
+    }
+    return "US";
   }
   
   const displayName = user?.user_metadata?.name && user?.user_metadata?.last_name 
     ? `${user.user_metadata.name} ${user.user_metadata.last_name}` 
     : user?.user_metadata?.name ?? user?.email ?? "Usuario";
+    
+  const userInitials = getInitials(user?.user_metadata?.name || '', user?.user_metadata?.last_name || '');
 
   const sidebarContent = (
     <>
@@ -125,17 +128,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <Skeleton className="h-3 w-full" />
                 </div>
             </div>
-         ) : (
+         ) : user ? (
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-sidebar-accent">
                         <Avatar>
-                            <AvatarImage src={user?.user_metadata?.avatar_url} alt={displayName} />
-                            <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
+                            <AvatarImage src={user.user_metadata?.avatar_url} alt={displayName} />
+                            <AvatarFallback>{userInitials}</AvatarFallback>
                         </Avatar>
                         <div className="group-data-[collapsible=icon]:hidden">
                             <p className="font-semibold text-sm truncate">{displayName}</p>
-                            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                         </div>
                     </div>
                 </DropdownMenuTrigger>
@@ -144,7 +147,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">{displayName}</p>
                         <p className="text-xs leading-none text-muted-foreground">
-                        {user?.email}
+                        {user.email}
                         </p>
                     </div>
                     </DropdownMenuLabel>
@@ -155,11 +158,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <DropdownMenuItem>Configuración</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/">Cerrar Sesión</Link>
+                      <Link href="/api/auth/signout">Cerrar Sesión</Link>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-         )}
+         ) : null}
       </SidebarFooter>
     </>
   );
@@ -201,3 +204,4 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
+
