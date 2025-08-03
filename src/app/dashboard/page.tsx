@@ -14,35 +14,46 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Users, UtensilsCrossed, Dumbbell, ArrowRight } from "lucide-react";
+import { Users, UtensilsCrossed, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { createClient } from "@/utils/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 
 export default function DashboardPage() {
-  const [userName, setUserName] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [greeting, setGreeting] = useState("¡Bienvenido!");
   const [workoutProgress, setWorkoutProgress] = useState(0);
   const [mealProgress, setMealProgress] = useState(0);
-  const [isClient, setIsClient] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, this would be fetched from an API
-    const name = "Alex Davis";
-    setUserName(name); 
-    
-    const hours = new Date().getHours();
-    if (hours < 12) setGreeting(`¡Buenos días, ${name}!`);
-    else if (hours < 18) setGreeting(`¡Buenas tardes, ${name}!`);
-    else setGreeting(`¡Buenas noches, ${name}!`);
+    const supabase = createClient();
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (user) {
+        const name = user.user_metadata?.name || 'Usuario';
+        const lastName = user.user_metadata?.last_name || '';
+        const fullName = `${name} ${lastName}`.trim();
+        
+        const hours = new Date().getHours();
+        if (hours < 12) setGreeting(`¡Buenos días, ${fullName}!`);
+        else if (hours < 18) setGreeting(`¡Buenas tardes, ${fullName}!`);
+        else setGreeting(`¡Buenas noches, ${fullName}!`);
+      }
+      setLoading(false);
+    };
+
+    getUser();
 
     setWorkoutProgress(60);
     setMealProgress(57);
-    setIsClient(true);
   }, []);
   
-  if (!isClient || !userName) {
+  if (loading) {
     return (
       <AppLayout>
         <div className="flex flex-col gap-6">
@@ -98,7 +109,7 @@ export default function DashboardPage() {
                   <CardDescription className="text-primary-foreground/80">Tu coach está disponible para ayudarte.</CardDescription>
               </CardHeader>
               <CardContent>
-                  <p className="text-sm">"¡Recuerda mantenerte hidratado durante tu entrenamiento de hoy, Alex!" - Coach Sarah</p>
+                  <p className="text-sm">{`"¡Recuerda mantenerte hidratado durante tu entrenamiento de hoy, ${user?.user_metadata?.name || 'campeón'}!" - Coach Sarah`}</p>
               </CardContent>
               <CardFooter>
                   <Button variant="secondary" className="bg-background/20 hover:bg-background/30 text-primary-foreground">Chatear con el Coach</Button>
