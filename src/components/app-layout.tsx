@@ -125,17 +125,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             item.subItems ? (
               <SidebarMenuItem key={item.href}>
                 <Collapsible>
-                  <CollapsibleTrigger className="w-full">
-                    <SidebarMenuButton
-                      icon={<item.icon />}
-                      tooltip={item.label}
-                      className="w-full justify-between"
-                      isActive={pathname.startsWith(item.href)}
-                    >
-                      {item.label}
-                      <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:-rotate-180" />
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
+                    <CollapsibleTrigger asChild>
+                        <SidebarMenuButton
+                            className="w-full justify-between"
+                            isActive={pathname.startsWith(item.href)}
+                            tooltip={item.label}
+                        >
+                            <div className="flex items-center gap-2">
+                                <item.icon/>
+                                <span>{item.label}</span>
+                            </div>
+                            <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:-rotate-180" />
+                        </SidebarMenuButton>
+                    </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="ml-7 mt-1 flex flex-col border-l border-border pl-3">
                       {item.subItems.map((subItem) => (
@@ -159,10 +161,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton
                   asChild
                   isActive={pathname === item.href}
-                  icon={<item.icon />}
                   tooltip={item.label}
                 >
-                  <Link href={item.href}>{item.label}</Link>
+                  <Link href={item.href} className="flex items-center gap-2">
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )
