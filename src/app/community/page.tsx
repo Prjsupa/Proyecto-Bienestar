@@ -110,7 +110,7 @@ export default function CommunityPage() {
   const [professionalPosts, setProfessionalPosts] = useState<ProfessionalPost[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [selectedQuestionFile, setSelectedQuestionFile] = useState<File | null>(null);
 
   const postFileInputRef = useRef<HTMLInputElement>(null);
   const questionFileInputRef = useRef<HTMLInputElement>(null);
@@ -243,13 +243,6 @@ export default function CommunityPage() {
     questionForm.reset();
     setSelectedQuestionFile(null);
     if(questionFileInputRef.current) questionFileInputRef.current.value = "";
-  }
-
-  function onReplySubmit(postId: string, values: z.infer<typeof replySchema>) {
-    console.log(`Respondiendo a la publicación ${postId}:`, values.replyContent);
-    // Lógica para enviar respuesta...
-    replyForm.reset();
-    setReplyingTo(null);
   }
 
   const renderSkeletons = () => (
