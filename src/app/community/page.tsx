@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Check, MessageCircle, Paperclip, X, CornerDownRight, Annoyed, Image as ImageIcon } from "lucide-react";
+import { Check, MessageCircle, Paperclip, X, Annoyed, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 
 import { AppLayout } from "@/components/app-layout";
@@ -36,11 +36,6 @@ const questionSchema = z.object({
   question: z.string().min(15, "La pregunta debe tener al menos 15 caracteres.").max(500, "La pregunta no puede exceder los 500 caracteres."),
   file: z.any().optional(),
 });
-
-const replySchema = z.object({
-  replyContent: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
-});
-
 
 const initialQAData: Omit<QAPost, 'timestamp'>[] = [
     {
@@ -129,8 +124,7 @@ export default function CommunityPage() {
                 *,
                 usuarios (
                     name,
-                    last_name,
-                    avatar_url
+                    last_name
                 )
             `)
             .order('fecha', { ascending: false });
@@ -143,7 +137,6 @@ export default function CommunityPage() {
         }
         setLoadingPosts(false);
         
-        // Mantener datos de ejemplo para las otras pestañas por ahora
         const qaWithTimestamps = initialQAData.map((qa, index) => ({
             ...qa,
             timestamp: new Date(Date.now() - 1000 * 60 * 60 * (3 * (index + 1))),
@@ -169,11 +162,6 @@ export default function CommunityPage() {
   const questionForm = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
     defaultValues: { question: "" },
-  });
-
-  const replyForm = useForm<z.infer<typeof replySchema>>({
-    resolver: zodResolver(replySchema),
-    defaultValues: { replyContent: "" },
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: (file: File | null) => void) => {
@@ -221,8 +209,7 @@ export default function CommunityPage() {
             *,
             usuarios (
                 name,
-                last_name,
-                avatar_url
+                last_name
             )
         `)
         .single();
@@ -377,7 +364,6 @@ export default function CommunityPage() {
                   <Card key={post.id}>
                     <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
                       <Avatar>
-                        <AvatarImage src={authorProfile?.avatar_url ?? undefined} alt={authorName} />
                         <AvatarFallback>{authorInitials}</AvatarFallback>
                       </Avatar>
                       <div className="w-full">
@@ -582,3 +568,5 @@ export default function CommunityPage() {
     </AppLayout>
   );
 }
+
+    

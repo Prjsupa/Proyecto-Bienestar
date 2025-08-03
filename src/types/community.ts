@@ -2,7 +2,6 @@
 export type PostAuthor = {
     name: string | null;
     last_name: string | null;
-    avatar_url: string | null;
 };
 
 export type CommunityPost = {
@@ -50,3 +49,5 @@ export type QAPost = {
         content: string;
     } | null;
 }
+
+    
