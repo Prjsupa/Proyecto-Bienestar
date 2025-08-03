@@ -50,4 +50,3 @@ export type ProfessionalPost = {
     content: string;
 }
 
-    

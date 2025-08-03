@@ -127,19 +127,11 @@ export default function CommunityPage() {
             .from('comunidad')
             .select(`
                 *,
-                usuarios (
-                    name,
-                    last_name
-                ),
-                comunidad_respuestas (
-                    *,
-                    usuarios (
-                        name,
-                        last_name
-                    )
-                )
+                usuarios ( name, last_name ),
+                comunidad_respuestas ( *, usuarios:usuarios_vista(name, last_name) )
             `)
             .order('fecha', { ascending: false });
+
 
         if (postsError) {
             console.error('Error fetching posts:', postsError);
@@ -226,7 +218,7 @@ export default function CommunityPage() {
     if (insertError) {
         toast({ variant: 'destructive', title: 'Error al publicar', description: insertError.message });
     } else {
-        const newPost: CommunityPost = {
+         const newPost: CommunityPost = {
             id: crypto.randomUUID(), // Optimistic UI update with a random ID
             user_id: currentUser.id,
             mensaje: values.content,
@@ -258,19 +250,13 @@ export default function CommunityPage() {
             user_id: currentUser.id,
             mensaje: values.content,
         })
-        .select()
+        .select('*, usuarios:usuarios_vista(name, last_name)')
         .single();
     
     if (error) {
         toast({ variant: 'destructive', title: 'Error al responder', description: error.message });
     } else {
-        const newReply: Reply = {
-            ...newReplyData,
-            usuarios: {
-                name: currentUser.user_metadata.name,
-                last_name: currentUser.user_metadata.last_name
-            }
-        };
+        const newReply: Reply = newReplyData as Reply;
 
         setCommunityPosts(posts => posts.map(p => {
             if (p.id === postId) {
@@ -697,3 +683,4 @@ export default function CommunityPage() {
     </AppLayout>
   );
 }
+
