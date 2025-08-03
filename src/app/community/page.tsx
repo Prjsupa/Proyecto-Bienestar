@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -84,40 +83,9 @@ type QAPost = {
     } | null;
 }
 
-const initialPostsData: Omit<CommunityPost, 'timestamp' | 'replies'>[] = [
-    {
-      id: 1,
-      author: "Mark Johnson",
-      avatar: "https://placehold.co/40x40.png",
-      aiHint: "man lifting weights",
-      content: "¡Acabo de alcanzar un nuevo récord personal en peso muerto! La clave fue concentrarme en la forma, especialmente en mantener la espalda recta. Recuerden activar los dorsales antes de tirar. ¡Manténganse fuertes todos! #pesomuerto #PR",
-    },
-    {
-      id: 2,
-      author: "Jane Doe",
-      avatar: "https://placehold.co/40x40.png",
-      aiHint: "woman yoga",
-      content: "¿Alguien tiene consejos para mejorar la flexibilidad para el yoga? Me cuestan las flexiones hacia adelante. He estado intentando mantener los estiramientos durante 30 segundos pero no veo mucho progreso.",
-    },
-    {
-      id: 3,
-      author: "Carlos Rodriguez",
-      avatar: "https://placehold.co/40x40.png",
-      aiHint: "man running",
-      content: "¡Hoy completé mi primera carrera de 5k! El programa 'Del sofá a los 5k' de la app es fantástico. Lo recomiendo mucho para cualquier principiante. La sensación de logro es increíble.",
-    },
-];
+const initialPostsData: Omit<CommunityPost, 'timestamp' | 'replies'>[] = [];
 
-const initialRepliesData: Omit<Reply, 'timestamp'>[][] = [
-    [
-        { id: 1, author: 'Coach Sarah', avatar: 'https://placehold.co/40x40.png', aiHint: 'woman coach', content: '¡Impresionante trabajo Mark! La forma lo es todo. ¡Sigue así!', isProfessional: true },
-        { id: 2, author: 'Alex', avatar: 'https://placehold.co/40x40.png', aiHint: 'person gym', content: '¡Felicidades! Es un gran logro.' },
-    ],
-    [
-        { id: 3, author: 'Michael Star', avatar: 'https://placehold.co/40x40.png', aiHint: 'man physiotherapist', content: 'La constancia es clave, Jane. Intenta incorporar estiramientos dinámicos antes de tus sesiones y mantén estiramientos estáticos después. El estiramiento FNP también podría ser muy beneficioso para ti.', isProfessional: true },
-    ],
-    [],
-]
+const initialRepliesData: Omit<Reply, 'timestamp'>[][] = [];
 
 
 const initialQAData: Omit<QAPost, 'timestamp'>[] = [
@@ -410,7 +378,7 @@ export default function CommunityPage() {
 
             <div className="space-y-6">
               <h2 className="text-2xl font-semibold font-headline">Publicaciones Recientes</h2>
-              {!isClient ? renderSkeletons() : communityPosts.map((post) => (
+              {!isClient ? renderSkeletons() : communityPosts.length > 0 ? communityPosts.map((post) => (
                 <Card key={post.id}>
                   <CardHeader className="flex flex-row items-center gap-4 space-y-0">
                     <Avatar>
@@ -492,7 +460,17 @@ export default function CommunityPage() {
                      )}
                   </CardFooter>
                 </Card>
-              ))}
+              )) : (
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8">
+                            <Annoyed className="w-12 h-12 mb-4"/>
+                            <h3 className="text-lg font-semibold">No hay publicaciones todavía</h3>
+                            <p className="text-sm">¡Sé el primero en compartir algo con la comunidad!</p>
+                        </div>
+                    </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 
