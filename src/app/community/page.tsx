@@ -128,7 +128,7 @@ export default function CommunityPage() {
             .from('comunidad')
             .select(`
                 *,
-                profiles (
+                usuarios (
                     name,
                     last_name,
                     avatar_url
@@ -220,7 +220,7 @@ export default function CommunityPage() {
         })
         .select(`
             *,
-            profiles (
+            usuarios (
                 name,
                 last_name,
                 avatar_url
@@ -371,7 +371,7 @@ export default function CommunityPage() {
             <div className="space-y-6">
               <h2 className="text-2xl font-semibold font-headline">Publicaciones Recientes</h2>
               {loadingPosts ? renderSkeletons() : communityPosts.length > 0 ? communityPosts.map((post) => {
-                const authorProfile = post.profiles;
+                const authorProfile = post.usuarios;
                 const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario";
                 const authorInitials = authorProfile ? `${authorProfile.name?.[0] ?? ''}${authorProfile.last_name?.[0] ?? ''}` : 'U';
 

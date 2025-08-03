@@ -11,7 +11,7 @@ export type CommunityPost = {
   mensaje: string;
   img_url: string | null;
   fecha: string;
-  profiles: PostAuthor | null;
+  usuarios: PostAuthor | null;
   replies: Reply[];
 };
 
