@@ -1,9 +1,37 @@
 
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
 
+const PROTECTED_ROUTES = [
+  "/dashboard",
+  "/profile",
+  "/recipes",
+  "/live",
+  "/community",
+  "/technique-clinic",
+  "/schedule",
+];
+
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  const { supabase, response } = await updateSession(request);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const isProtectedRoute = PROTECTED_ROUTES.some((path) =>
+    request.nextUrl.pathname.startsWith(path)
+  );
+
+  if (!user && isProtectedRoute) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  return response;
 }
 
 export const config = {
