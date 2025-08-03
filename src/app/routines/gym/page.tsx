@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/app-layout";
 import { RoutineCard, RoutineSkeleton } from "@/components/routine-card";
+import { RoutineDetailModal } from "@/components/routine-detail-modal";
 import { Frown } from "lucide-react";
 import type { Routine } from "@/types/routine";
 import { createClient } from "@/utils/supabase/client";
@@ -12,6 +13,7 @@ export default function RoutinesGymPage() {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRoutine, setSelectedRoutine] = useState<Routine | null>(null);
 
   useEffect(() => {
     const fetchRoutines = async () => {
@@ -22,7 +24,7 @@ export default function RoutinesGymPage() {
           .from("rutinas")
           .select("*")
           .eq("visible", true)
-          .eq("entorno", "Gimnasio")
+          .ilike("entorno", "gimnasio")
           .order("fecha", { ascending: false });
 
         if (error) {
@@ -41,6 +43,14 @@ export default function RoutinesGymPage() {
 
     fetchRoutines();
   }, []);
+
+  const handleRoutineClick = (routine: Routine) => {
+    setSelectedRoutine(routine);
+  }
+
+  const handleCloseModal = () => {
+    setSelectedRoutine(null);
+  }
 
   return (
     <AppLayout>
@@ -67,7 +77,7 @@ export default function RoutinesGymPage() {
         ) : routines.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {routines.map((routine) => (
-              <div key={routine.id} className="cursor-pointer">
+              <div key={routine.id} className="cursor-pointer" onClick={() => handleRoutineClick(routine)}>
                 <RoutineCard routine={routine} />
               </div>
             ))}
@@ -82,6 +92,7 @@ export default function RoutinesGymPage() {
           </div>
         )}
       </div>
+       <RoutineDetailModal routine={selectedRoutine} isOpen={!!selectedRoutine} onClose={handleCloseModal} />
     </AppLayout>
   );
 }
