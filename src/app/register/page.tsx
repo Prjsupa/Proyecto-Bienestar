@@ -25,9 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { createClient } from "../../../utils/supabase/client"
-const supabase = createClient()
+import { createClient } from "@/utils/supabase/client"
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre es requerido." }),
@@ -40,6 +38,7 @@ export default function RegisterPage() {
   const { toast } = useToast()
   const [isRegistered, setIsRegistered] = useState(false)
   const [emailToVerify, setEmailToVerify] = useState("")
+  const supabase = createClient()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,7 +51,6 @@ export default function RegisterPage() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // 1. Registrar usuario con Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
@@ -61,9 +59,9 @@ export default function RegisterPage() {
           name: values.name,
           last_name: values.last_name,
         },
-        emailRedirectTo: `${window.location.origin}/login`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
-    });
+    })
 
     if (error) {
       toast({
@@ -73,18 +71,18 @@ export default function RegisterPage() {
       })
       return
     }
-    
-    // 2. Mostrar mensaje para verificar email
-    setIsRegistered(true)
-    setEmailToVerify(values.email)
-    toast({
-      title: "Registro exitoso",
-      description:
-        "Revisa tu correo electrónico para verificar tu cuenta antes de iniciar sesión.",
-    })
 
+    if (data.user) {
+        setIsRegistered(true)
+        setEmailToVerify(values.email)
+        toast({
+            title: "Registro exitoso",
+            description: "Revisa tu correo electrónico para verificar tu cuenta.",
+        })
+    }
+    
     form.reset()
-  };
+  }
 
   if (isRegistered) {
     return (
@@ -99,16 +97,6 @@ export default function RegisterPage() {
               </Link>.
             </CardDescription>
           </CardHeader>
-          <CardFooter className="flex justify-center">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setIsRegistered(false)
-              }}
-            >
-              Volver al registro
-            </Button>
-          </CardFooter>
         </Card>
       </div>
     )
@@ -134,6 +122,7 @@ export default function RegisterPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -160,7 +149,8 @@ export default function RegisterPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
+              </div>
+               <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
@@ -186,7 +176,6 @@ export default function RegisterPage() {
                     </FormItem>
                   )}
                 />
-              </div>
               <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
                 Registrarse
               </Button>
