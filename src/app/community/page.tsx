@@ -133,7 +133,7 @@ export default function CommunityPage() {
             console.error('Error fetching posts:', postsError);
             toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar las publicaciones.' });
         } else {
-            setCommunityPosts(postsData as CommunityPost[]);
+            setCommunityPosts(postsData as any[]);
         }
         setLoadingPosts(false);
         
@@ -205,19 +205,20 @@ export default function CommunityPage() {
             mensaje: values.content,
             img_url: imageUrl,
         })
-        .select(`
-            *,
-            usuarios (
-                name,
-                last_name
-            )
-        `)
+        .select()
         .single();
     
     if (insertError) {
         toast({ variant: 'destructive', title: 'Error al publicar', description: insertError.message });
     } else if (newPostData) {
-        setCommunityPosts(posts => [newPostData as CommunityPost, ...posts]);
+        const newPostWithAuthor: CommunityPost = {
+            ...newPostData,
+            usuarios: {
+                name: currentUser.user_metadata.name,
+                last_name: currentUser.user_metadata.last_name,
+            }
+        };
+        setCommunityPosts(posts => [newPostWithAuthor, ...posts]);
         postForm.reset();
         setSelectedPostFile(null);
         if(postFileInputRef.current) postFileInputRef.current.value = "";
@@ -568,5 +569,3 @@ export default function CommunityPage() {
     </AppLayout>
   );
 }
-
-    
