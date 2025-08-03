@@ -19,7 +19,7 @@ import { Users, UtensilsCrossed, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
-
+import type { Recipe } from "@/types/recipe";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -27,10 +27,15 @@ export default function DashboardPage() {
   const [workoutProgress, setWorkoutProgress] = useState(0);
   const [mealProgress, setMealProgress] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [dailyRecipe, setDailyRecipe] = useState<Recipe | null>(null);
+  const [recipeLoading, setRecipeLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
-    const getUser = async () => {
+    const getUserAndRecipe = async () => {
+      setLoading(true);
+      setRecipeLoading(true);
+
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
 
@@ -45,10 +50,26 @@ export default function DashboardPage() {
         else setGreeting(`¡Buenas noches, ${fullName}!`);
       }
       setLoading(false);
+
+      const { data: recipeData, error: recipeError } = await supabase
+        .from('recetas')
+        .select('*')
+        .eq('visible', true)
+        .order('fecha_publicado', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (recipeError) {
+        console.error("Error fetching daily recipe:", recipeError.message);
+      } else {
+        setDailyRecipe(recipeData);
+      }
+      setRecipeLoading(false);
     };
 
-    getUser();
+    getUserAndRecipe();
 
+    // Mock progress data
     setWorkoutProgress(60);
     setMealProgress(57);
   }, []);
@@ -123,21 +144,36 @@ export default function DashboardPage() {
                     <CardTitle className="font-headline flex items-center gap-2"><UtensilsCrossed className="w-5 h-5" /> Receta del Día</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col sm:flex-row gap-4">
-                    <Image 
-                        src="https://placehold.co/400x300.png"
-                        alt="Receta"
-                        width={150}
-                        height={100}
-                        className="rounded-lg object-cover"
-                        data-ai-hint="quinoa salad"
-                    />
-                    <div className="space-y-2">
-                        <h3 className="font-semibold font-headline">Ensalada de Quinoa y Aguacate</h3>
-                        <p className="text-sm text-muted-foreground">Una comida refrescante y llena de proteínas, perfecta para el almuerzo.</p>
-                        <Button asChild variant="link" className="p-0 h-auto">
-                            <Link href="/recipes">Ver Receta <ArrowRight className="w-4 h-4 ml-1" /></Link>
-                        </Button>
-                    </div>
+                  {recipeLoading ? (
+                    <>
+                      <Skeleton className="w-[150px] h-[100px] rounded-lg" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-5 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-1/2" />
+                      </div>
+                    </>
+                  ) : dailyRecipe ? (
+                    <>
+                      <Image 
+                          src={dailyRecipe.img_url || "https://placehold.co/400x300.png"}
+                          alt={dailyRecipe.titulo}
+                          width={150}
+                          height={100}
+                          className="rounded-lg object-cover"
+                          data-ai-hint="recipe food"
+                      />
+                      <div className="space-y-2">
+                          <h3 className="font-semibold font-headline">{dailyRecipe.titulo}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2">{dailyRecipe.descripcion}</p>
+                          <Button asChild variant="link" className="p-0 h-auto">
+                              <Link href="/recipes">Ver Todas las Recetas <ArrowRight className="w-4 h-4 ml-1" /></Link>
+                          </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No hay recetas nuevas hoy. ¡Vuelve mañana!</p>
+                  )}
                 </CardContent>
             </Card>
             <Card>
