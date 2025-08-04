@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,6 +41,7 @@ export function FeedTab() {
   const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
+  const router = useRouter();
   const postFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const supabase = createClient();
@@ -123,22 +125,25 @@ export function FeedTab() {
       img_url: imageUrl,
     };
     
-    const { data: newPostData, error: insertError } = await supabase
+    const { error: insertError } = await supabase
       .from('comunidad')
-      .insert(newPostForDb)
-      .select('*, usuarios(name, last_name)')
-      .single();
+      .insert(newPostForDb);
     
     if (insertError) {
       toast({ variant: 'destructive', title: 'Error al publicar', description: insertError.message });
       return;
     }
 
-    const newPostWithEmptyReplies = { ...newPostData, comunidad_respuestas: [] };
-    setCommunityPosts(posts => [newPostWithEmptyReplies as CommunityPost, ...posts]);
     postForm.reset();
     setSelectedPostFile(null);
     if(postFileInputRef.current) postFileInputRef.current.value = "";
+    
+    toast({
+        title: "¡Publicación Creada!",
+        description: "Tu publicación ha sido compartida con la comunidad.",
+    });
+
+    router.refresh();
   }
   
   async function onReplySubmit(values: z.infer<typeof replySchema>, postId: string) {
