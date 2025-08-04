@@ -9,11 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Calendar } from "@/components/ui/calendar";
 import { format, getDay, startOfDay, setHours, setMinutes, setSeconds } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarPlus, CalendarCheck, CalendarX, CalendarClock } from "lucide-react";
+import { CalendarClock, CalendarPlus, CalendarCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 const availableTimes = [
   "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -33,6 +34,8 @@ export default function SchedulePage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  
   const { toast } = useToast();
   const supabase = createClient();
 
@@ -48,34 +51,33 @@ export default function SchedulePage() {
                 .select('*')
                 .eq('user_id', user.id)
                 .in('estado', ['pendiente', 'confirmada'])
+                .order('created_at', { ascending: false })
                 .limit(1)
-                .single();
+                .maybeSingle();
             
-            if (data) {
-                setExistingAppointment(data);
-            }
-             if (error && error.code !== 'PGRST116') { // PGRST116: no rows found
+            if (error) {
                 console.error("Error fetching appointment:", error);
+                if (error.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine.
+                    toast({ variant: "destructive", title: "Error", description: "No se pudo cargar tu cita existente." });
+                }
+            } else if (data) {
+                setExistingAppointment(data);
             }
         }
         setLoading(false);
     };
     fetchUserAndAppointment();
-  }, [supabase]);
+  }, [supabase, toast]);
 
   const handleSchedule = async () => {
     if (!user || !date || !selectedTime) {
-      toast({
-        variant: "destructive",
-        title: "Selección incompleta",
-        description: "Por favor, selecciona una fecha y una hora.",
-      });
+      toast({ variant: "destructive", title: "Selección incompleta", description: "Por favor, selecciona una fecha y una hora." });
       return;
     }
     
     setIsSubmitting(true);
     const [hours, minutes] = selectedTime.split(':').map(Number);
-    let appointmentDate = setSeconds(setMinutes(setHours(date, hours), minutes), 0);
+    const appointmentDate = setSeconds(setMinutes(setHours(date, hours), minutes), 0);
 
     const { data: newAppointment, error } = await supabase
       .from('cita')
@@ -88,17 +90,10 @@ export default function SchedulePage() {
       .single();
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error al agendar",
-        description: "Hubo un problema al guardar tu cita. Inténtalo de nuevo.",
-      });
-       console.error("Error inserting appointment:", error);
+      toast({ variant: "destructive", title: "Error al agendar", description: error.message });
+      console.error("Error inserting appointment:", error);
     } else {
-      toast({
-        title: "¡Cita Agendada!",
-        description: `Tu cita ha sido agendada para el ${format(appointmentDate, "PPP", { locale: es })} a las ${selectedTime}.`,
-      });
+      toast({ title: "¡Cita Agendada!", description: `Tu cita ha sido agendada para el ${format(appointmentDate, "PPP", { locale: es })} a las ${selectedTime}.` });
       setExistingAppointment(newAppointment);
       setDate(undefined);
       setSelectedTime(null);
@@ -107,14 +102,11 @@ export default function SchedulePage() {
   };
   
    const handleReschedule = async () => {
-    if (!existingAppointment || !date || !selectedTime) {
-      toast({ variant: "destructive", title: "Selección incompleta", description: "Por favor, selecciona una nueva fecha y hora." });
-      return;
-    }
+    if (!existingAppointment || !date || !selectedTime) return;
     setIsSubmitting(true);
     
     const [hours, minutes] = selectedTime.split(':').map(Number);
-    let newAppointmentDate = setSeconds(setMinutes(setHours(date, hours), minutes), 0);
+    const newAppointmentDate = setSeconds(setMinutes(setHours(date, hours), minutes), 0);
     
     const { data, error } = await supabase
       .from('cita')
@@ -128,6 +120,7 @@ export default function SchedulePage() {
     } else {
        toast({ title: "¡Cita Reprogramada!", description: `Tu cita se movió al ${format(newAppointmentDate, "PPP", { locale: es })} a las ${selectedTime}.`});
        setExistingAppointment(data);
+       setIsRescheduling(false);
        setDate(undefined);
        setSelectedTime(null);
     }
@@ -147,6 +140,7 @@ export default function SchedulePage() {
     } else {
        toast({ title: "Cita Cancelada", description: "Tu cita ha sido cancelada exitosamente." });
        setExistingAppointment(null);
+       setIsRescheduling(false); 
     }
     setIsSubmitting(false);
   };
@@ -157,7 +151,10 @@ export default function SchedulePage() {
     return (
         <AppLayout>
             <div className="max-w-4xl mx-auto space-y-8">
-                <Skeleton className="h-12 w-1/2" />
+                <div className="space-y-2">
+                    <Skeleton className="h-8 w-1/2" />
+                    <Skeleton className="h-4 w-3/4" />
+                </div>
                 <Card>
                     <CardContent className="p-6">
                         <Skeleton className="h-64 w-full" />
@@ -171,114 +168,124 @@ export default function SchedulePage() {
     )
   }
 
+  const AppointmentView = () => (
+    <Card>
+        <CardHeader>
+            <CardTitle>Cita Agendada</CardTitle>
+            <CardDescription>Tu cita está programada para:</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+              <div className="flex items-center gap-4 text-lg">
+                <CalendarClock className="w-6 h-6 text-primary"/>
+                <span className="font-semibold">{format(new Date(existingAppointment!.fecha_agendada), "eeee, dd 'de' MMMM 'de' yyyy 'a las' HH:mm", { locale: es })}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="font-semibold">Estado:</span>
+                <Badge variant={existingAppointment!.estado === 'pendiente' ? 'secondary' : 'default'}>
+                    {existingAppointment!.estado.charAt(0).toUpperCase() + existingAppointment!.estado.slice(1)}
+                </Badge>
+              </div>
+        </CardContent>
+        <CardFooter className="justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsRescheduling(true)} disabled={isSubmitting}>Posponer</Button>
+            <Button variant="destructive" onClick={handleCancel} disabled={isSubmitting}>
+                {isSubmitting ? 'Cancelando...' : 'Cancelar Cita'}
+            </Button>
+        </CardFooter>
+    </Card>
+  );
+
+  const SchedulerView = () => (
+     <Card>
+        <CardContent className="p-0 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex justify-center items-center p-4 sm:p-0">
+                <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    disabled={(day) => getDay(day) === 0 || getDay(day) === 6 || day < today}
+                    className="rounded-md border"
+                    locale={es}
+                />
+            </div>
+            <div className="space-y-6 p-4 sm:p-0">
+            <div className="space-y-2">
+                <h3 className="text-lg font-semibold font-headline">
+                Horarios Disponibles para {date ? format(date, "PPP", { locale: es }) : "..."}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                    Selecciona uno de los horarios disponibles a continuación.
+                </p>
+            </div>
+            {date ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {availableTimes.map((time) => (
+                    <Button
+                    key={time}
+                    variant={selectedTime === time ? "default" : "outline"}
+                    onClick={() => setSelectedTime(time)}
+                    className={cn(
+                        selectedTime === time && "bg-accent text-accent-foreground"
+                    )}
+                    >
+                    {time}
+                    </Button>
+                ))}
+                </div>
+            ) : (
+                <p className="text-sm text-muted-foreground">
+                Por favor, selecciona una fecha para ver los horarios.
+                </p>
+            )}
+            </div>
+        </CardContent>
+        <CardFooter className="p-4 sm:p-6 border-t">
+            <div className="flex-1">
+                {date && selectedTime ? (
+                    <p className="text-sm text-muted-foreground">
+                        Cita seleccionada: <span className="font-semibold text-foreground">{format(date, "PPP", { locale: es })} a las {selectedTime}</span>
+                    </p>
+                ) : (
+                    <p className="text-sm text-muted-foreground">
+                        Selecciona una fecha y hora para tu cita.
+                    </p>
+                )}
+            </div>
+             <Button 
+                onClick={isRescheduling ? handleReschedule : handleSchedule} 
+                disabled={!date || !selectedTime || isSubmitting} 
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+             >
+                {isSubmitting ? 'Confirmando...' : (isRescheduling ? 'Confirmar Cambio' : 'Confirmar Cita')}
+             </Button>
+             {isRescheduling && (
+                <Button variant="ghost" onClick={() => { setIsRescheduling(false); setDate(undefined); setSelectedTime(null); }} disabled={isSubmitting}>
+                    Volver
+                </Button>
+            )}
+        </CardFooter>
+    </Card>
+  );
+
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto">
         <div className="space-y-2 mb-8">
             <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
-                {existingAppointment ? <CalendarCheck className="w-8 h-8"/> : <CalendarPlus className="w-8 h-8" />}
-                {existingAppointment ? "Tu Próxima Cita" : "Agendar Cita con Nutricionista"}
+                {existingAppointment && !isRescheduling ? <CalendarCheck className="w-8 h-8"/> : <CalendarPlus className="w-8 h-8" />}
+                {existingAppointment && !isRescheduling ? "Tu Próxima Cita" : (isRescheduling ? "Posponer Cita" : "Agendar Cita con Nutricionista")}
             </h1>
             <p className="text-muted-foreground">
-                {existingAppointment 
+                {existingAppointment && !isRescheduling
                     ? "Aquí están los detalles de tu próxima consulta. Puedes posponerla o cancelarla."
-                    : "Elige una fecha y hora para tu consulta personalizada."
+                    : (isRescheduling ? "Selecciona la nueva fecha y hora para tu consulta." : "Elige una fecha y hora para tu consulta personalizada.")
                 }
             </p>
         </div>
-
-        {existingAppointment ? (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Cita Agendada</CardTitle>
-                    <CardDescription>Tu cita está programada para:</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                     <div className="flex items-center gap-4 text-lg">
-                        <CalendarClock className="w-6 h-6 text-primary"/>
-                        <span className="font-semibold">{format(new Date(existingAppointment.fecha_agendada), "eeee, dd 'de' MMMM 'de' yyyy 'a las' HH:mm", { locale: es })}</span>
-                     </div>
-                     <div className="flex items-center gap-4">
-                        <span className="font-semibold">Estado:</span>
-                        <Badge variant={existingAppointment.estado === 'pendiente' ? 'secondary' : 'default'}>
-                            {existingAppointment.estado.charAt(0).toUpperCase() + existingAppointment.estado.slice(1)}
-                        </Badge>
-                     </div>
-                </CardContent>
-                <CardFooter className="justify-end gap-2">
-                    <Button variant="outline" onClick={() => setExistingAppointment(null)} disabled={isSubmitting}>Posponer</Button>
-                    <Button variant="destructive" onClick={handleCancel} disabled={isSubmitting}>
-                        {isSubmitting ? 'Cancelando...' : 'Cancelar Cita'}
-                    </Button>
-                </CardFooter>
-            </Card>
-        ) : (
-            <Card>
-            <CardContent className="p-0 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="flex justify-center items-center p-4 sm:p-0">
-                    <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        disabled={(day) => getDay(day) === 0 || getDay(day) === 6 || day < today}
-                        className="rounded-md border"
-                        locale={es}
-                    />
-                </div>
-                <div className="space-y-6 p-4 sm:p-0">
-                <div className="space-y-2">
-                    <h3 className="text-lg font-semibold font-headline">
-                    Horarios Disponibles para {date ? format(date, "PPP", { locale: es }) : "..."}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                        Selecciona uno de los horarios disponibles a continuación.
-                    </p>
-                </div>
-                {date ? (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {availableTimes.map((time) => (
-                        <Button
-                        key={time}
-                        variant={selectedTime === time ? "default" : "outline"}
-                        onClick={() => setSelectedTime(time)}
-                        className={cn(
-                            selectedTime === time && "bg-accent text-accent-foreground"
-                        )}
-                        >
-                        {time}
-                        </Button>
-                    ))}
-                    </div>
-                ) : (
-                    <p className="text-sm text-muted-foreground">
-                    Por favor, selecciona una fecha para ver los horarios.
-                    </p>
-                )}
-                </div>
-            </CardContent>
-            <CardFooter className="p-4 sm:p-6 border-t">
-                <div className="flex-1">
-                    {date && selectedTime ? (
-                        <p className="text-sm text-muted-foreground">
-                            Cita seleccionada: <span className="font-semibold text-foreground">{format(date, "PPP", { locale: es })} a las {selectedTime}</span>
-                        </p>
-                    ) : (
-                        <p className="text-sm text-muted-foreground">
-                            Selecciona una fecha y hora para tu cita.
-                        </p>
-                    )}
-                </div>
-                <Button 
-                  onClick={existingAppointment ? handleReschedule : handleSchedule} 
-                  disabled={!date || !selectedTime || isSubmitting} 
-                  className="bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                    {isSubmitting ? 'Confirmando...' : 'Confirmar Cita'}
-                </Button>
-                </CardFooter>
-            </Card>
-        )}
+        {existingAppointment && !isRescheduling ? <AppointmentView /> : <SchedulerView />}
       </div>
     </AppLayout>
   );
 }
+
+    
