@@ -51,7 +51,7 @@ export default function SchedulePage() {
                 .select('*')
                 .eq('user_id', user.id)
                 .in('estado', ['pendiente', 'confirmada'])
-                .order('created_at', { ascending: false })
+                .order('fecha_agendada', { ascending: false })
                 .limit(1)
                 .maybeSingle();
             
@@ -132,7 +132,7 @@ export default function SchedulePage() {
     setIsSubmitting(true);
     const { error } = await supabase
       .from('cita')
-      .delete()
+      .update({ estado: 'cancelada' })
       .eq('id', existingAppointment.id);
       
     if (error) {
@@ -287,5 +287,3 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
-
-    
