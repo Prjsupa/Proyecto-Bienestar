@@ -1,6 +1,5 @@
-
 import { type NextRequest, NextResponse } from "next/server";
-import { updateSession } from "@/utils/supabase/middleware";
+import { updateSession } from "./utils/supabase/middleware";
 
 const PROTECTED_ROUTES = [
   "/dashboard",
@@ -10,8 +9,7 @@ const PROTECTED_ROUTES = [
   "/community",
   "/technique-clinic",
   "/schedule",
-  "/routines/home",
-  "/routines/gym",
+  "/routines",
 ];
 
 export async function middleware(request: NextRequest) {
