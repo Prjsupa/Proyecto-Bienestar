@@ -1,16 +1,18 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import type { User } from "@supabase/supabase-js";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { addDays, format, getDay, startOfDay } from "date-fns";
+import { format, getDay, startOfDay, setHours, setMinutes, setSeconds } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/utils/supabase/client";
 
 const availableTimes = [
   "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -18,12 +20,23 @@ const availableTimes = [
 ];
 
 export default function SchedulePage() {
+  const [user, setUser] = useState<User | null>(null);
   const [date, setDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const supabase = createClient();
 
-  const handleSchedule = () => {
-    if (!date || !selectedTime) {
+  useEffect(() => {
+    const fetchUser = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+    };
+    fetchUser();
+  }, [supabase.auth]);
+
+  const handleSchedule = async () => {
+    if (!user || !date || !selectedTime) {
       toast({
         variant: "destructive",
         title: "Selección incompleta",
@@ -31,14 +44,36 @@ export default function SchedulePage() {
       });
       return;
     }
+    
+    setIsSubmitting(true);
 
-    toast({
-      title: "¡Cita Agendada!",
-      description: `Tu cita con la nutricionista ha sido agendada para el ${format(date, "PPP", { locale: es })} a las ${selectedTime}.`,
-    });
+    const [hours, minutes] = selectedTime.split(':').map(Number);
+    let appointmentDate = setSeconds(setMinutes(setHours(date, hours), minutes), 0);
 
-    setDate(undefined);
-    setSelectedTime(null);
+    const { error } = await supabase
+      .from('cita')
+      .insert({
+        user_id: user.id,
+        fecha_agendada: appointmentDate.toISOString(),
+        estado: 'pendiente'
+      });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error al agendar",
+        description: "Hubo un problema al guardar tu cita. Inténtalo de nuevo.",
+      });
+       console.error("Error inserting appointment:", error);
+    } else {
+      toast({
+        title: "¡Cita Agendada!",
+        description: `Tu cita ha sido agendada para el ${format(appointmentDate, "PPP", { locale: es })} a las ${selectedTime}.`,
+      });
+      setDate(undefined);
+      setSelectedTime(null);
+    }
+    setIsSubmitting(false);
   };
   
   const today = startOfDay(new Date());
@@ -111,8 +146,8 @@ export default function SchedulePage() {
                     </p>
                 )}
               </div>
-              <Button onClick={handleSchedule} disabled={!date || !selectedTime} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                Confirmar Cita
+              <Button onClick={handleSchedule} disabled={!date || !selectedTime || isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                {isSubmitting ? 'Confirmando...' : 'Confirmar Cita'}
               </Button>
             </CardFooter>
         </Card>
