@@ -51,13 +51,15 @@ export default function SchedulePage() {
                 .select('*')
                 .eq('user_id', user.id)
                 .in('estado', ['pendiente', 'confirmada'])
-                .limit(1);
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle(); // Use maybeSingle() to prevent error 406
             
             if (error) {
                 console.error("Error fetching appointment:", error);
                 toast({ variant: "destructive", title: "Error", description: "No se pudo cargar tu cita existente." });
-            } else if (data && data.length > 0) {
-                setExistingAppointment(data[0]);
+            } else if (data) {
+                setExistingAppointment(data);
             }
         }
         setLoading(false);
@@ -136,6 +138,7 @@ export default function SchedulePage() {
     } else {
        toast({ title: "Cita Cancelada", description: "Tu cita ha sido cancelada exitosamente." });
        setExistingAppointment(null);
+       setIsRescheduling(false); 
     }
     setIsSubmitting(false);
   };
@@ -254,7 +257,7 @@ export default function SchedulePage() {
                 {isSubmitting ? 'Confirmando...' : (isRescheduling ? 'Confirmar Cambio' : 'Confirmar Cita')}
              </Button>
              {isRescheduling && (
-                <Button variant="ghost" onClick={() => setIsRescheduling(false)} disabled={isSubmitting}>
+                <Button variant="ghost" onClick={() => { setIsRescheduling(false); setDate(undefined); setSelectedTime(null); }} disabled={isSubmitting}>
                     Volver
                 </Button>
             )}
