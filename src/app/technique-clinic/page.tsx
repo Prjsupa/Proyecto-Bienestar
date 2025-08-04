@@ -45,7 +45,7 @@ export default function TechniqueClinicPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('clinica_tecnica')
-      .select('*, usuarios:user_id(name, last_name, avatar_url)')
+      .select('*, usuarios(name, last_name, avatar_url)')
       .order('fecha', { ascending: false });
 
     if (error) {
