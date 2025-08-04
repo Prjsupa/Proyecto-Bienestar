@@ -1,4 +1,5 @@
 
+
 export type Routine = {
     id: string;
     titulo: string;
@@ -14,7 +15,6 @@ export type Routine = {
 type PostAuthor = {
     name: string | null;
     last_name: string | null;
-    avatar_url?: string;
 };
 
 export type TechniquePost = {

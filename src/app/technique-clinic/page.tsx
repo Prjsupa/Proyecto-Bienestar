@@ -36,19 +36,15 @@ export default function TechniqueClinicPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { nota: "" },
-  });
-  
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('clinica_tecnica')
-      .select('*, usuarios(name, last_name, avatar_url)')
+      .select('*, usuarios!inner(name, last_name)')
       .order('fecha', { ascending: false });
 
     if (error) {
+      console.error("Error fetching posts:", error)
       toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar las publicaciones.' });
     } else {
       setPosts(data as any[]);
@@ -83,6 +79,11 @@ export default function TechniqueClinicPage() {
     }
   };
   
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { nota: "" },
+  });
+
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
