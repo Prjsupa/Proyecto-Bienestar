@@ -33,20 +33,23 @@ export type CommunityPost = {
   comunidad_respuestas?: Reply[];
 };
 
+export type QAReply = {
+    id: string;
+    created_at: string;
+    pregunta_id: string;
+    respuesta: string;
+    user_id: string;
+    es_profesional?: boolean;
+    usuarios: PostAuthor | null;
+}
+
 export type QAPost = {
-    id: number;
-    author: string;
-    avatar: string;
-    aiHint: string;
-    timestamp: Date;
-    question: string;
-    answer: {
-        professional: string;
-        specialty: string;
-        avatar: string;
-        aiHint: string;
-        content: string;
-    } | null;
+    id: string;
+    created_at: string;
+    pregunta: string;
+    user_id: string;
+    usuarios: PostAuthor | null;
+    respuestas_profesionales: QAReply[];
 }
 
 export type ProfessionalPost = {
@@ -69,4 +72,3 @@ export type ClaseEnVivo = {
     disponible_hasta: string;
     miniatura: string | null;
 }
-    
