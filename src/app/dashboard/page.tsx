@@ -42,12 +42,12 @@ export default function DashboardPage() {
       if (user) {
         const name = user.user_metadata?.name || 'Usuario';
         const lastName = user.user_metadata?.last_name || '';
-        const fullName = `${name} ${lastName}`.trim();
+        const fullName = \`\${name} \${lastName}\`.trim();
         
         const hours = new Date().getHours();
-        if (hours < 12) setGreeting(`¡Buenos días, ${fullName}!`);
-        else if (hours < 18) setGreeting(`¡Buenas tardes, ${fullName}!`);
-        else setGreeting(`¡Buenas noches, ${fullName}!`);
+        if (hours < 12) setGreeting(\`¡Buenos días, \${fullName}!\`);
+        else if (hours < 18) setGreeting(\`¡Buenas tardes, \${fullName}!\`);
+        else setGreeting(\`¡Buenas noches, \${fullName}!\`);
       }
       setLoading(false);
 
@@ -115,12 +115,12 @@ export default function DashboardPage() {
                     <span>Entrenamientos</span>
                     <span>3/5</span>
                 </div>
-                <Progress value={workoutProgress} aria-label={`${workoutProgress}% de los entrenamientos completados`} />
+                <Progress value={workoutProgress} aria-label={\`\${workoutProgress}% de los entrenamientos completados\`} />
                 <div className="flex justify-between text-sm font-medium pt-2">
                     <span>Comidas Saludables</span>
                     <span>12/21</span>
                 </div>
-                <Progress value={mealProgress} aria-label={`${mealProgress}% de las comidas saludables`} />
+                <Progress value={mealProgress} aria-label={\`\${mealProgress}% de las comidas saludables\`} />
             </CardContent>
           </Card>
           
@@ -130,7 +130,7 @@ export default function DashboardPage() {
                   <CardDescription className="text-primary-foreground/80">Tu coach está disponible para ayudarte.</CardDescription>
               </CardHeader>
               <CardContent>
-                  <p className="text-sm">{`"¡Recuerda mantenerte hidratado durante tu entrenamiento de hoy, ${user?.user_metadata?.name || 'campeón'}!" - Coach Sarah`}</p>
+                  <p className="text-sm">{\`"¡Recuerda mantenerte hidratado durante tu entrenamiento de hoy, \${user?.user_metadata?.name || 'campeón'}!" - Coach Sarah\`}</p>
               </CardContent>
               <CardFooter>
                   <Button variant="secondary" className="bg-background/20 hover:bg-background/30 text-primary-foreground">Chatear con el Coach</Button>

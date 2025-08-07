@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { User } from "@supabase/supabase-js";
-import { useForm } from "react-hook-form";
+import { useForm } from "../../../node_modules/react-hook-form/dist";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { CommunityPost, QAPost, ProfessionalPost, Reply, AuthorVista } from "@/types/community";
+import type { CommunityPost, QAPost, ProfessionalPost, Reply } from "@/types/community";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -117,29 +117,32 @@ export default function CommunityPage() {
   const { toast } = useToast();
   const supabase = createClient();
 
+  const fetchPosts = useCallback(async () => {
+    setLoadingPosts(true);
+    const { data: postsData, error: postsError } = await supabase
+        .from('comunidad')
+        .select(\`
+            *,
+            usuarios ( name, last_name ),
+            comunidad_respuestas ( *, usuarios_vista(*) )
+        \`)
+        .order('fecha', { ascending: false });
+
+    if (postsError) {
+        console.error('Error fetching posts:', postsError);
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar las publicaciones.' });
+    } else {
+        setCommunityPosts(postsData as any[]);
+    }
+    setLoadingPosts(false);
+  }, [supabase, toast]);
+
   useEffect(() => {
     const fetchInitialData = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
         
-        setLoadingPosts(true);
-        const { data: postsData, error: postsError } = await supabase
-            .from('comunidad')
-            .select(`
-                *,
-                usuarios ( name, last_name ),
-                comunidad_respuestas ( *, usuarios_vista(*) )
-            `)
-            .order('fecha', { ascending: false });
-
-
-        if (postsError) {
-            console.error('Error fetching posts:', postsError);
-            toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar las publicaciones.' });
-        } else {
-            setCommunityPosts(postsData as any[]);
-        }
-        setLoadingPosts(false);
+        await fetchPosts();
         
         const qaWithTimestamps = initialQAData.map((qa, index) => ({
             ...qa,
@@ -156,7 +159,7 @@ export default function CommunityPage() {
     };
     
     fetchInitialData();
-  }, [supabase, toast]);
+  }, [fetchPosts, supabase, toast]);
   
   const postForm = useForm<z.infer<typeof postSchema>>({
     resolver: zodResolver(postSchema),
@@ -193,7 +196,7 @@ export default function CommunityPage() {
 
     let imageUrl: string | null = null;
     if (selectedPostFile) {
-        const filePath = `${currentUser.id}/${Date.now()}_${selectedPostFile.name}`;
+        const filePath = \`\${currentUser.id}/\${Date.now()}_\${selectedPostFile.name}\`;
         const { error: uploadError } = await supabase.storage
             .from('publicaciones')
             .upload(filePath, selectedPostFile);
@@ -219,24 +222,13 @@ export default function CommunityPage() {
     
     if (insertError) {
         toast({ variant: 'destructive', title: 'Error al publicar', description: insertError.message });
-    } else {
-        const newPost: CommunityPost = {
-            id: crypto.randomUUID(), // Use a temporary ID for optimistic update
-            user_id: currentUser.id,
-            mensaje: values.content,
-            img_url: imageUrl,
-            fecha: new Date().toISOString(),
-            usuarios: {
-                name: currentUser.user_metadata.name,
-                last_name: currentUser.user_metadata.last_name,
-            },
-            comunidad_respuestas: []
-        };
-        setCommunityPosts(posts => [newPost, ...posts]);
-        postForm.reset();
-        setSelectedPostFile(null);
-        if(postFileInputRef.current) postFileInputRef.current.value = "";
+        return;
     }
+
+    await fetchPosts();
+    postForm.reset();
+    setSelectedPostFile(null);
+    if(postFileInputRef.current) postFileInputRef.current.value = "";
   }
 
   async function onReplySubmit(values: z.infer<typeof replySchema>, postId: string) {
@@ -245,30 +237,18 @@ export default function CommunityPage() {
         return;
     }
 
-    const { data: newReplyData, error } = await supabase
+    const { error } = await supabase
         .from('comunidad_respuestas')
         .insert({
             post_id: postId,
             user_id: currentUser.id,
             mensaje: values.content,
-        })
-        .select('*, usuarios_vista(*)')
-        .single();
+        });
     
     if (error) {
         toast({ variant: 'destructive', title: 'Error al responder', description: error.message });
     } else {
-       const newReply: Reply = newReplyData as any;
-
-        setCommunityPosts(posts => posts.map(p => {
-            if (p.id === postId) {
-                return {
-                    ...p,
-                    comunidad_respuestas: [...(p.comunidad_respuestas || []), newReply]
-                }
-            }
-            return p;
-        }));
+        await fetchPosts();
         replyForm.reset();
         setReplyingTo(null);
     }
@@ -303,7 +283,7 @@ export default function CommunityPage() {
   );
 
   const getInitials = (name?: string | null, lastName?: string | null) => {
-    if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
+    if (name && lastName) return \`\${name[0]}\${lastName[0]}\`.toUpperCase();
     if (name) return name.substring(0, 2).toUpperCase();
     return "U";
   };
@@ -407,7 +387,7 @@ export default function CommunityPage() {
               <h2 className="text-2xl font-semibold font-headline">Publicaciones Recientes</h2>
               {loadingPosts ? renderSkeletons() : communityPosts.length > 0 ? communityPosts.map((post) => {
                 const authorProfile = post.usuarios;
-                const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario Anónimo";
+                const authorName = authorProfile ? \`\${authorProfile.name} \${authorProfile.last_name}\`.trim() : "Usuario Anónimo";
                 const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
 
                 return (
@@ -482,7 +462,7 @@ export default function CommunityPage() {
                             <div className="w-full space-y-4 pt-4 border-t">
                                 {post.comunidad_respuestas.map(reply => {
                                     const replyAuthorProfile = reply.usuarios_vista;
-                                    const replyAuthorName = replyAuthorProfile ? `${replyAuthorProfile.name} ${replyAuthorProfile.last_name}`.trim() : "Usuario Anónimo";
+                                    const replyAuthorName = replyAuthorProfile ? \`\${replyAuthorProfile.name} \${replyAuthorProfile.last_name}\`.trim() : "Usuario Anónimo";
                                     const replyAuthorInitials = getInitials(replyAuthorProfile?.name, replyAuthorProfile?.last_name);
                                     return (
                                         <div key={reply.id} className="flex items-start gap-3">

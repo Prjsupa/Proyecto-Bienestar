@@ -4,7 +4,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Routine } from '@/types/routine';
-import { Dumbbell, Wrench, ListChecks } from 'lucide-react';
+import { Wrench, ListChecks } from 'lucide-react';
 
 interface RoutineDetailModalProps {
   routine: Routine | null;

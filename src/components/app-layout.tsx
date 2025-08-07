@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   Home,
@@ -70,12 +70,12 @@ const navItems = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   useEffect(() => {
-    const supabase = createClient();
-    
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
@@ -88,26 +88,30 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      setLoading(false);
+      if (!session?.user) {
+        setLoading(false);
+      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase.auth]);
   
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.refresh();
+    router.push('/login');
+  }
+
   const getInitials = (name: string, lastName: string) => {
-    if (name && lastName) {
-        return `${name[0]}${lastName[0]}`.toUpperCase();
-    }
-    if (name) {
-        return name.substring(0, 2).toUpperCase();
-    }
+    if (name && lastName) return \`\${name[0]}\${lastName[0]}\`.toUpperCase();
+    if (name) return name.substring(0, 2).toUpperCase();
     return "US";
   }
   
   const displayName = user?.user_metadata?.name && user?.user_metadata?.last_name 
-    ? `${user.user_metadata.name} ${user.user_metadata.last_name}` 
+    ? \`\${user.user_metadata.name} \${user.user_metadata.last_name}\` 
     : user?.user_metadata?.name ?? user?.email ?? "Usuario";
     
   const userInitials = getInitials(user?.user_metadata?.name || '', user?.user_metadata?.last_name || '');
@@ -123,11 +127,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarMenu>
           {navItems.map((item) =>
             item.subItems ? (
-              <SidebarMenuItem key={item.href}>
-                <Collapsible>
+              <SidebarMenuItem key={item.href} className="group/collapsible">
+                <Collapsible defaultOpen={pathname.startsWith(item.href)}>
                     <CollapsibleTrigger asChild>
                         <SidebarMenuButton
-                            className="w-full justify-between"
+                            className="w-full justify-between group-data-[state=open]:bg-sidebar-accent"
                             isActive={pathname.startsWith(item.href)}
                             tooltip={item.label}
                         >
@@ -211,12 +215,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </DropdownMenuItem>
                     <DropdownMenuItem>Configuración</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                       <form action="/api/auth/signout" method="post">
-                        <button type="submit" className="w-full text-left">
-                            Cerrar Sesión
-                        </button>
-                      </form>
+                    <DropdownMenuItem onClick={handleSignOut}>
+                        Cerrar Sesión
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -262,3 +262,5 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
+
+    

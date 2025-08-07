@@ -84,7 +84,6 @@ export default function SchedulePage() {
       .insert({
         user_id: user.id,
         fecha_agendada: appointmentDate.toISOString(),
-        estado: 'pendiente'
       })
       .select()
       .single();
@@ -93,7 +92,7 @@ export default function SchedulePage() {
       toast({ variant: "destructive", title: "Error al agendar", description: error.message });
       console.error("Error inserting appointment:", error);
     } else {
-      toast({ title: "¡Cita Agendada!", description: `Tu cita ha sido agendada para el ${format(appointmentDate, "PPP", { locale: es })} a las ${selectedTime}.` });
+      toast({ title: "¡Cita Agendada!", description: \`Tu cita ha sido agendada para el \${format(appointmentDate, "PPP", { locale: es })} a las \${selectedTime}.\` });
       setExistingAppointment(newAppointment);
       setDate(undefined);
       setSelectedTime(null);
@@ -118,7 +117,7 @@ export default function SchedulePage() {
     if (error) {
        toast({ variant: "destructive", title: "Error al posponer", description: "No se pudo actualizar tu cita." });
     } else {
-       toast({ title: "¡Cita Reprogramada!", description: `Tu cita se movió al ${format(newAppointmentDate, "PPP", { locale: es })} a las ${selectedTime}.`});
+       toast({ title: "¡Cita Reprogramada!", description: \`Tu cita se movió al \${format(newAppointmentDate, "PPP", { locale: es })} a las \${selectedTime}.\`});
        setExistingAppointment(data);
        setIsRescheduling(false);
        setDate(undefined);
@@ -132,7 +131,7 @@ export default function SchedulePage() {
     setIsSubmitting(true);
     const { error } = await supabase
       .from('cita')
-      .update({ estado: 'cancelada' })
+      .delete()
       .eq('id', existingAppointment.id);
       
     if (error) {
@@ -287,3 +286,5 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
+
+    

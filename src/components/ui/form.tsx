@@ -10,7 +10,7 @@ import {
   type ControllerProps,
   type FieldPath,
   type FieldValues,
-} from "react-hook-form"
+} from "../../../node_modules/react-hook-form/dist"
 
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
@@ -57,9 +57,9 @@ const useFormField = () => {
   return {
     id,
     name: fieldContext.name,
-    formItemId: `${id}-form-item`,
-    formDescriptionId: `${id}-form-item-description`,
-    formMessageId: `${id}-form-item-message`,
+    formItemId: \`\${id}-form-item\`,
+    formDescriptionId: \`\${id}-form-item-description\`,
+    formMessageId: \`\${id}-form-item-message\`,
     ...fieldState,
   }
 }
@@ -115,8 +115,8 @@ const FormControl = React.forwardRef<
       id={formItemId}
       aria-describedby={
         !error
-          ? `${formDescriptionId}`
-          : `${formDescriptionId} ${formMessageId}`
+          ? \`\${formDescriptionId}\`
+          : \`\${formDescriptionId} \${formMessageId}\`
       }
       aria-invalid={!!error}
       {...props}

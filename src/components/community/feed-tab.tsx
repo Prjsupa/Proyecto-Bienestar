@@ -2,9 +2,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
-import { useForm } from "react-hook-form";
+import { useForm } from "../../../node_modules/react-hook-form/dist";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
@@ -41,7 +40,6 @@ export function FeedTab() {
   const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
-  const router = useRouter();
   const postFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const supabase = createClient();
@@ -50,11 +48,11 @@ export function FeedTab() {
     setLoadingPosts(true);
     const { data: postsData, error: postsError } = await supabase
         .from('comunidad')
-        .select(`
+        .select(\`
             *,
             usuarios ( name, last_name ),
             comunidad_respuestas ( *, usuarios_vista(*) )
-        `)
+        \`)
         .order('fecha', { ascending: false });
 
     if (postsError) {
@@ -105,7 +103,7 @@ export function FeedTab() {
 
     let imageUrl: string | null = null;
     if (selectedPostFile) {
-      const filePath = `${currentUser.id}/${Date.now()}_${selectedPostFile.name}`;
+      const filePath = \`\${currentUser.id}/\${Date.now()}_\${selectedPostFile.name}\`;
       const { error: uploadError } = await supabase.storage
         .from('publicaciones')
         .upload(filePath, selectedPostFile);
@@ -134,16 +132,10 @@ export function FeedTab() {
       return;
     }
 
+    await fetchPosts();
     postForm.reset();
     setSelectedPostFile(null);
     if(postFileInputRef.current) postFileInputRef.current.value = "";
-    
-    toast({
-        title: "¡Publicación Creada!",
-        description: "Tu publicación ha sido compartida con la comunidad.",
-    });
-
-    router.refresh();
   }
   
   async function onReplySubmit(values: z.infer<typeof replySchema>, postId: string) {
@@ -190,7 +182,7 @@ export function FeedTab() {
   );
 
   const getInitials = (name?: string | null, lastName?: string | null) => {
-    if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
+    if (name && lastName) return \`\${name[0]}\${lastName[0]}\`.toUpperCase();
     if (name) return name.substring(0, 2).toUpperCase();
     return "U";
   };
@@ -277,7 +269,7 @@ export function FeedTab() {
             <h2 className="text-2xl font-semibold font-headline">Publicaciones Recientes</h2>
             {loadingPosts ? renderSkeletons() : communityPosts.length > 0 ? communityPosts.map((post) => {
             const authorProfile = post.usuarios;
-            const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario Anónimo";
+            const authorName = authorProfile ? \`\${authorProfile.name} \${authorProfile.last_name}\`.trim() : "Usuario Anónimo";
             const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
 
             return (
@@ -352,7 +344,7 @@ export function FeedTab() {
                         <div className="w-full space-y-4 pt-4 border-t">
                             {post.comunidad_respuestas.map((reply: Reply) => {
                                 const replyAuthorProfile = reply.usuarios_vista;
-                                const replyAuthorName = replyAuthorProfile ? `${replyAuthorProfile.name} ${replyAuthorProfile.last_name}`.trim() : "Usuario Anónimo";
+                                const replyAuthorName = replyAuthorProfile ? \`\${replyAuthorProfile.name} \${replyAuthorProfile.last_name}\`.trim() : "Usuario Anónimo";
                                 const replyAuthorInitials = getInitials(replyAuthorProfile?.name, replyAuthorProfile?.last_name);
                                 return (
                                     <div key={reply.id} className="flex items-start gap-3">
@@ -393,5 +385,3 @@ export function FeedTab() {
     </>
   )
 }
-
-    

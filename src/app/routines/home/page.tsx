@@ -4,8 +4,9 @@
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/app-layout";
 import { RoutineCard, RoutineSkeleton } from "@/components/routine-card";
+import { RoutineDetailModal } from "@/components/routine-detail-modal";
 import { Frown } from "lucide-react";
-import type { Routine } from "@/types/fitness";
+import type { Routine } from "@/types/routine";
 import { createClient } from "@/utils/supabase/client";
 
 
@@ -13,6 +14,7 @@ export default function RoutinesHomePage() {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRoutine, setSelectedRoutine] = useState<Routine | null>(null);
 
   useEffect(() => {
     const fetchRoutines = async () => {
@@ -30,7 +32,6 @@ export default function RoutinesHomePage() {
           throw error;
         }
         
-        console.log("Home Routines Data:", data);
         setRoutines(data || []);
       } catch (err: any) {
         console.error("Error fetching home routines:", err);
@@ -68,7 +69,7 @@ export default function RoutinesHomePage() {
         ) : routines.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {routines.map((routine) => (
-              <div key={routine.id} className="cursor-pointer">
+              <div key={routine.id} className="cursor-pointer" onClick={() => setSelectedRoutine(routine)}>
                 <RoutineCard routine={routine} />
               </div>
             ))}
@@ -83,6 +84,7 @@ export default function RoutinesHomePage() {
           </div>
         )}
       </div>
+      <RoutineDetailModal routine={selectedRoutine} isOpen={!!selectedRoutine} onClose={() => setSelectedRoutine(null)} />
     </AppLayout>
   );
 }

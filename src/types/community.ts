@@ -1,7 +1,9 @@
 
+
 export type PostAuthor = {
     name: string | null;
     last_name: string | null;
+    avatar_url?: string;
 };
 
 export type AuthorVista = {
@@ -9,6 +11,7 @@ export type AuthorVista = {
     last_name: string | null;
     id: string;
     email: string;
+    avatar_url?: string;
 }
 
 export type Reply = {
@@ -56,3 +59,14 @@ export type ProfessionalPost = {
     title: string;
     content: string;
 }
+
+export type ClaseEnVivo = {
+    id: string;
+    titulo: string;
+    descripcion: string | null;
+    fecha_hora: string;
+    link: string | null;
+    disponible_hasta: string;
+    miniatura: string | null;
+}
+    

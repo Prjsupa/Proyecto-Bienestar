@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { User } from "@supabase/supabase-js";
-import { useForm } from "react-hook-form";
+import { useForm } from "../../../node_modules/react-hook-form/dist";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
@@ -40,7 +40,7 @@ export default function TechniqueClinicPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('clinica_tecnica')
-      .select('*, usuarios!inner(name, last_name)')
+      .select('*, usuarios!inner(*)')
       .order('fecha', { ascending: false });
 
     if (error) {
@@ -95,7 +95,7 @@ export default function TechniqueClinicPage() {
     }
     
     const videoFile = values.video[0];
-    const filePath = `${currentUser.id}/${Date.now()}_${videoFile.name}`;
+    const filePath = \`\${currentUser.id}/\${Date.now()}_\${videoFile.name}\`;
 
     const { error: uploadError } = await supabase.storage
       .from('clinica.tecnica')
@@ -128,7 +128,7 @@ export default function TechniqueClinicPage() {
   }
 
   const getInitials = (name?: string | null, lastName?: string | null) => {
-    if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
+    if (name && lastName) return \`\${name[0]}\${lastName[0]}\`.toUpperCase();
     if (name) return name.substring(0, 2).toUpperCase();
     return "U";
   };
@@ -230,7 +230,7 @@ export default function TechniqueClinicPage() {
             <div className="space-y-6">
                  {loading ? renderSkeletons() : posts.length > 0 ? posts.map((post) => {
                     const authorProfile = post.usuarios;
-                    const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario Anónimo";
+                    const authorName = authorProfile ? \`\${authorProfile.name} \${authorProfile.last_name}\`.trim() : "Usuario Anónimo";
                     const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
 
                     return (
@@ -276,3 +276,5 @@ export default function TechniqueClinicPage() {
     </AppLayout>
   );
 }
+
+    

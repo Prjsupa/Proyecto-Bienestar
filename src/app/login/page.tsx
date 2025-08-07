@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { useForm } from "../../../node_modules/react-hook-form/dist"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 
@@ -66,7 +66,7 @@ export default function LoginPage() {
       title: "Inicio de Sesión Exitoso",
       description: "Redirigiendo a tu panel de control...",
     })
-    // Forzamos un refresh para que el middleware de Supabase se ejecute y actualice la sesión
+    
     router.refresh()
   }
 
@@ -111,8 +111,8 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                Iniciar Sesión
+              <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
           </Form>
