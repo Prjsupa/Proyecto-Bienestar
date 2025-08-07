@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -10,7 +11,7 @@ import {
   type ControllerProps,
   type FieldPath,
   type FieldValues,
-} from "../../../node_modules/react-hook-form/dist"
+} from "react-hook-form"
 
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"

@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { User } from "@supabase/supabase-js";
-import { useForm } from "../../../node_modules/react-hook-form/dist";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
@@ -49,11 +49,11 @@ export function QATab() {
     setLoading(true);
     const { data, error } = await supabase
       .from('preguntas_profesionales')
-      .select(\`
+      .select(`
         *,
         usuarios:user_id ( name, last_name, avatar_url ),
         respuestas_profesionales ( *, usuarios:user_id (name, last_name, avatar_url) )
-      \`)
+      `)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -153,7 +153,7 @@ export function QATab() {
   );
 
   const getInitials = (name?: string | null, lastName?: string | null) => {
-    if (name && lastName) return \`\${name[0]}\${lastName[0]}\`.toUpperCase();
+    if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
     if (name) return name.substring(0, 2).toUpperCase();
     return "U";
   };
@@ -251,7 +251,7 @@ export function QATab() {
           </Card>
         ) : qaPosts.map((qa) => {
             const author = qa.usuarios;
-            const authorName = author ? \`\${author.name || ''} \${author.last_name || ''}\`.trim() : "Usuario Anónimo";
+            const authorName = author ? `${author.name || ''} ${author.last_name || ''}`.trim() : "Usuario Anónimo";
             const authorInitials = getInitials(author?.name, author?.last_name);
 
             return (
@@ -279,7 +279,7 @@ export function QATab() {
                       <div className="w-full space-y-4 pt-4 border-t">
                           {qa.respuestas_profesionales.map((reply: QAReply) => {
                               const replyAuthor = reply.usuarios;
-                              const replyAuthorName = replyAuthor ? \`\${replyAuthor.name || ''} \${replyAuthor.last_name || ''}\`.trim() : "Usuario";
+                              const replyAuthorName = replyAuthor ? `${replyAuthor.name || ''} ${replyAuthor.last_name || ''}`.trim() : "Usuario";
                               const replyAuthorInitials = getInitials(replyAuthor?.name, replyAuthor?.last_name);
                               return (
                                   <div key={reply.id} className="flex items-start gap-3">

@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useState } from "react"
-import { useForm } from "../../../node_modules/react-hook-form/dist"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
@@ -60,7 +60,7 @@ export default function RegisterPage() {
           name: values.name,
           last_name: values.last_name,
         },
-        emailRedirectTo: \`\${window.location.origin}/auth/callback\`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
 
