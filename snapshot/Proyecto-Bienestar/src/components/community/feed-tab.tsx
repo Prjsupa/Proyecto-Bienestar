@@ -72,7 +72,7 @@ export function FeedTab() {
     fetchUser();
     fetchPosts();
     setIsClient(true);
-  }, [fetchPosts, supabase, toast]);
+  }, [fetchPosts, supabase]);
 
   const postForm = useForm<z.infer<typeof postSchema>>({
     resolver: zodResolver(postSchema),
