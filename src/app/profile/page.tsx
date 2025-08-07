@@ -58,7 +58,7 @@ export default function ProfilePage() {
   }, [router, supabase.auth]);
 
   const getInitials = (name: string, lastName: string) => {
-    if (name && lastName) return \`\${name[0]}\${lastName[0]}\`.toUpperCase();
+    if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
     if (name) return name.substring(0, 2).toUpperCase();
     return "US";
   }
@@ -82,7 +82,7 @@ export default function ProfilePage() {
     let avatarUrl = user.user_metadata.avatar_url;
 
     if (avatarFile) {
-        const filePath = \`avatars/\${user.id}-\${Date.now()}\`;
+        const filePath = `avatars/${user.id}-${Date.now()}`;
         const { error: uploadError } = await supabase.storage
             .from('publicaciones') 
             .upload(filePath, avatarFile, {
@@ -131,7 +131,7 @@ export default function ProfilePage() {
     setIsUploading(false);
   };
 
-  const displayName = name && lastName ? \`\${name} \${lastName}\` : name || user?.email || "Usuario";
+  const displayName = name && lastName ? `${name} ${lastName}` : name || user?.email || "Usuario";
 
   if (loading) {
     return (
@@ -238,5 +238,3 @@ export default function ProfilePage() {
     </AppLayout>
   );
 }
-
-    

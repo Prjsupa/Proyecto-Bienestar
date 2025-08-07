@@ -105,13 +105,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const getInitials = (name: string, lastName: string) => {
-    if (name && lastName) return \`\${name[0]}\${lastName[0]}\`.toUpperCase();
+    if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
     if (name) return name.substring(0, 2).toUpperCase();
     return "US";
   }
   
   const displayName = user?.user_metadata?.name && user?.user_metadata?.last_name 
-    ? \`\${user.user_metadata.name} \${user.user_metadata.last_name}\` 
+    ? `${user.user_metadata.name} ${user.user_metadata.last_name}` 
     : user?.user_metadata?.name ?? user?.email ?? "Usuario";
     
   const userInitials = getInitials(user?.user_metadata?.name || '', user?.user_metadata?.last_name || '');
@@ -262,5 +262,3 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
-
-    
