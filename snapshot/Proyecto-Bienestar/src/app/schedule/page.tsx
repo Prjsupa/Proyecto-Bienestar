@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Calendar } from "@/components/ui/calendar";
 import { format, getDay, startOfDay, setHours, setMinutes, setSeconds } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarClock, CalendarPlus, CalendarCheck, CalendarX } from "lucide-react";
+import { CalendarClock, CalendarPlus, CalendarCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
@@ -51,13 +51,15 @@ export default function SchedulePage() {
                 .select('*')
                 .eq('user_id', user.id)
                 .in('estado', ['pendiente', 'confirmada'])
-                .order('created_at', { ascending: false })
+                .order('fecha_agendada', { ascending: false })
                 .limit(1)
-                .maybeSingle(); // Use maybeSingle() to prevent error 406
+                .maybeSingle();
             
             if (error) {
                 console.error("Error fetching appointment:", error);
-                toast({ variant: "destructive", title: "Error", description: "No se pudo cargar tu cita existente." });
+                if (error.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine.
+                    toast({ variant: "destructive", title: "Error", description: "No se pudo cargar tu cita existente." });
+                }
             } else if (data) {
                 setExistingAppointment(data);
             }
@@ -82,7 +84,6 @@ export default function SchedulePage() {
       .insert({
         user_id: user.id,
         fecha_agendada: appointmentDate.toISOString(),
-        estado: 'pendiente'
       })
       .select()
       .single();
