@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { User } from "@supabase/supabase-js";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { format, getDay, startOfDay, setHours, setMinutes, setSeconds } from "date-fns";
+import { format, getDay, startOfDay, setHours, setMinutes, setSeconds, parse, isEqual } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarClock, CalendarPlus, CalendarCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -15,17 +15,17 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import type { Cita } from "@/types/community";
 
-const availableTimes = [
-  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-  "14:00", "14:30", "15:00", "15:30", "16:00",
+
+const allAvailableTimes = [
+    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
+    "15:00", "15:30", "16:00"
 ];
 
-type Cita = {
-    id: string;
-    fecha_agendada: string;
-    estado: 'pendiente' | 'confirmada' | 'cancelada';
-}
+const MAX_APPOINTMENTS_PER_DAY = 2;
+
 
 export default function SchedulePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -35,16 +35,30 @@ export default function SchedulePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isRescheduling, setIsRescheduling] = useState(false);
+  const [bookedAppointments, setBookedAppointments] = useState<Cita[]>([]);
   
   const { toast } = useToast();
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchUserAndAppointment = async () => {
+    const fetchInitialData = async () => {
         setLoading(true);
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
         
+        // Fetch all appointments to calculate availability
+        const { data: allAppointments, error: allAppointmentsError } = await supabase
+            .from('cita')
+            .select('*')
+            .in('estado', ['pendiente', 'confirmada']);
+        
+        if (allAppointmentsError) {
+            console.error("Error fetching all appointments:", allAppointmentsError);
+            toast({ variant: "destructive", title: "Error", description: "No se pudo cargar la disponibilidad." });
+        } else {
+            setBookedAppointments(allAppointments);
+        }
+
         if (user) {
             const { data, error } = await supabase
                 .from('cita')
@@ -57,7 +71,7 @@ export default function SchedulePage() {
             
             if (error) {
                 console.error("Error fetching appointment:", error);
-                if (error.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine.
+                if (error.code !== 'PGRST116') {
                     toast({ variant: "destructive", title: "Error", description: "No se pudo cargar tu cita existente." });
                 }
             } else if (data) {
@@ -66,8 +80,34 @@ export default function SchedulePage() {
         }
         setLoading(false);
     };
-    fetchUserAndAppointment();
+    fetchInitialData();
   }, [supabase, toast]);
+
+  const appointmentsPerDay = useMemo(() => {
+    const counts: Record<string, number> = {};
+    bookedAppointments.forEach(appt => {
+        const day = startOfDay(new Date(appt.fecha_agendada)).toISOString();
+        counts[day] = (counts[day] || 0) + 1;
+    });
+    return counts;
+  }, [bookedAppointments]);
+
+  const fullyBookedDays = useMemo(() => {
+      return Object.entries(appointmentsPerDay)
+        .filter(([, count]) => count >= MAX_APPOINTMENTS_PER_DAY)
+        .map(([day]) => new Date(day));
+  }, [appointmentsPerDay]);
+
+  const availableTimesForSelectedDate = useMemo(() => {
+    if (!date) return [];
+
+    const bookedTimesOnSelectedDate = bookedAppointments
+      .filter(appt => isEqual(startOfDay(new Date(appt.fecha_agendada)), startOfDay(date)))
+      .map(appt => format(new Date(appt.fecha_agendada), 'HH:mm'));
+      
+    return allAvailableTimes.filter(time => !bookedTimesOnSelectedDate.includes(time));
+  }, [date, bookedAppointments]);
+
 
   const handleSchedule = async () => {
     if (!user || !date || !selectedTime) {
@@ -94,6 +134,7 @@ export default function SchedulePage() {
     } else {
       toast({ title: "¡Cita Agendada!", description: `Tu cita ha sido agendada para el ${format(appointmentDate, "PPP", { locale: es })} a las ${selectedTime}.` });
       setExistingAppointment(newAppointment);
+      setBookedAppointments([...bookedAppointments, newAppointment]); // Update global list
       setDate(undefined);
       setSelectedTime(null);
     }
@@ -119,6 +160,7 @@ export default function SchedulePage() {
     } else {
        toast({ title: "¡Cita Reprogramada!", description: `Tu cita se movió al ${format(newAppointmentDate, "PPP", { locale: es })} a las ${selectedTime}.`});
        setExistingAppointment(data);
+       setBookedAppointments(bookedAppointments.map(a => a.id === data.id ? data : a));
        setIsRescheduling(false);
        setDate(undefined);
        setSelectedTime(null);
@@ -138,6 +180,7 @@ export default function SchedulePage() {
        toast({ variant: "destructive", title: "Error al cancelar", description: "No se pudo cancelar tu cita." });
     } else {
        toast({ title: "Cita Cancelada", description: "Tu cita ha sido cancelada exitosamente." });
+       setBookedAppointments(bookedAppointments.filter(a => a.id !== existingAppointment.id));
        setExistingAppointment(null);
        setIsRescheduling(false); 
     }
@@ -202,7 +245,12 @@ export default function SchedulePage() {
                     mode="single"
                     selected={date}
                     onSelect={setDate}
-                    disabled={(day) => getDay(day) === 0 || getDay(day) === 6 || day < today}
+                    disabled={(day) => 
+                        getDay(day) === 0 || 
+                        getDay(day) === 6 || 
+                        day < today ||
+                        fullyBookedDays.some(bookedDay => isEqual(startOfDay(bookedDay), startOfDay(day)))
+                    }
                     className="rounded-md border"
                     locale={es}
                 />
@@ -217,20 +265,26 @@ export default function SchedulePage() {
                 </p>
             </div>
             {date ? (
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {availableTimes.map((time) => (
-                    <Button
-                    key={time}
-                    variant={selectedTime === time ? "default" : "outline"}
-                    onClick={() => setSelectedTime(time)}
-                    className={cn(
-                        selectedTime === time && "bg-accent text-accent-foreground"
-                    )}
-                    >
-                    {time}
-                    </Button>
-                ))}
-                </div>
+                availableTimesForSelectedDate.length > 0 ? (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        {availableTimesForSelectedDate.map((time) => (
+                            <Button
+                            key={time}
+                            variant={selectedTime === time ? "default" : "outline"}
+                            onClick={() => setSelectedTime(time)}
+                            className={cn(
+                                selectedTime === time && "bg-accent text-accent-foreground"
+                            )}
+                            >
+                            {time}
+                            </Button>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-sm text-muted-foreground">
+                        No hay horarios disponibles para este día.
+                    </p>
+                )
             ) : (
                 <p className="text-sm text-muted-foreground">
                 Por favor, selecciona una fecha para ver los horarios.

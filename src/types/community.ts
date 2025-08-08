@@ -72,3 +72,10 @@ export type ClaseEnVivo = {
     disponible_hasta: string;
     miniatura: string | null;
 }
+
+export type Cita = {
+    id: string;
+    user_id: string;
+    fecha_agendada: string;
+    estado: 'pendiente' | 'confirmada' | 'cancelada';
+}
