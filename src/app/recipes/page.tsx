@@ -28,8 +28,8 @@ export default function RecipesPage() {
           .from("recetas")
           .select("*")
           .eq("visible", true)
-          .gte("fecha_publicada", thirtyDaysAgo.toISOString())
-          .order("fecha_publicada", { ascending: false });
+          .gte("fecha", thirtyDaysAgo.toISOString())
+          .order("fecha", { ascending: false });
 
         if (error) {
           throw error;

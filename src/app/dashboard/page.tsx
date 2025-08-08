@@ -58,7 +58,7 @@ export default function DashboardPage() {
         .from('recetas')
         .select('*')
         .eq('visible', true)
-        .order('fecha_publicada', { ascending: false })
+        .order('fecha', { ascending: false })
         .limit(1)
         .single();
       
