@@ -14,27 +14,29 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Users, UtensilsCrossed, ArrowRight } from "lucide-react";
+import { Users, UtensilsCrossed, ArrowRight, Dumbbell } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { Recipe } from "@/types/recipe";
+import type { Routine } from "@/types/routine";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [greeting, setGreeting] = useState("¡Bienvenido!");
-  const [workoutProgress, setWorkoutProgress] = useState(0);
-  const [mealProgress, setMealProgress] = useState(0);
   const [loading, setLoading] = useState(true);
   const [dailyRecipe, setDailyRecipe] = useState<Recipe | null>(null);
   const [recipeLoading, setRecipeLoading] = useState(true);
+  const [dailyRoutine, setDailyRoutine] = useState<Routine | null>(null);
+  const [routineLoading, setRoutineLoading] = useState(true);
+
 
   useEffect(() => {
     const supabase = createClient();
-    const getUserAndRecipe = async () => {
+    const getUserAndData = async () => {
       setLoading(true);
       setRecipeLoading(true);
+      setRoutineLoading(true);
 
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
@@ -51,6 +53,7 @@ export default function DashboardPage() {
       }
       setLoading(false);
 
+      // Fetch Recipe
       const { data: recipeData, error: recipeError } = await supabase
         .from('recetas')
         .select('*')
@@ -65,13 +68,25 @@ export default function DashboardPage() {
         setDailyRecipe(recipeData);
       }
       setRecipeLoading(false);
+
+      // Fetch Routine
+      const { data: routineData, error: routineError } = await supabase
+        .from('rutinas')
+        .select('*')
+        .eq('visible', true)
+        .order('fecha', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (routineError) {
+        console.error("Error fetching daily routine:", routineError.message);
+      } else {
+        setDailyRoutine(routineData);
+      }
+      setRoutineLoading(false);
     };
 
-    getUserAndRecipe();
-
-    // Mock progress data
-    setWorkoutProgress(60);
-    setMealProgress(57);
+    getUserAndData();
   }, []);
   
   if (loading) {
@@ -83,7 +98,6 @@ export default function DashboardPage() {
               <Skeleton className="h-4 w-1/3" />
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Card><CardHeader className="h-24"></CardHeader><CardContent className="h-20"></CardContent></Card>
               <Card><CardHeader className="h-24"></CardHeader><CardContent className="h-20"></CardContent></Card>
               <Card><CardHeader className="h-24"></CardHeader><CardContent className="h-20"></CardContent></Card>
             </div>
@@ -105,24 +119,43 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline">Progreso Semanal</CardTitle>
-              <CardDescription>¡Lo estás haciendo genial esta semana!</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-                <div className="flex justify-between text-sm font-medium">
-                    <span>Entrenamientos</span>
-                    <span>3/5</span>
-                </div>
-                <Progress value={workoutProgress} aria-label={`${workoutProgress}% de los entrenamientos completados`} />
-                <div className="flex justify-between text-sm font-medium pt-2">
-                    <span>Comidas Saludables</span>
-                    <span>12/21</span>
-                </div>
-                <Progress value={mealProgress} aria-label={`${mealProgress}% de las comidas saludables`} />
-            </CardContent>
-          </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline flex items-center gap-2"><Dumbbell className="w-5 h-5" /> Rutina del Día</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col sm:flex-row gap-4">
+                  {routineLoading ? (
+                     <>
+                      <Skeleton className="w-[150px] h-[100px] rounded-lg" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-5 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-1/2" />
+                      </div>
+                    </>
+                  ) : dailyRoutine ? (
+                    <>
+                       <Image 
+                          src={dailyRoutine.img_url || "https://placehold.co/400x300.png"}
+                          alt={dailyRoutine.titulo}
+                          width={150}
+                          height={100}
+                          className="rounded-lg object-cover"
+                          data-ai-hint="fitness workout"
+                      />
+                       <div className="space-y-2">
+                          <h3 className="font-semibold font-headline">{dailyRoutine.titulo}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2">{dailyRoutine.descripcion}</p>
+                          <Button asChild variant="link" className="p-0 h-auto">
+                              <Link href="/routines/home">Ver Todas las Rutinas <ArrowRight className="w-4 h-4 ml-1" /></Link>
+                          </Button>
+                      </div>
+                    </>
+                  ) : (
+                     <p className="text-sm text-muted-foreground">No hay rutinas nuevas hoy. ¡Vuelve mañana!</p>
+                  )}
+                </CardContent>
+            </Card>
           
            <Card className="bg-gradient-to-tr from-primary/80 to-accent/80 text-primary-foreground lg:col-span-2">
               <CardHeader>
@@ -200,3 +233,5 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
+
+    
