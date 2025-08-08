@@ -122,7 +122,8 @@ export default function SchedulePage() {
       .from('cita')
       .insert({
         user_id: user.id,
-        fecha_agendada: formatISO(appointmentDate).slice(0, -6), // formatISO and remove timezone offset
+        fecha_agendada: formatISO(appointmentDate),
+        estado: 'pendiente'
       })
       .select()
       .single();
@@ -148,7 +149,7 @@ export default function SchedulePage() {
     
     const { data, error } = await supabase
       .from('cita')
-      .update({ fecha_agendada: formatISO(newAppointmentDate).slice(0, -6), estado: 'pendiente' })
+      .update({ fecha_agendada: formatISO(newAppointmentDate), estado: 'pendiente' })
       .eq('id', existingAppointment.id)
       .select()
       .single();
@@ -340,3 +341,5 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
+
+    
