@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { format, getDay, startOfDay, setHours, setMinutes, setSeconds, parse, isEqual } from "date-fns";
+import { format, getDay, startOfDay, setHours, setMinutes, setSeconds, parse, isEqual, formatISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarClock, CalendarPlus, CalendarCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -116,14 +116,13 @@ export default function SchedulePage() {
     }
     
     setIsSubmitting(true);
-    const [hours, minutes] = selectedTime.split(':').map(Number);
-    const appointmentDate = setSeconds(setMinutes(setHours(date, hours), minutes), 0);
+    const appointmentDate = new Date(`${format(date, 'yyyy-MM-dd')}T${selectedTime}:00`);
 
     const { data: newAppointment, error } = await supabase
       .from('cita')
       .insert({
         user_id: user.id,
-        fecha_agendada: appointmentDate.toISOString(),
+        fecha_agendada: formatISO(appointmentDate).slice(0, -6), // formatISO and remove timezone offset
       })
       .select()
       .single();
@@ -145,12 +144,11 @@ export default function SchedulePage() {
     if (!existingAppointment || !date || !selectedTime) return;
     setIsSubmitting(true);
     
-    const [hours, minutes] = selectedTime.split(':').map(Number);
-    const newAppointmentDate = setSeconds(setMinutes(setHours(date, hours), minutes), 0);
+    const newAppointmentDate = new Date(`${format(date, 'yyyy-MM-dd')}T${selectedTime}:00`);
     
     const { data, error } = await supabase
       .from('cita')
-      .update({ fecha_agendada: newAppointmentDate.toISOString(), estado: 'pendiente' })
+      .update({ fecha_agendada: formatISO(newAppointmentDate).slice(0, -6), estado: 'pendiente' })
       .eq('id', existingAppointment.id)
       .select()
       .single();
@@ -340,3 +338,4 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
+
