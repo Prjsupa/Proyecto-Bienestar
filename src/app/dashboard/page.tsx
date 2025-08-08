@@ -123,26 +123,14 @@ export default function DashboardPage() {
                 <CardHeader>
                     <CardTitle className="font-headline flex items-center gap-2"><Dumbbell className="w-5 h-5" /> Rutina del Día</CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-col sm:flex-row gap-4">
+                <CardContent className="space-y-2">
                   {routineLoading ? (
-                     <>
-                      <Skeleton className="w-[150px] h-[100px] rounded-lg" />
-                      <div className="space-y-2 flex-1">
+                      <div className="space-y-2">
                         <Skeleton className="h-5 w-3/4" />
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-1/2" />
                       </div>
-                    </>
                   ) : dailyRoutine ? (
-                    <>
-                       <Image 
-                          src={dailyRoutine.img_url || "https://placehold.co/400x300.png"}
-                          alt={dailyRoutine.titulo}
-                          width={150}
-                          height={100}
-                          className="rounded-lg object-cover"
-                          data-ai-hint="fitness workout"
-                      />
                        <div className="space-y-2">
                           <h3 className="font-semibold font-headline">{dailyRoutine.titulo}</h3>
                           <p className="text-sm text-muted-foreground line-clamp-2">{dailyRoutine.descripcion}</p>
@@ -150,7 +138,6 @@ export default function DashboardPage() {
                               <Link href="/routines/home">Ver Todas las Rutinas <ArrowRight className="w-4 h-4 ml-1" /></Link>
                           </Button>
                       </div>
-                    </>
                   ) : (
                      <p className="text-sm text-muted-foreground">No hay rutinas nuevas hoy. ¡Vuelve mañana!</p>
                   )}
@@ -233,5 +220,3 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
-
-    

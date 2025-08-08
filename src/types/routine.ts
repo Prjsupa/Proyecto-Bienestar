@@ -8,7 +8,6 @@ export type Routine = {
     ejercicios: string;
     fecha: string;
     visible: boolean;
-    img_url: string | null;
   };
 
     
