@@ -100,12 +100,12 @@ export default function SchedulePage() {
   const availableTimesForSelectedDate = useMemo(() => {
     if (!date) return [];
   
-    const selectedDayStart = startOfDay(date);
+    const selectedDayStartISO = startOfDay(date).toISOString();
   
     const bookedTimesOnSelectedDate = bookedAppointments
       .filter(appt => {
-        const apptDate = new Date(appt.fecha_agendada);
-        return startOfDay(apptDate).toISOString() === selectedDayStart.toISOString();
+        const apptDayStartISO = startOfDay(new Date(appt.fecha_agendada)).toISOString();
+        return apptDayStartISO === selectedDayStartISO;
       })
       .map(appt => format(new Date(appt.fecha_agendada), 'HH:mm'));
       
@@ -121,15 +121,14 @@ export default function SchedulePage() {
     
     setIsSubmitting(true);
     
-    const [hours, minutes] = selectedTime.split(':');
-    const appointmentDateTime = new Date(date);
-    appointmentDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+    const datePart = format(date, 'yyyy-MM-dd');
+    const appointmentDateTimeString = `${datePart} ${selectedTime}:00`;
 
     const { data: newAppointment, error } = await supabase
       .from('cita')
       .insert({
         user_id: user.id,
-        fecha_agendada: format(appointmentDateTime, "yyyy-MM-dd HH:mm:ss"),
+        fecha_agendada: appointmentDateTimeString,
         estado: 'pendiente'
       })
       .select()
@@ -152,14 +151,13 @@ export default function SchedulePage() {
     if (!existingAppointment || !date || !selectedTime) return;
     setIsSubmitting(true);
     
-    const [hours, minutes] = selectedTime.split(':');
-    const newAppointmentDateTime = new Date(date);
-    newAppointmentDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+    const datePart = format(date, 'yyyy-MM-dd');
+    const newAppointmentDateTimeString = `${datePart} ${selectedTime}:00`;
     
     const { data, error } = await supabase
       .from('cita')
       .update({ 
-          fecha_agendada: format(newAppointmentDateTime, "yyyy-MM-dd HH:mm:ss"), 
+          fecha_agendada: newAppointmentDateTimeString, 
           estado: 'pendiente' 
       })
       .eq('id', existingAppointment.id)
