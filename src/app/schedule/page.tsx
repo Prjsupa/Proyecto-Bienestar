@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { format, getDay, startOfDay, setHours, setMinutes, setSeconds, parse, isEqual, formatISO } from "date-fns";
+import { format, getDay, startOfDay, isEqual, formatISO, addDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarClock, CalendarPlus, CalendarCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -186,6 +186,8 @@ export default function SchedulePage() {
   };
 
   const today = startOfDay(new Date());
+  const minDate = addDays(today, 2);
+
 
   if (loading) {
     return (
@@ -246,7 +248,7 @@ export default function SchedulePage() {
                     disabled={(day) => 
                         getDay(day) === 0 || 
                         getDay(day) === 6 || 
-                        day < today ||
+                        day < minDate ||
                         fullyBookedDays.some(bookedDay => isEqual(startOfDay(bookedDay), startOfDay(day)))
                     }
                     className="rounded-md border"
@@ -338,4 +340,3 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
-
