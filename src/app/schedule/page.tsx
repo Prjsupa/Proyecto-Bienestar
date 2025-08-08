@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { format, getDay, startOfDay, isEqual, addDays } from "date-fns";
+import { format, getDay, startOfDay, isEqual, addDays, parse } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarClock, CalendarPlus, CalendarCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -99,9 +99,14 @@ export default function SchedulePage() {
 
   const availableTimesForSelectedDate = useMemo(() => {
     if (!date) return [];
-
+  
+    const selectedDayStart = startOfDay(date);
+  
     const bookedTimesOnSelectedDate = bookedAppointments
-      .filter(appt => isEqual(startOfDay(new Date(appt.fecha_agendada)), startOfDay(date)))
+      .filter(appt => {
+        const apptDate = new Date(appt.fecha_agendada);
+        return startOfDay(apptDate).toISOString() === selectedDayStart.toISOString();
+      })
       .map(appt => format(new Date(appt.fecha_agendada), 'HH:mm'));
       
     return allAvailableTimes.filter(time => !bookedTimesOnSelectedDate.includes(time));
@@ -115,13 +120,16 @@ export default function SchedulePage() {
     }
     
     setIsSubmitting(true);
-    const appointmentDateTime = `${format(date, 'yyyy-MM-dd')} ${selectedTime}:00`;
+    
+    const [hours, minutes] = selectedTime.split(':');
+    const appointmentDateTime = new Date(date);
+    appointmentDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
     const { data: newAppointment, error } = await supabase
       .from('cita')
       .insert({
         user_id: user.id,
-        fecha_agendada: appointmentDateTime,
+        fecha_agendada: format(appointmentDateTime, "yyyy-MM-dd HH:mm:ss"),
         estado: 'pendiente'
       })
       .select()
@@ -144,11 +152,16 @@ export default function SchedulePage() {
     if (!existingAppointment || !date || !selectedTime) return;
     setIsSubmitting(true);
     
-    const newAppointmentDateTime = `${format(date, 'yyyy-MM-dd')} ${selectedTime}:00`;
+    const [hours, minutes] = selectedTime.split(':');
+    const newAppointmentDateTime = new Date(date);
+    newAppointmentDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
     
     const { data, error } = await supabase
       .from('cita')
-      .update({ fecha_agendada: newAppointmentDateTime, estado: 'pendiente' })
+      .update({ 
+          fecha_agendada: format(newAppointmentDateTime, "yyyy-MM-dd HH:mm:ss"), 
+          estado: 'pendiente' 
+      })
       .eq('id', existingAppointment.id)
       .select()
       .single();
