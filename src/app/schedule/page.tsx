@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { format, getDay, startOfDay, isEqual, formatISO, addDays } from "date-fns";
+import { format, getDay, startOfDay, isEqual, addDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarClock, CalendarPlus, CalendarCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -46,7 +46,6 @@ export default function SchedulePage() {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
         
-        // Fetch all appointments to calculate availability
         const { data: allAppointments, error: allAppointmentsError } = await supabase
             .from('cita')
             .select('*')
@@ -116,13 +115,13 @@ export default function SchedulePage() {
     }
     
     setIsSubmitting(true);
-    const appointmentDate = new Date(`${format(date, 'yyyy-MM-dd')}T${selectedTime}:00`);
+    const appointmentDateTime = `${format(date, 'yyyy-MM-dd')} ${selectedTime}:00`;
 
     const { data: newAppointment, error } = await supabase
       .from('cita')
       .insert({
         user_id: user.id,
-        fecha_agendada: formatISO(appointmentDate),
+        fecha_agendada: appointmentDateTime,
         estado: 'pendiente'
       })
       .select()
@@ -132,9 +131,9 @@ export default function SchedulePage() {
       toast({ variant: "destructive", title: "Error al agendar", description: error.message });
       console.error("Error inserting appointment:", error);
     } else {
-      toast({ title: "¡Cita Agendada!", description: `Tu cita ha sido agendada para el ${format(appointmentDate, "PPP", { locale: es })} a las ${selectedTime}.` });
+      toast({ title: "¡Cita Agendada!", description: `Tu cita ha sido agendada para el ${format(new Date(newAppointment.fecha_agendada), "PPP", { locale: es })} a las ${selectedTime}.` });
       setExistingAppointment(newAppointment);
-      setBookedAppointments([...bookedAppointments, newAppointment]); // Update global list
+      setBookedAppointments([...bookedAppointments, newAppointment]); 
       setDate(undefined);
       setSelectedTime(null);
     }
@@ -145,11 +144,11 @@ export default function SchedulePage() {
     if (!existingAppointment || !date || !selectedTime) return;
     setIsSubmitting(true);
     
-    const newAppointmentDate = new Date(`${format(date, 'yyyy-MM-dd')}T${selectedTime}:00`);
+    const newAppointmentDateTime = `${format(date, 'yyyy-MM-dd')} ${selectedTime}:00`;
     
     const { data, error } = await supabase
       .from('cita')
-      .update({ fecha_agendada: formatISO(newAppointmentDate), estado: 'pendiente' })
+      .update({ fecha_agendada: newAppointmentDateTime, estado: 'pendiente' })
       .eq('id', existingAppointment.id)
       .select()
       .single();
@@ -157,7 +156,7 @@ export default function SchedulePage() {
     if (error) {
        toast({ variant: "destructive", title: "Error al posponer", description: "No se pudo actualizar tu cita." });
     } else {
-       toast({ title: "¡Cita Reprogramada!", description: `Tu cita se movió al ${format(newAppointmentDate, "PPP", { locale: es })} a las ${selectedTime}.`});
+       toast({ title: "¡Cita Reprogramada!", description: `Tu cita se movió al ${format(new Date(data.fecha_agendada), "PPP", { locale: es })} a las ${selectedTime}.`});
        setExistingAppointment(data);
        setBookedAppointments(bookedAppointments.map(a => a.id === data.id ? data : a));
        setIsRescheduling(false);
@@ -341,5 +340,3 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
-
-    
