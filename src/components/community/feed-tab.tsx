@@ -65,7 +65,7 @@ export function FeedTab() {
         .from('comunidad')
         .select(`
             *,
-            usuarios ( name, last_name, rol ),
+            usuarios_vista(*),
             comunidad_respuestas ( *, usuarios_vista( * ) )
         `)
         .order('fecha', { ascending: false })
@@ -366,7 +366,7 @@ export function FeedTab() {
         <div className="space-y-6">
             <h2 className="text-2xl font-semibold font-headline">Publicaciones Recientes</h2>
             {loadingPosts ? renderSkeletons() : communityPosts.length > 0 ? communityPosts.map((post) => {
-            const authorProfile = post.usuarios;
+            const authorProfile = post.usuarios_vista;
             const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario Anónimo";
             const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
             const isPostAuthor = currentUser && currentUser.id === post.user_id;
@@ -638,3 +638,5 @@ export function FeedTab() {
     </>
   )
 }
+
+    

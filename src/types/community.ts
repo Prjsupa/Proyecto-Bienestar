@@ -1,12 +1,5 @@
 
 
-export type PostAuthor = {
-    name: string | null;
-    last_name: string | null;
-    avatar_url?: string;
-    rol?: number;
-};
-
 export type AuthorVista = {
     name: string | null;
     last_name: string | null;
@@ -31,7 +24,7 @@ export type CommunityPost = {
   mensaje: string;
   img_url: string | null;
   fecha: string;
-  usuarios: PostAuthor | null;
+  usuarios_vista: AuthorVista | null;
   comunidad_respuestas?: Reply[];
 };
 
@@ -42,7 +35,11 @@ export type QAReply = {
     respuesta: string;
     user_id: string;
     es_profesional?: boolean;
-    usuarios: PostAuthor | null;
+    usuarios: {
+        name: string | null;
+        last_name: string | null;
+        avatar_url?: string;
+    } | null;
 }
 
 export type QAPost = {
@@ -50,7 +47,11 @@ export type QAPost = {
     created_at: string;
     pregunta: string;
     user_id: string;
-    usuarios: PostAuthor | null;
+    usuarios: {
+        name: string | null;
+        last_name: string | null;
+        avatar_url?: string;
+    } | null;
     respuestas_profesionales: QAReply[];
 }
 
@@ -81,3 +82,5 @@ export type Cita = {
     fecha_agendada: string;
     estado: 'pendiente' | 'confirmada' | 'cancelada';
 }
+
+    
