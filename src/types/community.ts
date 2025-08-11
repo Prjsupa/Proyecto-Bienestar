@@ -4,6 +4,7 @@ export type PostAuthor = {
     name: string | null;
     last_name: string | null;
     avatar_url?: string;
+    rol?: number;
 };
 
 export type AuthorVista = {
@@ -12,6 +13,7 @@ export type AuthorVista = {
     id: string;
     email: string;
     avatar_url?: string;
+    rol?: number;
 }
 
 export type Reply = {

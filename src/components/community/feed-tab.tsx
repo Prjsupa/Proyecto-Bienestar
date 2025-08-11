@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Annoyed, Image as ImageIcon, MessageSquare, Paperclip, X, MoreHorizontal, Trash2, Edit } from "lucide-react";
+import { Annoyed, Image as ImageIcon, MessageSquare, Paperclip, X, MoreHorizontal, Trash2, Edit, Check } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Label } from "../ui/label";
+import { Badge } from "../ui/badge";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -64,8 +65,8 @@ export function FeedTab() {
         .from('comunidad')
         .select(`
             *,
-            usuarios ( name, last_name ),
-            comunidad_respuestas ( *, usuarios_vista(*) )
+            usuarios ( name, last_name, rol ),
+            comunidad_respuestas ( *, usuarios_vista( * ) )
         `)
         .order('fecha', { ascending: false })
         .order('fecha', { foreignTable: 'comunidad_respuestas', ascending: true });
@@ -377,7 +378,15 @@ export function FeedTab() {
                     <AvatarFallback>{authorInitials}</AvatarFallback>
                     </Avatar>
                     <div className="w-full">
-                    <p className="font-semibold">{authorName}</p>
+                    <div className="flex items-center gap-2">
+                        <p className="font-semibold">{authorName}</p>
+                        {authorProfile?.rol === 1 && (
+                            <Badge variant="outline" className="border-primary/50 text-primary h-5 text-xs">
+                                <Check className="w-3 h-3 mr-1" />
+                                Profesional
+                            </Badge>
+                        )}
+                    </div>
                     {isClient && (
                         <p className="text-xs text-muted-foreground">
                             {formatDistanceToNow(new Date(post.fecha), { addSuffix: true, locale: es })}
@@ -490,7 +499,15 @@ export function FeedTab() {
                                         </Avatar>
                                         <div className="flex-1 bg-secondary p-3 rounded-lg">
                                             <div className="flex items-center justify-between">
-                                                <p className="font-semibold text-sm">{replyAuthorName}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-semibold text-sm">{replyAuthorName}</p>
+                                                    {replyAuthorProfile?.rol === 1 && (
+                                                        <Badge variant="outline" className="border-primary/50 text-primary h-5 text-xs">
+                                                            <Check className="w-3 h-3 mr-1" />
+                                                            Profesional
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                                     {isClient && (
                                                     <p className="text-xs text-muted-foreground">
                                                         {formatDistanceToNow(new Date(reply.fecha), { addSuffix: true, locale: es })}
