@@ -65,8 +65,8 @@ export function FeedTab() {
         .from('comunidad')
         .select(`
             *,
-            usuarios_vista(*),
-            comunidad_respuestas ( *, usuarios_vista( * ) )
+            usuarios ( name, last_name, rol ),
+            comunidad_respuestas ( *, usuarios ( name, last_name, rol ) )
         `)
         .order('fecha', { ascending: false })
         .order('fecha', { foreignTable: 'comunidad_respuestas', ascending: true });
@@ -366,7 +366,7 @@ export function FeedTab() {
         <div className="space-y-6">
             <h2 className="text-2xl font-semibold font-headline">Publicaciones Recientes</h2>
             {loadingPosts ? renderSkeletons() : communityPosts.length > 0 ? communityPosts.map((post) => {
-            const authorProfile = post.usuarios_vista;
+            const authorProfile = post.usuarios;
             const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario Anónimo";
             const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
             const isPostAuthor = currentUser && currentUser.id === post.user_id;
@@ -487,7 +487,7 @@ export function FeedTab() {
                     {post.comunidad_respuestas && post.comunidad_respuestas.length > 0 && (
                         <div className="w-full space-y-4 pt-4 border-t">
                             {post.comunidad_respuestas.map((reply: Reply) => {
-                                const replyAuthorProfile = reply.usuarios_vista;
+                                const replyAuthorProfile = reply.usuarios;
                                 const replyAuthorName = replyAuthorProfile ? `${replyAuthorProfile.name} ${replyAuthorProfile.last_name}`.trim() : "Usuario Anónimo";
                                 const replyAuthorInitials = getInitials(replyAuthorProfile?.name, replyAuthorProfile?.last_name);
                                 const isReplyAuthor = currentUser && currentUser.id === reply.user_id;
@@ -638,5 +638,3 @@ export function FeedTab() {
     </>
   )
 }
-
-    

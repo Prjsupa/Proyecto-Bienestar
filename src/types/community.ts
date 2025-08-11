@@ -1,11 +1,8 @@
 
 
-export type AuthorVista = {
+export type Author = {
     name: string | null;
     last_name: string | null;
-    id: string;
-    email: string;
-    avatar_url?: string;
     rol?: number;
 }
 
@@ -15,7 +12,7 @@ export type Reply = {
     user_id: string;
     mensaje: string;
     fecha: string;
-    usuarios_vista: AuthorVista | null;
+    usuarios: Author | null;
 }
 
 export type CommunityPost = {
@@ -24,7 +21,7 @@ export type CommunityPost = {
   mensaje: string;
   img_url: string | null;
   fecha: string;
-  usuarios_vista: AuthorVista | null;
+  usuarios: Author | null;
   comunidad_respuestas?: Reply[];
 };
 
@@ -82,5 +79,3 @@ export type Cita = {
     fecha_agendada: string;
     estado: 'pendiente' | 'confirmada' | 'cancelada';
 }
-
-    
