@@ -4,6 +4,7 @@ export type Author = {
     name: string | null;
     last_name: string | null;
     rol?: number;
+    titulo?: string | null;
 }
 
 export type Reply = {

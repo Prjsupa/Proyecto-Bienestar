@@ -20,6 +20,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [title, setTitle] = useState("");
+  const [role, setRole] = useState<number | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -38,6 +40,8 @@ export default function ProfilePage() {
             setName(user.user_metadata?.name || "");
             setLastName(user.user_metadata?.last_name || "");
             setAvatarPreview(user.user_metadata?.avatar_url || null);
+            setTitle(user.user_metadata?.titulo || "");
+            setRole(user.user_metadata?.rol || 0);
         } else {
             router.push('/login');
         }
@@ -51,11 +55,12 @@ export default function ProfilePage() {
           router.push("/login");
         } else {
           setUser(session.user);
+          setRole(session.user.user_metadata?.rol || 0);
         }
     });
 
     return () => subscription.unsubscribe();
-  }, [router, supabase.auth]);
+  }, [router, supabase]);
 
   const getInitials = (name: string, lastName: string) => {
     if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
@@ -102,13 +107,19 @@ export default function ProfilePage() {
         const { data: { publicUrl } } = supabase.storage.from('publicaciones').getPublicUrl(filePath);
         avatarUrl = publicUrl;
     }
-
-    const { data, error } = await supabase.auth.updateUser({
-      data: { 
+    
+    const userDataToUpdate: { [key: string]: any } = { 
         name: name, 
         last_name: lastName, 
-        avatar_url: avatarUrl, 
-      } 
+        avatar_url: avatarUrl,
+    };
+
+    if (role === 1) {
+        userDataToUpdate.titulo = title;
+    }
+
+    const { data, error } = await supabase.auth.updateUser({
+      data: userDataToUpdate
     });
 
     if (error) {
@@ -229,6 +240,12 @@ export default function ProfilePage() {
                     <Label htmlFor="email">Correo electrónico</Label>
                     <Input id="email" type="email" defaultValue={user?.email} disabled />
                 </div>
+                {role === 1 && (
+                    <div className="space-y-2">
+                        <Label htmlFor="title">Título Profesional</Label>
+                        <Input id="title" placeholder="Ej. Entrenador Personal, Nutricionista" value={title} onChange={(e) => setTitle(e.target.value)} />
+                    </div>
+                )}
                 <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSaveChanges} disabled={isUploading}>
                     {isUploading ? "Guardando..." : "Guardar Cambios"}
                 </Button>

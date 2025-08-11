@@ -69,14 +69,14 @@ export function FeedTab() {
             mensaje,
             img_url,
             fecha,
-            usuarios:user_id ( name, last_name, rol ),
+            usuarios:user_id ( name, last_name, rol, titulo ),
             comunidad_respuestas (
                 id,
                 post_id,
                 user_id,
                 mensaje,
                 fecha,
-                usuarios:user_id ( name, last_name, rol )
+                usuarios:user_id ( name, last_name, rol, titulo )
             )
         `)
         .order('fecha', { ascending: false })
@@ -398,6 +398,9 @@ export function FeedTab() {
                             </Badge>
                         )}
                     </div>
+                    {authorProfile?.rol === 1 && authorProfile.titulo && (
+                        <p className="text-xs text-primary">{authorProfile.titulo}</p>
+                    )}
                     {isClient && (
                         <p className="text-xs text-muted-foreground">
                             {formatDistanceToNow(new Date(post.fecha), { addSuffix: true, locale: es })}
@@ -510,13 +513,18 @@ export function FeedTab() {
                                         </Avatar>
                                         <div className="flex-1 bg-secondary p-3 rounded-lg">
                                             <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <p className="font-semibold text-sm">{replyAuthorName}</p>
-                                                    {replyAuthorProfile?.rol === 1 && (
-                                                        <Badge variant="outline" className="border-primary/50 text-primary h-5 text-xs">
-                                                            <Check className="w-3 h-3 mr-1" />
-                                                            Profesional
-                                                        </Badge>
+                                                <div className="flex flex-col">
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-semibold text-sm">{replyAuthorName}</p>
+                                                        {replyAuthorProfile?.rol === 1 && (
+                                                            <Badge variant="outline" className="border-primary/50 text-primary h-5 text-xs">
+                                                                <Check className="w-3 h-3 mr-1" />
+                                                                Profesional
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                    {replyAuthorProfile?.rol === 1 && replyAuthorProfile.titulo && (
+                                                        <p className="text-xs text-primary">{replyAuthorProfile.titulo}</p>
                                                     )}
                                                 </div>
                                                     {isClient && (
