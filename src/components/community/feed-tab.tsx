@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Annoyed, Image as ImageIcon, MessageSquare, Paperclip, X } from "lucide-react";
+import { Annoyed, Image as ImageIcon, MessageSquare, Paperclip, X, MoreHorizontal, Trash2, Edit } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -20,12 +20,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { CommunityPost, Reply } from "@/types/community";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Label } from "../ui/label";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const postSchema = z.object({
   content: z.string().min(10, "La publicación debe tener al menos 10 caracteres.").max(500, "La publicación no puede exceder los 500 caracteres."),
   file: z.any().optional(),
+});
+
+const editPostSchema = z.object({
+  content: z.string().min(10, "La publicación debe tener al menos 10 caracteres.").max(500, "La publicación no puede exceder los 500 caracteres."),
 });
 
 const replySchema = z.object({
@@ -39,6 +47,7 @@ export function FeedTab() {
   const [isClient, setIsClient] = useState(false);
   const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [editingPost, setEditingPost] = useState<CommunityPost | null>(null);
 
   const postFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -77,6 +86,10 @@ export function FeedTab() {
   const postForm = useForm<z.infer<typeof postSchema>>({
     resolver: zodResolver(postSchema),
     defaultValues: { content: "" },
+  });
+
+  const editForm = useForm<z.infer<typeof editPostSchema>>({
+    resolver: zodResolver(editPostSchema),
   });
 
   const replyForm = useForm<z.infer<typeof replySchema>>({
@@ -160,6 +173,42 @@ export function FeedTab() {
         setReplyingTo(null);
     }
   }
+
+  const handleEditClick = (post: CommunityPost) => {
+    setEditingPost(post);
+    editForm.setValue("content", post.mensaje);
+  };
+  
+  const handleUpdatePost = async (values: z.infer<typeof editPostSchema>) => {
+    if (!editingPost) return;
+
+    const { error } = await supabase
+        .from('comunidad')
+        .update({ mensaje: values.content })
+        .eq('id', editingPost.id);
+
+    if (error) {
+        toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message });
+    } else {
+        toast({ title: 'Publicación actualizada', description: 'Tu publicación ha sido guardada.' });
+        setEditingPost(null);
+        await fetchPosts();
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    const { error } = await supabase
+        .from('comunidad')
+        .delete()
+        .eq('id', postId);
+
+    if (error) {
+        toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
+    } else {
+        toast({ title: 'Publicación eliminada' });
+        await fetchPosts();
+    }
+  };
 
   const renderSkeletons = () => (
     <div className="space-y-6">
@@ -271,6 +320,7 @@ export function FeedTab() {
             const authorProfile = post.usuarios;
             const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario Anónimo";
             const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
+            const isAuthor = currentUser && currentUser.id === post.user_id;
 
             return (
                 <Card key={post.id}>
@@ -286,6 +336,43 @@ export function FeedTab() {
                         </p>
                     )}
                     </div>
+                    {isAuthor && (
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => handleEditClick(post)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    <span>Editar</span>
+                                </DropdownMenuItem>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            <span>Eliminar</span>
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta acción no se puede deshacer. Esto eliminará permanentemente tu publicación.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeletePost(post.id)}>
+                                                Continuar
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                 </CardHeader>
                 <CardContent>
                     <p className="whitespace-pre-wrap">{post.mensaje}</p>
@@ -382,6 +469,41 @@ export function FeedTab() {
             </Card>
             )}
         </div>
+        
+        {editingPost && (
+            <Dialog open={!!editingPost} onOpenChange={() => setEditingPost(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Editar Publicación</DialogTitle>
+                    </DialogHeader>
+                    <Form {...editForm}>
+                        <form onSubmit={editForm.handleSubmit(handleUpdatePost)} className="space-y-4">
+                            <FormField
+                                control={editForm.control}
+                                name="content"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <Label htmlFor="edit-content" className="sr-only">Contenido</Label>
+                                        <Textarea id="edit-content" rows={5} {...field} />
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button type="button" variant="secondary">Cancelar</Button>
+                                </DialogClose>
+                                <Button type="submit" disabled={editForm.formState.isSubmitting}>
+                                    {editForm.formState.isSubmitting ? "Guardando..." : "Guardar Cambios"}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </DialogContent>
+            </Dialog>
+        )}
     </>
   )
 }
+
+    
