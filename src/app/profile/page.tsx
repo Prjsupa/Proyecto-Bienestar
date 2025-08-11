@@ -33,38 +33,47 @@ export default function ProfilePage() {
 
   useEffect(() => {
     setLoading(true);
-    const getUser = async () => {
+    const getUserData = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
             setUser(user);
-            setName(user.user_metadata?.name || "");
-            setLastName(user.user_metadata?.last_name || "");
-            setAvatarPreview(user.user_metadata?.avatar_url || null);
-            setTitle(user.user_metadata?.titulo || "");
-            setRole(user.user_metadata?.rol || 0);
+            
+            // Fetch profile data from 'usuarios' table
+            const { data: profileData, error: profileError } = await supabase
+              .from('usuarios')
+              .select('name, last_name, avatar_url, rol, titulo')
+              .eq('id', user.id)
+              .single();
+
+            if (profileError) {
+              console.error('Error fetching user profile:', profileError);
+              toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar tu perfil.' });
+              setName(user.user_metadata?.name || "");
+              setLastName(user.user_metadata?.last_name || "");
+              setAvatarPreview(user.user_metadata?.avatar_url || null);
+            } else if (profileData) {
+              setName(profileData.name || "");
+              setLastName(profileData.last_name || "");
+              setAvatarPreview(profileData.avatar_url || null);
+              setTitle(profileData.titulo || "");
+              setRole(profileData.rol || 0);
+            }
         } else {
             router.push('/login');
         }
         setLoading(false);
     };
     
-    getUser();
+    getUserData();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         if (!session?.user) {
           router.push("/login");
-        } else {
-          setUser(session.user);
-          setName(session.user.user_metadata?.name || "");
-          setLastName(session.user.user_metadata?.last_name || "");
-          setAvatarPreview(session.user.user_metadata?.avatar_url || null);
-          setTitle(session.user.user_metadata?.titulo || "");
-          setRole(session.user.user_metadata?.rol || 0);
         }
     });
 
     return () => subscription.unsubscribe();
-  }, [router, supabase]);
+  }, [router, supabase, toast]);
 
   const getInitials = (name: string, lastName: string) => {
     if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
@@ -88,7 +97,7 @@ export default function ProfilePage() {
     if (!user) return;
     setIsUploading(true);
 
-    let avatarUrl = user.user_metadata.avatar_url;
+    let avatarUrl = avatarPreview;
 
     if (avatarFile) {
         const filePath = `avatars/${user.id}-${Date.now()}`;
@@ -112,19 +121,21 @@ export default function ProfilePage() {
         avatarUrl = publicUrl;
     }
     
-    const userDataToUpdate: { [key: string]: any } = { 
+    const profileDataToUpdate: { [key: string]: any } = { 
         name: name, 
         last_name: lastName, 
         avatar_url: avatarUrl,
+        updated_at: new Date().toISOString(),
     };
 
     if (role === 1) {
-        userDataToUpdate.titulo = title;
+        profileDataToUpdate.titulo = title;
     }
 
-    const { data, error } = await supabase.auth.updateUser({
-      data: userDataToUpdate
-    });
+    const { error } = await supabase
+      .from('usuarios')
+      .update(profileDataToUpdate)
+      .eq('id', user.id);
 
     if (error) {
       toast({
@@ -133,11 +144,11 @@ export default function ProfilePage() {
         variant: "destructive",
       });
     } else {
-      if (data.user) {
-        setUser(data.user);
-        setAvatarPreview(data.user.user_metadata.avatar_url);
-        setTitle(data.user.user_metadata.titulo);
-      }
+      // Also update auth metadata for consistency in other parts of the app if needed
+      await supabase.auth.updateUser({
+        data: { name, last_name: lastName, avatar_url: avatarUrl }
+      });
+      
       toast({
         title: "Perfil Actualizado",
         description: "Tu información ha sido guardada correctamente.",
@@ -260,3 +271,5 @@ export default function ProfilePage() {
     </AppLayout>
   );
 }
+
+    
