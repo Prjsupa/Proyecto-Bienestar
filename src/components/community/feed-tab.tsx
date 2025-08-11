@@ -40,6 +40,10 @@ const replySchema = z.object({
   content: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
 });
 
+const editReplySchema = z.object({
+    content: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
+});
+
 export function FeedTab() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
@@ -48,6 +52,7 @@ export function FeedTab() {
   const [selectedPostFile, setSelectedPostFile] = useState<File | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingPost, setEditingPost] = useState<CommunityPost | null>(null);
+  const [editingReply, setEditingReply] = useState<Reply | null>(null);
 
   const postFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -62,7 +67,9 @@ export function FeedTab() {
             usuarios ( name, last_name ),
             comunidad_respuestas ( *, usuarios_vista(*) )
         `)
-        .order('fecha', { ascending: false });
+        .order('fecha', { ascending: false })
+        .order('fecha', { foreignTable: 'comunidad_respuestas', ascending: true });
+
 
     if (postsError) {
         console.error('Error fetching posts:', postsError);
@@ -90,6 +97,10 @@ export function FeedTab() {
 
   const editForm = useForm<z.infer<typeof editPostSchema>>({
     resolver: zodResolver(editPostSchema),
+  });
+  
+  const editReplyForm = useForm<z.infer<typeof editReplySchema>>({
+    resolver: zodResolver(editReplySchema),
   });
 
   const replyForm = useForm<z.infer<typeof replySchema>>({
@@ -209,6 +220,43 @@ export function FeedTab() {
         await fetchPosts();
     }
   };
+  
+  const handleEditReplyClick = (reply: Reply) => {
+    setEditingReply(reply);
+    editReplyForm.setValue("content", reply.mensaje);
+  };
+
+  const handleUpdateReply = async (values: z.infer<typeof editReplySchema>) => {
+    if (!editingReply) return;
+
+    const { error } = await supabase
+      .from('comunidad_respuestas')
+      .update({ mensaje: values.content })
+      .eq('id', editingReply.id);
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message });
+    } else {
+      toast({ title: 'Respuesta actualizada' });
+      setEditingReply(null);
+      await fetchPosts();
+    }
+  };
+
+  const handleDeleteReply = async (replyId: string) => {
+    const { error } = await supabase
+      .from('comunidad_respuestas')
+      .delete()
+      .eq('id', replyId);
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
+    } else {
+      toast({ title: 'Respuesta eliminada' });
+      await fetchPosts();
+    }
+  };
+
 
   const renderSkeletons = () => (
     <div className="space-y-6">
@@ -320,7 +368,7 @@ export function FeedTab() {
             const authorProfile = post.usuarios;
             const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario Anónimo";
             const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
-            const isAuthor = currentUser && currentUser.id === post.user_id;
+            const isPostAuthor = currentUser && currentUser.id === post.user_id;
 
             return (
                 <Card key={post.id}>
@@ -336,7 +384,7 @@ export function FeedTab() {
                         </p>
                     )}
                     </div>
-                    {isAuthor && (
+                    {isPostAuthor && (
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -433,8 +481,10 @@ export function FeedTab() {
                                 const replyAuthorProfile = reply.usuarios_vista;
                                 const replyAuthorName = replyAuthorProfile ? `${replyAuthorProfile.name} ${replyAuthorProfile.last_name}`.trim() : "Usuario Anónimo";
                                 const replyAuthorInitials = getInitials(replyAuthorProfile?.name, replyAuthorProfile?.last_name);
+                                const isReplyAuthor = currentUser && currentUser.id === reply.user_id;
+
                                 return (
-                                    <div key={reply.id} className="flex items-start gap-3">
+                                    <div key={reply.id} className="flex items-start gap-3 group">
                                         <Avatar className="h-8 w-8">
                                             <AvatarFallback>{replyAuthorInitials}</AvatarFallback>
                                         </Avatar>
@@ -449,6 +499,43 @@ export function FeedTab() {
                                             </div>
                                             <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
                                         </div>
+                                         {isReplyAuthor && (
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <MoreHorizontal className="w-4 h-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent>
+                                                    <DropdownMenuItem onClick={() => handleEditReplyClick(reply)}>
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        <span>Editar</span>
+                                                    </DropdownMenuItem>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                                <span>Eliminar</span>
+                                                            </DropdownMenuItem>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente tu respuesta.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDeleteReply(reply.id)}>
+                                                                    Continuar
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        )}
                                     </div>
                                 )
                             })}
@@ -470,40 +557,67 @@ export function FeedTab() {
             )}
         </div>
         
-        {editingPost && (
-            <Dialog open={!!editingPost} onOpenChange={() => setEditingPost(null)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Editar Publicación</DialogTitle>
-                    </DialogHeader>
-                    <Form {...editForm}>
-                        <form onSubmit={editForm.handleSubmit(handleUpdatePost)} className="space-y-4">
-                            <FormField
-                                control={editForm.control}
-                                name="content"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <Label htmlFor="edit-content" className="sr-only">Contenido</Label>
-                                        <Textarea id="edit-content" rows={5} {...field} />
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button type="button" variant="secondary">Cancelar</Button>
-                                </DialogClose>
-                                <Button type="submit" disabled={editForm.formState.isSubmitting}>
-                                    {editForm.formState.isSubmitting ? "Guardando..." : "Guardar Cambios"}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </Form>
-                </DialogContent>
-            </Dialog>
-        )}
+        <Dialog open={!!editingPost} onOpenChange={() => setEditingPost(null)}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Editar Publicación</DialogTitle>
+                </DialogHeader>
+                <Form {...editForm}>
+                    <form onSubmit={editForm.handleSubmit(handleUpdatePost)} className="space-y-4">
+                        <FormField
+                            control={editForm.control}
+                            name="content"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <Label htmlFor="edit-content" className="sr-only">Contenido</Label>
+                                    <Textarea id="edit-content" rows={5} {...field} />
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">Cancelar</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={editForm.formState.isSubmitting}>
+                                {editForm.formState.isSubmitting ? "Guardando..." : "Guardar Cambios"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+        
+        <Dialog open={!!editingReply} onOpenChange={() => setEditingReply(null)}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Editar Respuesta</DialogTitle>
+                </DialogHeader>
+                <Form {...editReplyForm}>
+                    <form onSubmit={editReplyForm.handleSubmit(handleUpdateReply)} className="space-y-4">
+                         <FormField
+                            control={editReplyForm.control}
+                            name="content"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <Label htmlFor="edit-reply-content" className="sr-only">Contenido</Label>
+                                    <Textarea id="edit-reply-content" rows={4} {...field} />
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <DialogFooter>
+                             <DialogClose asChild>
+                                <Button type="button" variant="secondary">Cancelar</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={editReplyForm.formState.isSubmitting}>
+                                {editReplyForm.formState.isSubmitting ? "Guardando..." : "Guardar Cambios"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
     </>
   )
 }
-
-    
