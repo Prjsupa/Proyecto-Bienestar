@@ -55,6 +55,10 @@ export default function ProfilePage() {
           router.push("/login");
         } else {
           setUser(session.user);
+          setName(session.user.user_metadata?.name || "");
+          setLastName(session.user.user_metadata?.last_name || "");
+          setAvatarPreview(session.user.user_metadata?.avatar_url || null);
+          setTitle(session.user.user_metadata?.titulo || "");
           setRole(session.user.user_metadata?.rol || 0);
         }
     });
@@ -132,6 +136,7 @@ export default function ProfilePage() {
       if (data.user) {
         setUser(data.user);
         setAvatarPreview(data.user.user_metadata.avatar_url);
+        setTitle(data.user.user_metadata.titulo);
       }
       toast({
         title: "Perfil Actualizado",
