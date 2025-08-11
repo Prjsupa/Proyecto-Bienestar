@@ -22,7 +22,7 @@ export type CommunityPost = {
   img_url: string | null;
   fecha: string;
   usuarios: Author | null;
-  comunidad_respuestas?: Reply[];
+  comunidad_respuestas: Reply[];
 };
 
 export type QAReply = {
@@ -79,5 +79,3 @@ export type Cita = {
     fecha_agendada: string;
     estado: 'pendiente' | 'confirmada' | 'cancelada';
 }
-
-    

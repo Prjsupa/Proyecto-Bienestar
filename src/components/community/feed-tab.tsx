@@ -64,12 +64,23 @@ export function FeedTab() {
     const { data: postsData, error: postsError } = await supabase
         .from('comunidad')
         .select(`
-            *,
-            usuarios ( name, last_name, rol ),
-            comunidad_respuestas ( *, usuarios ( name, last_name, rol ) )
+            id,
+            user_id,
+            mensaje,
+            img_url,
+            fecha,
+            usuarios:user_id ( name, last_name, rol ),
+            comunidad_respuestas (
+                id,
+                post_id,
+                user_id,
+                mensaje,
+                fecha,
+                usuarios:user_id ( name, last_name, rol )
+            )
         `)
         .order('fecha', { ascending: false })
-        .order('fecha', { foreignTable: 'comunidad_respuestas', ascending: true });
+        .order('fecha', { referencedTable: 'comunidad_respuestas', ascending: true });
 
 
     if (postsError) {
@@ -638,5 +649,3 @@ export function FeedTab() {
     </>
   )
 }
-
-    
