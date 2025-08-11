@@ -43,7 +43,6 @@ export default function ProfilePage() {
             if (profileError) {
               console.error('Error fetching user profile:', profileError);
               toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar tu perfil.' });
-              // Fallback to auth metadata if profile doesn't exist
               setName(user.user_metadata?.name || "");
               setLastName(user.user_metadata?.last_name || "");
             } else if (profileData) {
@@ -82,7 +81,6 @@ export default function ProfilePage() {
     const profileDataToUpdate: { [key: string]: any } = { 
         name: name, 
         last_name: lastName,
-        updated_at: new Date().toISOString(),
     };
 
     if (role === 1) {
@@ -101,7 +99,6 @@ export default function ProfilePage() {
         variant: "destructive",
       });
     } else {
-      // Also update auth metadata for consistency in other parts of the app if needed
       await supabase.auth.updateUser({
         data: { name, last_name: lastName }
       });
