@@ -12,18 +12,29 @@ import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, Dumbbell, Send, Annoyed, Video } from "lucide-react";
+import { Upload, Dumbbell, Send, Annoyed, Video, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { createClient } from "@/utils/supabase/client";
 import type { TechniquePost } from "@/types/fitness";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+
 
 const formSchema = z.object({
   nota: z.string().optional(),
   video: z.any().refine(file => file?.length == 1, "El video es requerido."),
 });
+
+const editSchema = z.object({
+  nota: z.string().optional(),
+});
+
 
 export default function TechniqueClinicPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -31,6 +42,7 @@ export default function TechniqueClinicPage() {
   const [loading, setLoading] = useState(true);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [editingPost, setEditingPost] = useState<TechniquePost | null>(null);
   
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,6 +96,10 @@ export default function TechniqueClinicPage() {
     defaultValues: { nota: "" },
   });
 
+  const editForm = useForm<z.infer<typeof editSchema>>({
+    resolver: zodResolver(editSchema),
+  });
+
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
@@ -126,6 +142,42 @@ export default function TechniqueClinicPage() {
         await fetchPosts();
     }
   }
+  
+  const handleEditClick = (post: TechniquePost) => {
+    setEditingPost(post);
+    editForm.setValue("nota", post.nota || "");
+  };
+
+  const handleUpdatePost = async (values: z.infer<typeof editSchema>) => {
+    if (!editingPost) return;
+
+    const { error } = await supabase
+      .from('clinica_tecnica')
+      .update({ nota: values.nota })
+      .eq('id', editingPost.id);
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message });
+    } else {
+      toast({ title: 'Publicación actualizada' });
+      setEditingPost(null);
+      await fetchPosts();
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    const { error } = await supabase
+      .from('clinica_tecnica')
+      .delete()
+      .eq('id', postId);
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
+    } else {
+      toast({ title: 'Publicación eliminada' });
+      await fetchPosts();
+    }
+  };
 
   const getInitials = (name?: string | null, lastName?: string | null) => {
     if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
@@ -232,6 +284,7 @@ export default function TechniqueClinicPage() {
                     const authorProfile = post.usuarios;
                     const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario Anónimo";
                     const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
+                    const isAuthor = currentUser?.id === post.user_id;
 
                     return (
                         <Card key={post.id}>
@@ -247,6 +300,43 @@ export default function TechniqueClinicPage() {
                                     </p>
                                 )}
                             </div>
+                            {isAuthor && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem onClick={() => handleEditClick(post)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    <span>Editar</span>
+                                  </DropdownMenuItem>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>Eliminar</span>
+                                      </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Esta acción no se puede deshacer. Esto eliminará permanentemente tu publicación.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeletePost(post.id)}>
+                                          Continuar
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
                             </CardHeader>
                             <CardContent>
                                 {post.nota && <p className="whitespace-pre-wrap mb-4">{post.nota}</p>}
@@ -270,8 +360,39 @@ export default function TechniqueClinicPage() {
                     </Card>
                 )}
             </div>
-
         </div>
+
+        <Dialog open={!!editingPost} onOpenChange={() => setEditingPost(null)}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Editar Nota</DialogTitle>
+                </DialogHeader>
+                <Form {...editForm}>
+                    <form onSubmit={editForm.handleSubmit(handleUpdatePost)} className="space-y-4">
+                        <FormField
+                            control={editForm.control}
+                            name="nota"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <Label htmlFor="edit-nota" className="sr-only">Nota</Label>
+                                    <Textarea id="edit-nota" rows={5} {...field} placeholder="Añade una nota o pregunta para el coach..."/>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">Cancelar</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={editForm.formState.isSubmitting}>
+                                {editForm.formState.isSubmitting ? "Guardando..." : "Guardar Cambios"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+
       </div>
     </AppLayout>
   );
