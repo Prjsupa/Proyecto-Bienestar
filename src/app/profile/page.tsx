@@ -201,7 +201,7 @@ export default function ProfilePage() {
                 <CardTitle>Información Personal</CardTitle>
                 <CardDescription>Estos datos se mostrarán en tu perfil público.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
                 <div className="flex items-center gap-6">
                      <div className="relative">
                         <Avatar className="h-24 w-24">
@@ -236,16 +236,16 @@ export default function ProfilePage() {
                         <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
                     </div>
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="email">Correo electrónico</Label>
-                    <Input id="email" type="email" defaultValue={user?.email} disabled />
-                </div>
                 {role === 1 && (
                     <div className="space-y-2">
                         <Label htmlFor="title">Título Profesional</Label>
                         <Input id="title" placeholder="Ej. Entrenador Personal, Nutricionista" value={title} onChange={(e) => setTitle(e.target.value)} />
                     </div>
                 )}
+                 <div className="space-y-2">
+                    <Label htmlFor="email">Correo electrónico</Label>
+                    <Input id="email" type="email" defaultValue={user?.email} disabled />
+                </div>
                 <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSaveChanges} disabled={isUploading}>
                     {isUploading ? "Guardando..." : "Guardar Cambios"}
                 </Button>
