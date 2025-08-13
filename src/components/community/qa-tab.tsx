@@ -32,6 +32,10 @@ const questionSchema = z.object({
   file: z.any().optional(),
 });
 
+const editQuestionSchema = z.object({
+    mensaje: z.string().min(15, "La pregunta debe tener al menos 15 caracteres.").max(500, "La pregunta no puede exceder los 500 caracteres."),
+});
+
 const replySchema = z.object({
   mensaje: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
 });
@@ -48,6 +52,7 @@ export function QATab() {
   const [isClient, setIsClient] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [editingQuestion, setEditingQuestion] = useState<ProfessionalQuestion | null>(null);
   const [editingReply, setEditingReply] = useState<ProfessionalReply | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -103,6 +108,10 @@ export function QATab() {
   const questionForm = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
     defaultValues: { mensaje: "" },
+  });
+
+  const editQuestionForm = useForm<z.infer<typeof editQuestionSchema>>({
+    resolver: zodResolver(editQuestionSchema),
   });
 
   const replyForm = useForm<z.infer<typeof replySchema>>({
@@ -186,6 +195,41 @@ export function QATab() {
       setReplyingTo(null);
     }
   }
+
+  const handleEditQuestionClick = (question: ProfessionalQuestion) => {
+    setEditingQuestion(question);
+    editQuestionForm.setValue("mensaje", question.mensaje);
+  };
+
+  const handleUpdateQuestion = async (values: z.infer<typeof editQuestionSchema>) => {
+    if (!editingQuestion) return;
+    const { error } = await supabase
+      .from('pregunta_profesional')
+      .update({ mensaje: values.mensaje })
+      .eq('id', editingQuestion.id);
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message });
+    } else {
+      toast({ title: 'Pregunta actualizada' });
+      setEditingQuestion(null);
+      await fetchQuestions();
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    const { error } = await supabase
+      .from('pregunta_profesional')
+      .delete()
+      .eq('id', questionId);
+      
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
+    } else {
+      toast({ title: 'Pregunta eliminada' });
+      await fetchQuestions();
+    }
+  };
   
   const handleEditReplyClick = (reply: ProfessionalReply) => {
     setEditingReply(reply);
@@ -346,16 +390,17 @@ export function QATab() {
             const author = question.usuarios;
             const authorName = author ? `${author.name || ''} ${author.last_name || ''}`.trim() : "Usuario Anónimo";
             const authorInitials = getInitials(author?.name, author?.last_name);
-            const canReply = isProfessional || (currentUser && currentUser.id === question.user_id);
+            const isAuthor = currentUser && currentUser.id === question.user_id;
+            const canReply = isProfessional || isAuthor;
 
             return (
               <Card key={question.id}>
                 <CardHeader>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-start gap-4">
                     <Avatar>
                       <AvatarFallback>{authorInitials}</AvatarFallback>
                     </Avatar>
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold">{authorName}</p>
                       {isClient && (
                         <p className="text-xs text-muted-foreground">
@@ -363,6 +408,43 @@ export function QATab() {
                         </p>
                       )}
                     </div>
+                    {isAuthor && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => handleEditQuestionClick(question)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    <span>Editar</span>
+                                </DropdownMenuItem>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            <span>Eliminar</span>
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta acción no se puede deshacer. Esto eliminará permanentemente tu pregunta y sus respuestas.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteQuestion(question.id)}>
+                                                Continuar
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -499,6 +581,36 @@ export function QATab() {
         })}
       </div>
       
+        <Dialog open={!!editingQuestion} onOpenChange={() => setEditingQuestion(null)}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Editar Pregunta</DialogTitle>
+                </DialogHeader>
+                <Form {...editQuestionForm}>
+                    <form onSubmit={editQuestionForm.handleSubmit(handleUpdateQuestion)} className="space-y-4">
+                        <FormField
+                            control={editQuestionForm.control}
+                            name="mensaje"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <Textarea id="edit-question-content" rows={4} {...field} />
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button type="button" variant="secondary">Cancelar</Button>
+                            </DialogClose>
+                            <Button type="submit" disabled={editQuestionForm.formState.isSubmitting}>
+                                {editQuestionForm.formState.isSubmitting ? "Guardando..." : "Guardar Cambios"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+
       <Dialog open={!!editingReply} onOpenChange={() => setEditingReply(null)}>
         <DialogContent>
             <DialogHeader>
@@ -531,3 +643,5 @@ export function QATab() {
     </>
   )
 }
+
+    
