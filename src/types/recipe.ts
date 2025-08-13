@@ -1,6 +1,7 @@
 
 export type Recipe = {
   id: string;
+  user_id?: string;
   titulo: string;
   descripcion: string;
   categoria: string;
@@ -9,4 +10,5 @@ export type Recipe = {
   instrucciones: string;
   fecha: string;
   visible: boolean;
+  visible_hasta?: string;
 };
