@@ -13,10 +13,22 @@ export type Routine = {
     visible_hasta?: string;
   };
 
-type PostAuthor = {
+type Author = {
+    id: string;
     name: string | null;
     last_name: string | null;
+    rol?: number;
+    titulo?: string | null;
 };
+
+export type TechniqueReply = {
+    id: string;
+    post_id: string;
+    user_id: string;
+    mensaje: string;
+    fecha: string;
+    usuarios: Author | null;
+}
 
 export type TechniquePost = {
   id: string;
@@ -24,7 +36,8 @@ export type TechniquePost = {
   user_id: string;
   video_url: string | null;
   nota: string | null;
-  usuarios: PostAuthor;
+  usuarios: Author;
+  clinica_tecnica_respuesta: TechniqueReply[];
 };
 
     
