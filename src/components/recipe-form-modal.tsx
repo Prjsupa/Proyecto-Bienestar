@@ -124,11 +124,7 @@ export function RecipeFormModal({ isOpen, onClose, onSuccess, recipe, userId }: 
           imageUrl = null;
       }
       
-      const now = new Date();
-      const firstDay = startOfDay(startOfMonth(now));
-      const nextMonthFirstDay = startOfDay(addMonths(firstDay, 1));
-      
-      const recipeData = {
+      const recipeData: Omit<Recipe, 'id'> & { id?: string } = {
         user_id: userId,
         titulo: values.titulo,
         descripcion: values.descripcion,
@@ -136,10 +132,22 @@ export function RecipeFormModal({ isOpen, onClose, onSuccess, recipe, userId }: 
         ingredientes: values.ingredientes,
         instrucciones: values.instrucciones,
         img_url: imageUrl,
-        fecha: firstDay.toISOString(),
         visible: values.visible,
-        visible_hasta: nextMonthFirstDay.toISOString(),
+        fecha: recipe?.fecha || new Date().toISOString(), // Keep original date by default
+        visible_hasta: recipe?.visible_hasta || new Date().toISOString(),
       };
+      
+      // Si la receta se está creando o si se está haciendo visible una receta que antes no lo era,
+      // se actualizan las fechas para que cubran el mes actual.
+      const isBeingMadeVisible = recipe && !recipe.visible && values.visible;
+
+      if (!recipe || isBeingMadeVisible) {
+        const now = new Date();
+        const firstDay = startOfDay(startOfMonth(now));
+        const nextMonthFirstDay = startOfDay(addMonths(firstDay, 1));
+        recipeData.fecha = firstDay.toISOString();
+        recipeData.visible_hasta = nextMonthFirstDay.toISOString();
+      }
       
       let error;
       if (recipe) {
