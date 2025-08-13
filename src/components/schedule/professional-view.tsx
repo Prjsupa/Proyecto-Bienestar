@@ -4,9 +4,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfDay, endOfDay, isSameDay } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Calendar as CalendarIcon, Users, Check, X, MoreVertical } from 'lucide-react';
+import { Calendar as CalendarIcon, Users, Check, X, MoreVertical, XCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -20,7 +20,7 @@ import { Skeleton } from '../ui/skeleton';
 export function ProfessionalSchedulerView() {
   const [appointments, setAppointments] = useState<AppointmentWithUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState<Date | undefined>();
   const supabase = createClient();
   const { toast } = useToast();
 
@@ -52,6 +52,7 @@ export function ProfessionalSchedulerView() {
   }, [fetchAppointments]);
 
   const filteredAppointments = useMemo(() => {
+    if (!date) return appointments;
     return appointments.filter(a => isSameDay(new Date(a.fecha_agendada), date));
   }, [appointments, date]);
 
@@ -79,10 +80,11 @@ export function ProfessionalSchedulerView() {
 
   const renderSkeletons = () => (
     <TableBody>
-      {[...Array(3)].map((_, i) => (
+      {[...Array(5)].map((_, i) => (
         <TableRow key={i}>
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
             <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-20" /></TableCell>
             <TableCell><Skeleton className="h-6 w-20" /></TableCell>
             <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
         </TableRow>
@@ -91,7 +93,7 @@ export function ProfessionalSchedulerView() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <div className="space-y-2 mb-8">
         <h1 className="text-3xl font-bold font-headline flex items-center gap-2">
             <Users className="w-8 h-8" />
@@ -105,42 +107,52 @@ export function ProfessionalSchedulerView() {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <CardTitle>Citas para el {format(date, "PPP", { locale: es })}</CardTitle>
+                <CardTitle>
+                  {date ? `Citas para el ${format(date, "PPP", { locale: es })}` : 'Todas las Citas'}
+                </CardTitle>
                 <CardDescription>
                     {filteredAppointments.length > 0 
-                        ? `Hay ${filteredAppointments.length} cita(s) para este día.`
-                        : 'No hay citas agendadas para este día.'
+                        ? `Mostrando ${filteredAppointments.length} cita(s).`
+                        : 'No hay citas que coincidan con los filtros.'
                     }
                 </CardDescription>
             </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className="w-full sm:w-auto justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  <span>{format(date, "PPP", { locale: es })}</span>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className="w-full sm:w-[280px] justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <span>{date ? format(date, "PPP", { locale: es }) : 'Filtrar por fecha...'}</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                    locale={es}
+                  />
+                </PopoverContent>
+              </Popover>
+              {date && (
+                <Button variant="ghost" size="icon" onClick={() => setDate(undefined)}>
+                  <XCircle className="h-4 w-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={(d) => d && setDate(d)}
-                  initialFocus
-                  locale={es}
-                />
-              </PopoverContent>
-            </Popover>
+              )}
+            </div>
         </CardHeader>
         <CardContent>
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Hora</TableHead>
                             <TableHead>Usuario</TableHead>
+                            <TableHead>Fecha</TableHead>
+                            <TableHead>Hora</TableHead>
                             <TableHead>Estado</TableHead>
                             <TableHead className="text-right">Acciones</TableHead>
                         </TableRow>
@@ -154,8 +166,9 @@ export function ProfessionalSchedulerView() {
 
                                     return (
                                         <TableRow key={appt.id}>
-                                            <TableCell className="font-medium">{format(new Date(appt.fecha_agendada), 'HH:mm', { locale: es })}</TableCell>
-                                            <TableCell>{userName}</TableCell>
+                                            <TableCell className="font-medium">{userName}</TableCell>
+                                            <TableCell>{format(new Date(appt.fecha_agendada), 'PPP', { locale: es })}</TableCell>
+                                            <TableCell>{format(new Date(appt.fecha_agendada), 'HH:mm', { locale: es })}</TableCell>
                                             <TableCell>
                                                 <Badge variant={status.variant}>{status.text}</Badge>
                                             </TableCell>
@@ -183,8 +196,8 @@ export function ProfessionalSchedulerView() {
                                 })
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
-                                        No hay citas para mostrar en esta fecha.
+                                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                        No hay citas para mostrar.
                                     </TableCell>
                                 </TableRow>
                             )}
