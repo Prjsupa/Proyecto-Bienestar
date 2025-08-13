@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { startOfMonth, addMonths, startOfDay } from 'date-fns';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -119,8 +119,8 @@ export function RecipeFormModal({ isOpen, onClose, onSuccess, recipe, userId }: 
       }
       
       const now = new Date();
-      const firstDay = startOfMonth(now);
-      const lastDay = endOfMonth(now);
+      const firstDay = startOfDay(startOfMonth(now));
+      const nextMonthFirstDay = startOfDay(addMonths(firstDay, 1));
 
       const recipeData: Omit<Recipe, 'id'> = {
         user_id: userId,
@@ -132,7 +132,7 @@ export function RecipeFormModal({ isOpen, onClose, onSuccess, recipe, userId }: 
         img_url: imageUrl,
         fecha: firstDay.toISOString(),
         visible: true,
-        visible_hasta: lastDay.toISOString(),
+        visible_hasta: nextMonthFirstDay.toISOString(),
       };
       
       let error;
