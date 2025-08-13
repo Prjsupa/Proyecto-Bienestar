@@ -3,19 +3,34 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dumbbell, Wrench } from 'lucide-react';
+import { Dumbbell, Wrench, EyeOff } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Routine } from "@/types/routine";
+import { cn } from "@/lib/utils";
 
 interface RoutineCardProps {
   routine: Routine;
+  isProfessional: boolean;
 }
 
-export function RoutineCard({ routine }: RoutineCardProps) {
+export function RoutineCard({ routine, isProfessional }: RoutineCardProps) {
+  const isVisible = routine.visible;
+  
   return (
-    <Card className="overflow-hidden flex flex-col group h-full transition-shadow hover:shadow-lg">
+    <Card className={cn(
+        "overflow-hidden flex flex-col group h-full transition-shadow hover:shadow-lg",
+        !isVisible && isProfessional && "border-dashed border-destructive/50"
+      )}>
       <CardHeader>
-        <CardTitle className="font-headline text-lg">{routine.titulo}</CardTitle>
+        <div className="flex justify-between items-start">
+            <CardTitle className="font-headline text-lg">{routine.titulo}</CardTitle>
+            {!isVisible && isProfessional && (
+                 <Badge variant="destructive" className="bg-destructive/80 backdrop-blur-sm text-destructive-foreground h-fit">
+                    <EyeOff className="w-3 h-3 mr-1" />
+                    Oculto
+                </Badge>
+            )}
+        </div>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col">
         <p className="text-sm text-muted-foreground line-clamp-3 flex-grow">{routine.descripcion}</p>
