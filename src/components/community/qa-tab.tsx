@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Annoyed, MessageSquare, Paperclip, X, Image as ImageIcon, Check } from "lucide-react";
+import { Annoyed, MessageSquare, Paperclip, X, Image as ImageIcon, Check, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import Image from "next/image";
 
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,9 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import type { ProfessionalQuestion, ProfessionalReply } from "@/types/community";
 import { Badge } from "../ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -33,6 +36,10 @@ const replySchema = z.object({
   mensaje: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
 });
 
+const editReplySchema = z.object({
+    mensaje: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
+});
+
 export function QATab() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<number | null>(null);
@@ -41,6 +48,7 @@ export function QATab() {
   const [isClient, setIsClient] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [editingReply, setEditingReply] = useState<ProfessionalReply | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -52,10 +60,10 @@ export function QATab() {
       .from('pregunta_profesional')
       .select(`
         *,
-        usuarios ( name, last_name, rol, titulo ),
+        usuarios:user_id ( id, name, last_name, rol, titulo ),
         respuesta_profesional (
             *,
-            usuarios ( name, last_name, rol, titulo )
+            usuarios:user_id ( id, name, last_name, rol, titulo )
         )
       `)
       .order('fecha', { ascending: false })
@@ -100,6 +108,10 @@ export function QATab() {
   const replyForm = useForm<z.infer<typeof replySchema>>({
     resolver: zodResolver(replySchema),
     defaultValues: { mensaje: "" },
+  });
+  
+  const editReplyForm = useForm<z.infer<typeof editReplySchema>>({
+    resolver: zodResolver(editReplySchema),
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,6 +186,42 @@ export function QATab() {
       setReplyingTo(null);
     }
   }
+  
+  const handleEditReplyClick = (reply: ProfessionalReply) => {
+    setEditingReply(reply);
+    editReplyForm.setValue("mensaje", reply.mensaje);
+  };
+  
+  const handleUpdateReply = async (values: z.infer<typeof editReplySchema>) => {
+    if (!editingReply) return;
+
+    const { error } = await supabase
+      .from('respuesta_profesional')
+      .update({ mensaje: values.mensaje })
+      .eq('id', editingReply.id);
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message });
+    } else {
+      toast({ title: 'Respuesta actualizada' });
+      setEditingReply(null);
+      await fetchQuestions();
+    }
+  };
+
+  const handleDeleteReply = async (replyId: string) => {
+    const { error } = await supabase
+      .from('respuesta_profesional')
+      .delete()
+      .eq('id', replyId);
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
+    } else {
+      toast({ title: 'Respuesta eliminada' });
+      await fetchQuestions();
+    }
+  };
 
   const renderSkeletons = () => (
     <div className="space-y-6">
@@ -298,6 +346,7 @@ export function QATab() {
             const author = question.usuarios;
             const authorName = author ? `${author.name || ''} ${author.last_name || ''}`.trim() : "Usuario Anónimo";
             const authorInitials = getInitials(author?.name, author?.last_name);
+            const canReply = isProfessional || (currentUser && currentUser.id === question.user_id);
 
             return (
               <Card key={question.id}>
@@ -331,7 +380,7 @@ export function QATab() {
                     )}
                 </CardContent>
                 <CardFooter className="flex-col items-start gap-4">
-                    {isProfessional && (
+                    {canReply && (
                       <div className="w-full">
                         <button onClick={() => setReplyingTo(replyingTo === question.id ? null : question.id)} className="flex items-center gap-2 text-sm hover:text-primary">
                           <MessageSquare className="w-4 h-4" />
@@ -351,7 +400,7 @@ export function QATab() {
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormControl>
-                                        <Textarea placeholder="Escribe tu respuesta como profesional..." className="resize-none" rows={2} {...field} />
+                                        <Textarea placeholder="Escribe tu respuesta..." className="resize-none" rows={2} {...field} />
                                       </FormControl>
                                       <FormMessage />
                                     </FormItem>
@@ -368,14 +417,15 @@ export function QATab() {
                     )}
                     {question.respuesta_profesional && question.respuesta_profesional.length > 0 && (
                       <div className="w-full space-y-4 pt-4 border-t">
-                        <h4 className="text-sm font-semibold">Respuestas de Profesionales</h4>
+                        <h4 className="text-sm font-semibold">Respuestas</h4>
                         {question.respuesta_profesional.map((reply: ProfessionalReply) => {
                           const replyAuthor = reply.usuarios;
-                          const replyAuthorName = replyAuthor ? `${replyAuthor.name || ''} ${replyAuthor.last_name || ''}`.trim() : "Profesional";
+                          const replyAuthorName = replyAuthor ? `${replyAuthor.name || ''} ${replyAuthor.last_name || ''}`.trim() : "Usuario";
                           const replyAuthorInitials = getInitials(replyAuthor?.name, replyAuthor?.last_name);
+                          const isReplyAuthor = currentUser && currentUser.id === reply.user_id;
 
                           return (
-                            <div key={reply.id} className="flex items-start gap-3">
+                            <div key={reply.id} className="flex items-start gap-3 group">
                               <Avatar className="h-8 w-8">
                                 <AvatarFallback>{replyAuthorInitials}</AvatarFallback>
                               </Avatar>
@@ -384,12 +434,14 @@ export function QATab() {
                                   <div className="flex flex-col">
                                     <div className="flex items-center gap-2">
                                       <p className="font-semibold text-sm">{replyAuthorName}</p>
-                                      <Badge variant="outline" className="border-primary/50 text-primary h-5 text-xs">
-                                        <Check className="w-3 h-3 mr-1" />
-                                        Profesional
-                                      </Badge>
+                                      {replyAuthor?.rol === 1 && (
+                                        <Badge variant="outline" className="border-primary/50 text-primary h-5 text-xs">
+                                            <Check className="w-3 h-3 mr-1" />
+                                            Profesional
+                                        </Badge>
+                                      )}
                                     </div>
-                                    {replyAuthor?.titulo && <p className="text-xs text-primary">{replyAuthor.titulo}</p>}
+                                    {replyAuthor?.rol === 1 && replyAuthor.titulo && <p className="text-xs text-primary">{replyAuthor.titulo}</p>}
                                   </div>
                                   {isClient && (
                                     <p className="text-xs text-muted-foreground">
@@ -399,6 +451,43 @@ export function QATab() {
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
                               </div>
+                              {isReplyAuthor && replyAuthor?.rol === 1 && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <MoreHorizontal className="w-4 h-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuItem onClick={() => handleEditReplyClick(reply)}>
+                                            <Edit className="mr-2 h-4 w-4" />
+                                            <span>Editar</span>
+                                        </DropdownMenuItem>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    <span>Eliminar</span>
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Esta acción no se puede deshacer. Esto eliminará permanentemente tu respuesta.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeleteReply(reply.id)}>
+                                                        Continuar
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
                             </div>
                           );
                         })}
@@ -409,8 +498,36 @@ export function QATab() {
             )
         })}
       </div>
+      
+      <Dialog open={!!editingReply} onOpenChange={() => setEditingReply(null)}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Editar Respuesta</DialogTitle>
+            </DialogHeader>
+            <Form {...editReplyForm}>
+                <form onSubmit={editReplyForm.handleSubmit(handleUpdateReply)} className="space-y-4">
+                        <FormField
+                        control={editReplyForm.control}
+                        name="mensaje"
+                        render={({ field }) => (
+                            <FormItem>
+                                <Textarea id="edit-reply-content" rows={4} {...field} />
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <DialogFooter>
+                            <DialogClose asChild>
+                            <Button type="button" variant="secondary">Cancelar</Button>
+                        </DialogClose>
+                        <Button type="submit" disabled={editReplyForm.formState.isSubmitting}>
+                            {editReplyForm.formState.isSubmitting ? "Guardando..." : "Guardar Cambios"}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </Form>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
-
-    

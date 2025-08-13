@@ -1,6 +1,7 @@
 
 
 export type Author = {
+    id: string;
     name: string | null;
     last_name: string | null;
     rol?: number;
@@ -99,5 +100,3 @@ export type Cita = {
     fecha_agendada: string;
     estado: 'pendiente' | 'confirmada' | 'cancelada';
 }
-
-    
