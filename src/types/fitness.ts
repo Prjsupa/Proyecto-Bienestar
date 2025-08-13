@@ -1,4 +1,5 @@
 
+
 export type Routine = {
     id: string;
     titulo: string;
@@ -9,6 +10,7 @@ export type Routine = {
     fecha: string;
     visible: boolean;
     img_url: string | null;
+    visible_hasta?: string;
   };
 
 type PostAuthor = {
