@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { startOfDay, startOfMonth } from 'date-fns';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -82,6 +83,13 @@ export function RoutineFormModal({ isOpen, onClose, onSuccess, routine, userId, 
         visible: values.visible,
         fecha: routine?.fecha || new Date().toISOString(),
       };
+
+      const isBeingMadeVisible = routine && !routine.visible && values.visible;
+      if (!routine || isBeingMadeVisible) {
+        const now = new Date();
+        const firstDay = startOfDay(startOfMonth(now));
+        routineData.fecha = firstDay.toISOString();
+      }
       
       let error;
       if (routine) {
