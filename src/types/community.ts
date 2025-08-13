@@ -72,3 +72,10 @@ export type Cita = {
     fecha_agendada: string;
     estado: 'pendiente' | 'confirmada' | 'cancelada';
 }
+
+export type AppointmentWithUser = Cita & {
+    usuarios: {
+        name: string | null;
+        last_name: string | null;
+    } | null;
+};
