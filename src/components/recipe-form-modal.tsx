@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { startOfMonth, addMonths, startOfDay } from 'date-fns';
+import { startOfDay, addMonths, startOfMonth } from 'date-fns';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,8 @@ import { createClient } from '@/utils/supabase/client';
 import { UploadCloud, X } from 'lucide-react';
 import Image from 'next/image';
 import type { Recipe } from '@/types/recipe';
+import { Switch } from './ui/switch';
+import { Label } from './ui/label';
 
 const formSchema = z.object({
   titulo: z.string().min(5, 'El título debe tener al menos 5 caracteres.'),
@@ -27,6 +29,7 @@ const formSchema = z.object({
   instrucciones: z.string().min(20, 'Las instrucciones son requeridas.'),
   img_url: z.string().optional().nullable(),
   image_file: z.any().optional(),
+  visible: z.boolean(),
 });
 
 interface RecipeFormModalProps {
@@ -52,7 +55,8 @@ export function RecipeFormModal({ isOpen, onClose, onSuccess, recipe, userId }: 
       ingredientes: '',
       instrucciones: '',
       img_url: null,
-      image_file: null
+      image_file: null,
+      visible: true,
     },
   });
   
@@ -65,6 +69,7 @@ export function RecipeFormModal({ isOpen, onClose, onSuccess, recipe, userId }: 
         ingredientes: recipe.ingredientes,
         instrucciones: recipe.instrucciones,
         img_url: recipe.img_url,
+        visible: recipe.visible,
       });
       setImagePreview(recipe.img_url);
     } else {
@@ -76,6 +81,7 @@ export function RecipeFormModal({ isOpen, onClose, onSuccess, recipe, userId }: 
         instrucciones: '',
         img_url: null,
         image_file: null,
+        visible: true,
       });
       setImagePreview(null);
     }
@@ -121,8 +127,8 @@ export function RecipeFormModal({ isOpen, onClose, onSuccess, recipe, userId }: 
       const now = new Date();
       const firstDay = startOfDay(startOfMonth(now));
       const nextMonthFirstDay = startOfDay(addMonths(firstDay, 1));
-
-      const recipeData: Omit<Recipe, 'id'> = {
+      
+      const recipeData = {
         user_id: userId,
         titulo: values.titulo,
         descripcion: values.descripcion,
@@ -131,17 +137,15 @@ export function RecipeFormModal({ isOpen, onClose, onSuccess, recipe, userId }: 
         instrucciones: values.instrucciones,
         img_url: imageUrl,
         fecha: firstDay.toISOString(),
-        visible: true,
+        visible: values.visible,
         visible_hasta: nextMonthFirstDay.toISOString(),
       };
       
       let error;
       if (recipe) {
-        // Update
         const { error: updateError } = await supabase.from('recetas').update(recipeData).eq('id', recipe.id);
         error = updateError;
       } else {
-        // Insert
         const { error: insertError } = await supabase.from('recetas').insert(recipeData);
         error = insertError;
       }
@@ -166,6 +170,26 @@ export function RecipeFormModal({ isOpen, onClose, onSuccess, recipe, userId }: 
         <ScrollArea className="max-h-[70vh] p-1 pr-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                    control={form.control}
+                    name="visible"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                            <FormLabel>Visible para Usuarios</FormLabel>
+                            <p className="text-xs text-muted-foreground">
+                            Si está activado, todos los usuarios podrán ver esta receta.
+                            </p>
+                        </div>
+                        <FormControl>
+                            <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                            />
+                        </FormControl>
+                        </FormItem>
+                    )}
+                />
               <FormField
                   control={form.control}
                   name="image_file"

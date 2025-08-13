@@ -32,6 +32,8 @@ export default function RecipesPage() {
   const fetchRecipes = useCallback(async () => {
     try {
       setLoading(true);
+      // La RLS se encarga de filtrar qué recetas se devuelven
+      // según el rol del usuario (profesionales ven todo, usuarios solo las visibles).
       const { data, error } = await supabase
         .from("recetas")
         .select("*")
@@ -126,8 +128,8 @@ export default function RecipesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {recipes.map((recipe) => (
               <div key={recipe.id} className="relative group/card">
-                 <div onClick={() => handleRecipeClick(recipe)} className="cursor-pointer">
-                    <RecipeCard recipe={recipe} />
+                 <div onClick={() => handleRecipeClick(recipe)} className="cursor-pointer h-full">
+                    <RecipeCard recipe={recipe} isProfessional={isProfessional} />
                  </div>
                  {isProfessional && (
                     <div className="absolute top-2 left-2 opacity-0 group-hover/card:opacity-100 transition-opacity">

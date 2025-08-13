@@ -4,17 +4,24 @@
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { UtensilsCrossed } from 'lucide-react';
+import { UtensilsCrossed, EyeOff } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Recipe } from "@/types/recipe";
+import { cn } from "@/lib/utils";
 
 interface RecipeCardProps {
   recipe: Recipe;
+  isProfessional: boolean;
 }
 
-export function RecipeCard({ recipe }: RecipeCardProps) {
+export function RecipeCard({ recipe, isProfessional }: RecipeCardProps) {
+  const isVisible = recipe.visible;
+
   return (
-    <Card className="overflow-hidden flex flex-col group h-full transition-shadow hover:shadow-lg">
+    <Card className={cn(
+        "overflow-hidden flex flex-col group h-full transition-shadow hover:shadow-lg",
+        !isVisible && isProfessional && "border-dashed border-destructive/50"
+      )}>
       <CardHeader className="p-0 relative">
         <Image
           src={recipe.img_url || "https://placehold.co/600x400.png"}
@@ -24,9 +31,17 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           className="object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-300"
           data-ai-hint="recipe food"
         />
-        <Badge className="absolute top-2 right-2 bg-primary/80 backdrop-blur-sm text-primary-foreground">
-          {recipe.categoria}
-        </Badge>
+        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+            <Badge className="bg-primary/80 backdrop-blur-sm text-primary-foreground">
+                {recipe.categoria}
+            </Badge>
+            {!isVisible && isProfessional && (
+                 <Badge variant="destructive" className="bg-destructive/80 backdrop-blur-sm text-destructive-foreground">
+                    <EyeOff className="w-3 h-3 mr-1" />
+                    Oculto
+                </Badge>
+            )}
+        </div>
       </CardHeader>
       <CardContent className="p-4 flex-grow flex flex-col">
         <CardTitle className="font-headline text-lg mb-2">{recipe.titulo}</CardTitle>
