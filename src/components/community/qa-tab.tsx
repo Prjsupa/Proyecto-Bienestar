@@ -8,38 +8,32 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Check, MessageCircle, Paperclip, X, Annoyed, MessageSquare } from "lucide-react";
+import { Annoyed, MessageSquare, Paperclip, X, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
-import type { QAPost, QAReply } from "@/types/community";
+import type { ProfessionalQuestion } from "@/types/community";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const questionSchema = z.object({
-  pregunta: z.string().min(15, "La pregunta debe tener al menos 15 caracteres.").max(500, "La pregunta no puede exceder los 500 caracteres."),
+  mensaje: z.string().min(15, "La pregunta debe tener al menos 15 caracteres.").max(500, "La pregunta no puede exceder los 500 caracteres."),
   file: z.any().optional(),
-});
-
-const replySchema = z.object({
-  respuesta: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
 });
 
 export function QATab() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [qaPosts, setQAPosts] = useState<QAPost[]>([]);
+  const [questions, setQuestions] = useState<ProfessionalQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -48,19 +42,18 @@ export function QATab() {
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('preguntas_profesionales')
+      .from('pregunta_profesional')
       .select(`
         *,
-        usuarios:user_id ( name, last_name, avatar_url ),
-        respuestas_profesionales ( *, usuarios:user_id (name, last_name, avatar_url) )
+        usuarios ( name, last_name, rol, titulo )
       `)
-      .order('created_at', { ascending: false });
+      .order('fecha', { ascending: false });
 
     if (error) {
       console.error("Error fetching Q&A posts:", error);
       toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar las preguntas." });
     } else {
-      setQAPosts(data as any[]);
+      setQuestions(data as any[]);
     }
     setLoading(false);
   }, [supabase, toast]);
@@ -75,21 +68,20 @@ export function QATab() {
     fetchUserAndData();
   }, [fetchQuestions, supabase]);
 
-  const questionForm = useForm<z.infer<typeof questionSchema>>({
+  const form = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
-    defaultValues: { pregunta: "" },
-  });
-
-  const replyForm = useForm<z.infer<typeof replySchema>>({
-    resolver: zodResolver(replySchema),
-    defaultValues: { respuesta: "" },
+    defaultValues: { mensaje: "" },
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast({ variant: "destructive", title: "Archivo inválido", description: "Solo se permiten imágenes." });
+        return;
+      }
       if (file.size > MAX_FILE_SIZE) {
-        toast({ variant: "destructive", title: "Archivo demasiado grande", description: "El archivo no puede exceder los 5MB." });
+        toast({ variant: "destructive", title: "Archivo demasiado grande", description: "La imagen no puede exceder los 5MB." });
         return;
       }
       setSelectedFile(file);
@@ -97,37 +89,38 @@ export function QATab() {
   };
 
   async function onQuestionSubmit(values: z.infer<typeof questionSchema>) {
-    if (!currentUser) return;
-
-    // Lógica para subir archivo si existe... (omitida por brevedad)
+    if (!currentUser) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para preguntar.' });
+        return;
+    }
+    
+    let imageUrl: string | null = null;
+    if (selectedFile) {
+        const filePath = `${currentUser.id}/${Date.now()}_${selectedFile.name}`;
+        const { error: uploadError } = await supabase.storage
+            .from('pregunta.profesional')
+            .upload(filePath, selectedFile);
+        
+        if (uploadError) {
+            toast({ variant: 'destructive', title: 'Error al subir imagen', description: uploadError.message });
+            return;
+        }
+        
+        const { data: { publicUrl } } = supabase.storage.from('pregunta.profesional').getPublicUrl(filePath);
+        imageUrl = publicUrl;
+    }
 
     const { error } = await supabase
-      .from('preguntas_profesionales')
-      .insert({ pregunta: values.pregunta, user_id: currentUser.id });
+      .from('pregunta_profesional')
+      .insert({ mensaje: values.mensaje, user_id: currentUser.id, img_url: imageUrl });
 
     if (error) {
       toast({ variant: "destructive", title: "Error al enviar", description: error.message });
     } else {
       toast({ title: "Pregunta enviada", description: "Tu pregunta ha sido publicada." });
-      questionForm.reset();
+      form.reset();
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      await fetchQuestions();
-    }
-  }
-
-  async function onReplySubmit(values: z.infer<typeof replySchema>, questionId: string) {
-    if (!currentUser) return;
-
-    const { error } = await supabase
-      .from('respuestas_profesionales')
-      .insert({ respuesta: values.respuesta, pregunta_id: questionId, user_id: currentUser.id });
-    
-    if (error) {
-      toast({ variant: "destructive", title: "Error al responder", description: error.message });
-    } else {
-      replyForm.reset();
-      setReplyingTo(null);
       await fetchQuestions();
     }
   }
@@ -163,20 +156,20 @@ export function QATab() {
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="text-lg font-headline">Pregúntale a nuestros Expertos</CardTitle>
-          <p className="text-sm text-muted-foreground">¿Tienes preguntas sobre nutrición, entrenamientos o recuperación? Nuestros profesionales están aquí para ayudarte.</p>
+          <p className="text-sm text-muted-foreground">¿Tienes dudas sobre nutrición, entrenamientos o bienestar? Nuestros profesionales están aquí para ayudarte.</p>
         </CardHeader>
         <CardContent>
-          <Form {...questionForm}>
-            <form onSubmit={questionForm.handleSubmit(onQuestionSubmit)} className="space-y-4">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onQuestionSubmit)} className="space-y-4">
               <FormField
-                control={questionForm.control}
-                name="pregunta"
+                control={form.control}
+                name="mensaje"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tu Pregunta</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Por ejemplo: '¿Cuál es la mejor forma de calentar para una carrera?'"
+                        placeholder="Por ejemplo: '¿Cuál es la mejor forma de calentar para una sesión de pesas?'"
                         className="resize-none"
                         rows={3}
                         {...field}
@@ -189,7 +182,7 @@ export function QATab() {
               {selectedFile && (
                 <div className="flex items-center justify-between p-2 text-sm text-muted-foreground bg-muted rounded-md">
                   <div className="flex items-center gap-2 truncate">
-                    <Paperclip className="w-4 h-4" />
+                    <ImageIcon className="w-4 h-4" />
                     <span className="truncate">{selectedFile.name}</span>
                   </div>
                   <Button
@@ -207,14 +200,14 @@ export function QATab() {
               )}
               <div className="flex justify-between items-center">
                 <FormField
-                  control={questionForm.control}
+                  control={form.control}
                   name="file"
                   render={() => (
                     <FormItem>
                       <FormControl>
                         <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                           <Paperclip className="w-4 h-4 mr-2" />
-                          Adjuntar Archivo
+                          Adjuntar Imagen
                         </Button>
                       </FormControl>
                       <input
@@ -222,14 +215,14 @@ export function QATab() {
                         className="hidden"
                         ref={fileInputRef}
                         onChange={handleFileChange}
-                        accept="image/*,video/*,application/pdf,.doc,.docx"
+                        accept="image/*"
                       />
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={questionForm.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  {questionForm.formState.isSubmitting ? 'Enviando...' : 'Enviar Pregunta'}
+                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                  {form.formState.isSubmitting ? 'Enviando...' : 'Enviar Pregunta'}
                 </Button>
               </div>
             </form>
@@ -239,7 +232,7 @@ export function QATab() {
 
       <div className="space-y-6">
         <h2 className="text-2xl font-semibold font-headline">Preguntas Recientes</h2>
-        {loading ? renderSkeletons() : qaPosts.length === 0 ? (
+        {loading ? renderSkeletons() : questions.length === 0 ? (
            <Card>
               <CardContent className="pt-6">
                   <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8">
@@ -249,110 +242,48 @@ export function QATab() {
                   </div>
               </CardContent>
           </Card>
-        ) : qaPosts.map((qa) => {
-            const author = qa.usuarios;
+        ) : questions.map((question) => {
+            const author = question.usuarios;
             const authorName = author ? `${author.name || ''} ${author.last_name || ''}`.trim() : "Usuario Anónimo";
             const authorInitials = getInitials(author?.name, author?.last_name);
 
             return (
-              <Card key={qa.id}>
+              <Card key={question.id}>
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     <Avatar>
-                      <AvatarImage src={author?.avatar_url} alt={authorName} />
                       <AvatarFallback>{authorInitials}</AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="font-semibold">{authorName}</p>
                       {isClient && (
                         <p className="text-xs text-muted-foreground">
-                          preguntó {formatDistanceToNow(new Date(qa.created_at), { addSuffix: true, locale: es })}
+                          preguntó {formatDistanceToNow(new Date(question.fecha), { addSuffix: true, locale: es })}
                         </p>
                       )}
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="font-semibold text-base mb-4">{qa.pregunta}</p>
-                  
-                   {qa.respuestas_profesionales && qa.respuestas_profesionales.length > 0 && (
-                      <div className="w-full space-y-4 pt-4 border-t">
-                          {qa.respuestas_profesionales.map((reply: QAReply) => {
-                              const replyAuthor = reply.usuarios;
-                              const replyAuthorName = replyAuthor ? `${replyAuthor.name || ''} ${replyAuthor.last_name || ''}`.trim() : "Usuario";
-                              const replyAuthorInitials = getInitials(replyAuthor?.name, replyAuthor?.last_name);
-                              return (
-                                  <div key={reply.id} className="flex items-start gap-3">
-                                      <Avatar className="h-8 w-8">
-                                           <AvatarImage src={replyAuthor?.avatar_url} alt={replyAuthorName} />
-                                          <AvatarFallback>{replyAuthorInitials}</AvatarFallback>
-                                      </Avatar>
-                                      <div className="flex-1 bg-secondary p-3 rounded-lg">
-                                          <div className="flex items-center justify-between">
-                                              <div className="flex items-center gap-2">
-                                                <p className="font-semibold text-sm">{replyAuthorName}</p>
-                                                {reply.es_profesional && <Badge variant="outline" className="border-primary/50 text-primary h-5"><Check className="w-3 h-3 mr-1" />Profesional</Badge>}
-                                              </div>
-                                               {isClient && (
-                                                  <p className="text-xs text-muted-foreground">
-                                                      {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true, locale: es })}
-                                                  </p>
-                                              )}
-                                          </div>
-                                          <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.respuesta}</p>
-                                      </div>
-                                  </div>
-                              )
-                          })}
-                      </div>
-                  )}
-
+                  <p className="whitespace-pre-wrap">{question.mensaje}</p>
+                    {question.img_url && (
+                    <div className="mt-4">
+                        <Image 
+                        src={question.img_url} 
+                        alt="Imagen de la pregunta" 
+                        width={500} 
+                        height={500} 
+                        className="rounded-lg object-cover w-full max-h-[400px]"
+                        />
+                    </div>
+                    )}
                 </CardContent>
                 <CardFooter className="flex-col items-start gap-4">
-                  {currentUser?.id === qa.user_id && !replyingTo && (
-                    <Button variant="link" size="sm" className="p-0 h-auto" onClick={() => setReplyingTo(qa.id)}>
-                      <MessageSquare className="w-4 h-4 mr-2"/>
-                      Añadir respuesta
-                    </Button>
-                  )}
-
-                  {replyingTo === qa.id && (
-                    <Form {...replyForm}>
-                        <form onSubmit={replyForm.handleSubmit((values) => onReplySubmit(values, qa.id))} className="w-full flex items-start gap-4 pt-4 border-t">
-                              <Avatar className="h-9 w-9 mt-1">
-                                <AvatarImage src={currentUser?.user_metadata.avatar_url} />
-                                <AvatarFallback>{getInitials(currentUser?.user_metadata.name, currentUser?.user_metadata.last_name)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 space-y-2">
-                                <FormField
-                                    control={replyForm.control}
-                                    name="respuesta"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <Textarea
-                                                placeholder="Escribe tu respuesta..."
-                                                className="resize-none"
-                                                rows={2}
-                                                {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <div className="flex gap-2">
-                                  <Button type="submit" size="sm" disabled={replyForm.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                                      {replyForm.formState.isSubmitting ? 'Enviando...' : 'Enviar Respuesta'}
-                                  </Button>
-                                   <Button type="button" variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>
-                                      Cancelar
-                                  </Button>
-                                </div>
-                            </div>
-                        </form>
-                    </Form>
-                  )}
+                    <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
+                        <MessageSquare className="w-4 h-4" />
+                        <span>0</span>
+                        <span>Responder</span>
+                    </button>
                 </CardFooter>
               </Card>
             )

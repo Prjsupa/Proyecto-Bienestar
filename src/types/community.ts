@@ -26,6 +26,15 @@ export type CommunityPost = {
   comunidad_respuestas: Reply[];
 };
 
+export type ProfessionalQuestion = {
+    id: string;
+    fecha: string;
+    user_id: string;
+    mensaje: string;
+    img_url: string | null;
+    usuarios: Author | null;
+}
+
 export type QAReply = {
     id: string;
     created_at: string;
