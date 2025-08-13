@@ -57,6 +57,7 @@ export type AnnouncementPost = {
 
 export type ClaseEnVivo = {
     id: string;
+    user_id: string;
     titulo: string;
     descripcion: string | null;
     fecha_hora: string;

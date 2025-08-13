@@ -1,0 +1,275 @@
+
+"use client";
+
+import { useState, useRef, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { format } from 'date-fns';
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import { createClient } from '@/utils/supabase/client';
+import { UploadCloud, X } from 'lucide-react';
+import Image from 'next/image';
+import type { ClaseEnVivo } from '@/types/community';
+
+const formSchema = z.object({
+  titulo: z.string().min(5, 'El título debe tener al menos 5 caracteres.'),
+  descripcion: z.string().optional(),
+  fecha_hora: z.string().min(1, 'La fecha y hora son requeridas.'),
+  link: z.string().url('Debe ser un enlace válido.').optional().nullable(),
+  disponible_hasta: z.string().min(1, 'La fecha de disponibilidad es requerida.'),
+  miniatura: z.any().optional(),
+});
+
+interface LiveSessionFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  session: ClaseEnVivo | null;
+  userId: string;
+}
+
+export function LiveSessionFormModal({ isOpen, onClose, onSuccess, session, userId }: LiveSessionFormModalProps) {
+  const { toast } = useToast();
+  const supabase = createClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      titulo: '',
+      descripcion: '',
+      fecha_hora: '',
+      link: '',
+      disponible_hasta: '',
+      miniatura: null,
+    },
+  });
+
+  const formatDateForInput = (date: Date) => {
+    return format(date, "yyyy-MM-dd'T'HH:mm");
+  };
+  
+  useEffect(() => {
+    if (session) {
+      form.reset({
+        titulo: session.titulo,
+        descripcion: session.descripcion || '',
+        fecha_hora: formatDateForInput(new Date(session.fecha_hora)),
+        link: session.link,
+        disponible_hasta: formatDateForInput(new Date(session.disponible_hasta)),
+        miniatura: null,
+      });
+      setImagePreview(session.miniatura);
+    } else {
+      form.reset({
+        titulo: '',
+        descripcion: '',
+        fecha_hora: '',
+        link: '',
+        disponible_hasta: '',
+        miniatura: null,
+      });
+      setImagePreview(null);
+    }
+  }, [session, form]);
+
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast({ variant: "destructive", title: "Tipo de archivo no válido", description: "Por favor selecciona una imagen." });
+        return;
+      }
+      form.setValue("miniatura", file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    form.setValue("miniatura", null);
+    if(fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      let imageUrl = session?.miniatura || null;
+
+      if (values.miniatura && values.miniatura instanceof File) {
+        const file = values.miniatura;
+        const filePath = `${userId}/${Date.now()}_${file.name}`;
+        const { error: uploadError } = await supabase.storage.from('miniaturas').upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage.from('miniaturas').getPublicUrl(filePath);
+        imageUrl = publicUrl;
+      } else if (!imagePreview) {
+          imageUrl = null;
+      }
+      
+      const sessionData = {
+        user_id: userId,
+        titulo: values.titulo,
+        descripcion: values.descripcion,
+        fecha_hora: new Date(values.fecha_hora).toISOString(),
+        link: values.link,
+        disponible_hasta: new Date(values.disponible_hasta).toISOString(),
+        miniatura: imageUrl,
+      };
+      
+      let error;
+      if (session) {
+        const { error: updateError } = await supabase.from('clases_en_vivo').update(sessionData).eq('id', session.id);
+        error = updateError;
+      } else {
+        const { error: insertError } = await supabase.from('clases_en_vivo').insert(sessionData);
+        error = insertError;
+      }
+
+      if (error) throw error;
+
+      toast({ title: session ? 'Clase Actualizada' : 'Clase Creada', description: 'La clase en vivo se ha guardado exitosamente.' });
+      onSuccess();
+
+    } catch (err: any) {
+      console.error('Error saving session:', err);
+      toast({ variant: 'destructive', title: 'Error al guardar', description: err.message });
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{session ? 'Editar Clase en Vivo' : 'Crear Nueva Clase en Vivo'}</DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="max-h-[70vh] p-1 pr-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="miniatura"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Miniatura de la Clase</FormLabel>
+                      <FormControl>
+                        <div 
+                          className="border-2 border-dashed border-muted rounded-lg p-4 text-center cursor-pointer hover:border-primary aspect-video flex items-center justify-center"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            className="hidden"
+                            accept="image/*"
+                          />
+                          {imagePreview ? (
+                            <div className="relative group w-full h-full">
+                              <Image src={imagePreview} alt="Vista previa" layout="fill" objectFit="cover" className="rounded-md" />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => { e.stopPropagation(); removeImage(); }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="text-muted-foreground">
+                              <UploadCloud className="mx-auto h-10 w-10 mb-2" />
+                              <p>Haz clic para subir una imagen</p>
+                              <p className="text-xs">Recomendado: 16:9 (Ej. 1280x720px)</p>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+              />
+              <FormField
+                control={form.control}
+                name="titulo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Título</FormLabel>
+                    <FormControl><Input placeholder="Ej. Yoga para principiantes" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="descripcion"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descripción</FormLabel>
+                    <FormControl><Textarea placeholder="Una breve descripción de la clase en vivo..." {...field} rows={3}/></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="link"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Enlace del Directo (YouTube, etc.)</FormLabel>
+                    <FormControl><Input placeholder="https://youtube.com/live/..." {...field} value={field.value ?? ''} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <FormField
+                    control={form.control}
+                    name="fecha_hora"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Fecha y Hora del Evento</FormLabel>
+                        <FormControl><Input type="datetime-local" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="disponible_hasta"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Repetición Disponible Hasta</FormLabel>
+                        <FormControl><Input type="datetime-local" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+              </div>
+              <DialogFooter>
+                  <DialogClose asChild>
+                      <Button type="button" variant="secondary">Cancelar</Button>
+                  </DialogClose>
+                  <Button type="submit" disabled={form.formState.isSubmitting}>
+                      {form.formState.isSubmitting ? 'Guardando...' : 'Guardar Clase'}
+                  </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
