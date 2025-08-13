@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { User } from "@supabase/supabase-js";
 import { AppLayout } from "@/components/app-layout";
 import { createClient } from "@/utils/supabase/client";
@@ -12,8 +12,11 @@ import { Frown, PlusCircle, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import type { Recipe } from "@/types/recipe";
+
+type VisibilityFilter = 'all' | 'visible' | 'not-visible';
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -25,6 +28,8 @@ export default function RecipesPage() {
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<number | null>(null);
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>('all');
+
 
   const supabase = createClient();
   const { toast } = useToast();
@@ -32,8 +37,6 @@ export default function RecipesPage() {
   const fetchRecipes = useCallback(async () => {
     try {
       setLoading(true);
-      // La RLS se encarga de filtrar qué recetas se devuelven
-      // según el rol del usuario (profesionales ven todo, usuarios solo las visibles).
       const { data, error } = await supabase
         .from("recetas")
         .select("*")
@@ -61,6 +64,16 @@ export default function RecipesPage() {
     };
     fetchUserAndData();
   }, [fetchRecipes, supabase]);
+
+  const filteredRecipes = useMemo(() => {
+    if (visibilityFilter === 'all') {
+      return recipes;
+    }
+    if (visibilityFilter === 'visible') {
+      return recipes.filter(r => r.visible);
+    }
+    return recipes.filter(r => !r.visible);
+  }, [recipes, visibilityFilter]);
 
   const handleRecipeClick = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
@@ -97,7 +110,7 @@ export default function RecipesPage() {
   return (
     <AppLayout>
       <div className="space-y-4">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div>
             <h1 className="text-3xl font-bold font-headline">Recetas</h1>
             <p className="text-muted-foreground">
@@ -105,10 +118,19 @@ export default function RecipesPage() {
             </p>
           </div>
           {isProfessional && (
-            <Button onClick={() => handleOpenFormModal()}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Añadir Receta
-            </Button>
+            <div className="flex flex-col-reverse sm:flex-row items-end sm:items-center gap-4 w-full sm:w-auto">
+                <Tabs value={visibilityFilter} onValueChange={(value) => setVisibilityFilter(value as VisibilityFilter)}>
+                    <TabsList>
+                        <TabsTrigger value="all">Todas</TabsTrigger>
+                        <TabsTrigger value="visible">Visibles</TabsTrigger>
+                        <TabsTrigger value="not-visible">No Visibles</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+                <Button onClick={() => handleOpenFormModal()} className="w-full sm:w-auto">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Añadir Receta
+                </Button>
+            </div>
           )}
         </div>
 
@@ -124,9 +146,9 @@ export default function RecipesPage() {
               <h2 className="text-xl font-semibold mb-2">¡Oh, no!</h2>
               <p className="text-muted-foreground">{error}</p>
             </div>
-        ) : recipes.length > 0 ? (
+        ) : filteredRecipes.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {recipes.map((recipe) => (
+            {filteredRecipes.map((recipe) => (
               <div key={recipe.id} className="relative group/card">
                  <div onClick={() => handleRecipeClick(recipe)} className="cursor-pointer h-full">
                     <RecipeCard recipe={recipe} isProfessional={isProfessional} />
@@ -174,9 +196,9 @@ export default function RecipesPage() {
         ) : (
           <div className="flex flex-col items-center justify-center text-center py-16">
             <Frown className="w-16 h-16 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No hay recetas nuevas</h2>
+            <h2 className="text-xl font-semibold mb-2">No se encontraron recetas</h2>
             <p className="text-muted-foreground">
-              Parece que no hay recetas nuevas en este momento. ¡Vuelve a consultar pronto!
+              No hay recetas que coincidan con el filtro seleccionado.
             </p>
           </div>
         )}
