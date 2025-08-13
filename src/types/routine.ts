@@ -9,6 +9,7 @@ export type Routine = {
     ejercicios: string;
     fecha: string;
     visible: boolean;
+    visible_hasta?: string;
   };
 
     
