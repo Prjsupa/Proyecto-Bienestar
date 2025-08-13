@@ -46,42 +46,13 @@ export type ProfessionalQuestion = {
     respuesta_profesional: ProfessionalReply[];
 }
 
-export type QAReply = {
-    id: string;
-    created_at: string;
-    pregunta_id: string;
-    respuesta: string;
-    user_id: string;
-    es_profesional?: boolean;
-    usuarios: {
-        name: string | null;
-        last_name: string | null;
-        avatar_url?: string;
-    } | null;
-}
-
-export type QAPost = {
-    id: string;
-    created_at: string;
-    pregunta: string;
-    user_id: string;
-    usuarios: {
-        name: string | null;
-        last_name: string | null;
-        avatar_url?: string;
-    } | null;
-    respuestas_profesionales: QAReply[];
-}
-
-export type ProfessionalPost = {
-    id: number;
-    author: string;
-    specialty: string;
-    avatar: string;
-    aiHint: string;
-    timestamp: Date;
-    title: string;
-    content: string;
+export type AnnouncementPost = {
+  id: string;
+  fecha: string;
+  user_id: string;
+  mensaje: string;
+  img_url: string | null;
+  usuarios: Author;
 }
 
 export type ClaseEnVivo = {
