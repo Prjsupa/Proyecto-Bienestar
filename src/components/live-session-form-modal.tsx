@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,6 @@ const formSchema = z.object({
   descripcion: z.string().optional(),
   fecha_hora: z.string().min(1, 'La fecha y hora son requeridas.'),
   link: z.string().url('Debe ser un enlace válido.').optional().nullable(),
-  disponible_hasta: z.string().min(1, 'La fecha de disponibilidad es requerida.'),
   miniatura: z.any().optional(),
 });
 
@@ -49,23 +48,30 @@ export function LiveSessionFormModal({ isOpen, onClose, onSuccess, session, user
       descripcion: '',
       fecha_hora: '',
       link: '',
-      disponible_hasta: '',
       miniatura: null,
     },
   });
 
   const formatDateForInput = (date: Date) => {
-    return format(date, "yyyy-MM-dd'T'HH:mm");
+    // We need to format the date to 'YYYY-MM-DDTHH:mm' which is what the datetime-local input expects.
+    // However, it expects it in the user's local timezone, not UTC.
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
   
   useEffect(() => {
     if (session) {
+      // When editing, we receive a UTC string. Convert it to a local Date object.
+      const localDate = new Date(session.fecha_hora);
       form.reset({
         titulo: session.titulo,
         descripcion: session.descripcion || '',
-        fecha_hora: formatDateForInput(new Date(session.fecha_hora)),
+        fecha_hora: formatDateForInput(localDate),
         link: session.link,
-        disponible_hasta: formatDateForInput(new Date(session.disponible_hasta)),
         miniatura: null,
       });
       setImagePreview(session.miniatura);
@@ -75,7 +81,6 @@ export function LiveSessionFormModal({ isOpen, onClose, onSuccess, session, user
         descripcion: '',
         fecha_hora: '',
         link: '',
-        disponible_hasta: '',
         miniatura: null,
       });
       setImagePreview(null);
@@ -118,13 +123,16 @@ export function LiveSessionFormModal({ isOpen, onClose, onSuccess, session, user
           imageUrl = null;
       }
       
+      const sessionDate = new Date(values.fecha_hora);
+      const availableUntilDate = addDays(sessionDate, 7);
+
       const sessionData = {
         user_id: userId,
         titulo: values.titulo,
         descripcion: values.descripcion,
-        fecha_hora: new Date(values.fecha_hora).toISOString(),
+        fecha_hora: sessionDate.toISOString(),
         link: values.link,
-        disponible_hasta: new Date(values.disponible_hasta).toISOString(),
+        disponible_hasta: availableUntilDate.toISOString(),
         miniatura: imageUrl,
       };
       
@@ -234,30 +242,17 @@ export function LiveSessionFormModal({ isOpen, onClose, onSuccess, session, user
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <FormField
-                    control={form.control}
-                    name="fecha_hora"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Fecha y Hora del Evento</FormLabel>
-                        <FormControl><Input type="datetime-local" {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="disponible_hasta"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Repetición Disponible Hasta</FormLabel>
-                        <FormControl><Input type="datetime-local" {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-              </div>
+              <FormField
+                  control={form.control}
+                  name="fecha_hora"
+                  render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Fecha y Hora del Evento</FormLabel>
+                      <FormControl><Input type="datetime-local" {...field} /></FormControl>
+                      <FormMessage />
+                  </FormItem>
+                  )}
+              />
               <DialogFooter>
                   <DialogClose asChild>
                       <Button type="button" variant="secondary">Cancelar</Button>
