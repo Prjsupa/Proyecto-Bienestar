@@ -160,7 +160,9 @@ export function RoutineFormModal({ isOpen, onClose, onSuccess, routine, userId, 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Equipo Necesario</FormLabel>
-                    <FormControl><Input placeholder="Ej. Mancuernas, banca, etc." {...field} /></FormControl>
+                    <FormControl>
+                      <Textarea placeholder="Lista de equipo necesario, uno por línea..." {...field} rows={3} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
