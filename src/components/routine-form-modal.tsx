@@ -85,10 +85,11 @@ export function RoutineFormModal({ isOpen, onClose, onSuccess, routine, userId, 
       };
 
       const isBeingMadeVisible = routine && !routine.visible && values.visible;
+      
       if (!routine || isBeingMadeVisible) {
         const now = new Date();
-        const firstDay = startOfDay(startOfMonth(now));
-        routineData.fecha = firstDay.toISOString();
+        const firstDayOfMonth = startOfDay(startOfMonth(now));
+        routineData.fecha = firstDayOfMonth.toISOString();
       }
       
       let error;
