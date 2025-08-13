@@ -26,6 +26,15 @@ export type CommunityPost = {
   comunidad_respuestas: Reply[];
 };
 
+export type ProfessionalReply = {
+    id: string;
+    post_id: string;
+    user_id: string;
+    mensaje: string;
+    fecha: string;
+    usuarios: Author | null;
+}
+
 export type ProfessionalQuestion = {
     id: string;
     fecha: string;
@@ -33,6 +42,7 @@ export type ProfessionalQuestion = {
     mensaje: string;
     img_url: string | null;
     usuarios: Author | null;
+    respuesta_profesional: ProfessionalReply[];
 }
 
 export type QAReply = {
@@ -89,3 +99,5 @@ export type Cita = {
     fecha_agendada: string;
     estado: 'pendiente' | 'confirmada' | 'cancelada';
 }
+
+    

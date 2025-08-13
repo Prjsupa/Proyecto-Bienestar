@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Annoyed, MessageSquare, Paperclip, X, Image as ImageIcon } from "lucide-react";
+import { Annoyed, MessageSquare, Paperclip, X, Image as ImageIcon, Check } from "lucide-react";
 import Image from "next/image";
 
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +19,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
-import type { ProfessionalQuestion } from "@/types/community";
+import type { ProfessionalQuestion, ProfessionalReply } from "@/types/community";
+import { Badge } from "../ui/badge";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -28,12 +29,18 @@ const questionSchema = z.object({
   file: z.any().optional(),
 });
 
+const replySchema = z.object({
+  mensaje: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
+});
+
 export function QATab() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<number | null>(null);
   const [questions, setQuestions] = useState<ProfessionalQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -45,9 +52,14 @@ export function QATab() {
       .from('pregunta_profesional')
       .select(`
         *,
-        usuarios ( name, last_name, rol, titulo )
+        usuarios ( name, last_name, rol, titulo ),
+        respuesta_profesional (
+            *,
+            usuarios ( name, last_name, rol, titulo )
+        )
       `)
-      .order('fecha', { ascending: false });
+      .order('fecha', { ascending: false })
+      .order('fecha', { referencedTable: 'respuesta_profesional', ascending: true });
 
     if (error) {
       console.error("Error fetching Q&A posts:", error);
@@ -62,14 +74,31 @@ export function QATab() {
     const fetchUserAndData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
+
+      if (user) {
+        const { data: profile, error } = await supabase
+            .from('usuarios')
+            .select('rol')
+            .eq('id', user.id)
+            .single();
+        if (profile) {
+            setUserRole(profile.rol);
+        }
+      }
+
       await fetchQuestions();
       setIsClient(true);
     };
     fetchUserAndData();
   }, [fetchQuestions, supabase]);
 
-  const form = useForm<z.infer<typeof questionSchema>>({
+  const questionForm = useForm<z.infer<typeof questionSchema>>({
     resolver: zodResolver(questionSchema),
+    defaultValues: { mensaje: "" },
+  });
+
+  const replyForm = useForm<z.infer<typeof replySchema>>({
+    resolver: zodResolver(replySchema),
     defaultValues: { mensaje: "" },
   });
 
@@ -118,10 +147,31 @@ export function QATab() {
       toast({ variant: "destructive", title: "Error al enviar", description: error.message });
     } else {
       toast({ title: "Pregunta enviada", description: "Tu pregunta ha sido publicada." });
-      form.reset();
+      questionForm.reset();
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       await fetchQuestions();
+    }
+  }
+
+  async function onReplySubmit(values: z.infer<typeof replySchema>, postId: string) {
+    if (!currentUser) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Debes iniciar sesión para responder.' });
+      return;
+    }
+
+    const { error } = await supabase.from('respuesta_profesional').insert({
+      post_id: postId,
+      user_id: currentUser.id,
+      mensaje: values.mensaje,
+    });
+
+    if (error) {
+      toast({ variant: 'destructive', title: 'Error al responder', description: error.message });
+    } else {
+      await fetchQuestions();
+      replyForm.reset();
+      setReplyingTo(null);
     }
   }
 
@@ -151,6 +201,8 @@ export function QATab() {
     return "U";
   };
 
+  const isProfessional = userRole === 1;
+
   return (
     <>
       <Card className="mb-8">
@@ -159,10 +211,10 @@ export function QATab() {
           <p className="text-sm text-muted-foreground">¿Tienes dudas sobre nutrición, entrenamientos o bienestar? Nuestros profesionales están aquí para ayudarte.</p>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onQuestionSubmit)} className="space-y-4">
+          <Form {...questionForm}>
+            <form onSubmit={questionForm.handleSubmit(onQuestionSubmit)} className="space-y-4">
               <FormField
-                control={form.control}
+                control={questionForm.control}
                 name="mensaje"
                 render={({ field }) => (
                   <FormItem>
@@ -200,7 +252,7 @@ export function QATab() {
               )}
               <div className="flex justify-between items-center">
                 <FormField
-                  control={form.control}
+                  control={questionForm.control}
                   name="file"
                   render={() => (
                     <FormItem>
@@ -221,8 +273,8 @@ export function QATab() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={form.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  {form.formState.isSubmitting ? 'Enviando...' : 'Enviar Pregunta'}
+                <Button type="submit" disabled={questionForm.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                  {questionForm.formState.isSubmitting ? 'Enviando...' : 'Enviar Pregunta'}
                 </Button>
               </div>
             </form>
@@ -279,11 +331,79 @@ export function QATab() {
                     )}
                 </CardContent>
                 <CardFooter className="flex-col items-start gap-4">
-                    <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
-                        <MessageSquare className="w-4 h-4" />
-                        <span>0</span>
-                        <span>Responder</span>
-                    </button>
+                    {isProfessional && (
+                      <div className="w-full">
+                        <button onClick={() => setReplyingTo(replyingTo === question.id ? null : question.id)} className="flex items-center gap-2 text-sm hover:text-primary">
+                          <MessageSquare className="w-4 h-4" />
+                          <span>{question.respuesta_profesional?.length || 0}</span>
+                          <span>Responder</span>
+                        </button>
+                        {replyingTo === question.id && (
+                          <Form {...replyForm}>
+                            <form onSubmit={replyForm.handleSubmit((values) => onReplySubmit(values, question.id))} className="w-full flex items-start gap-4 pt-4 mt-4 border-t">
+                              <Avatar className="h-9 w-9 mt-1">
+                                <AvatarFallback>{getInitials(currentUser?.user_metadata?.name, currentUser?.user_metadata?.last_name)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 space-y-2">
+                                <FormField
+                                  control={replyForm.control}
+                                  name="mensaje"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormControl>
+                                        <Textarea placeholder="Escribe tu respuesta como profesional..." className="resize-none" rows={2} {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <Button type="submit" size="sm" disabled={replyForm.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                                  {replyForm.formState.isSubmitting ? 'Enviando...' : 'Enviar Respuesta'}
+                                </Button>
+                              </div>
+                            </form>
+                          </Form>
+                        )}
+                      </div>
+                    )}
+                    {question.respuesta_profesional && question.respuesta_profesional.length > 0 && (
+                      <div className="w-full space-y-4 pt-4 border-t">
+                        <h4 className="text-sm font-semibold">Respuestas de Profesionales</h4>
+                        {question.respuesta_profesional.map((reply: ProfessionalReply) => {
+                          const replyAuthor = reply.usuarios;
+                          const replyAuthorName = replyAuthor ? `${replyAuthor.name || ''} ${replyAuthor.last_name || ''}`.trim() : "Profesional";
+                          const replyAuthorInitials = getInitials(replyAuthor?.name, replyAuthor?.last_name);
+
+                          return (
+                            <div key={reply.id} className="flex items-start gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback>{replyAuthorInitials}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 bg-secondary p-3 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-semibold text-sm">{replyAuthorName}</p>
+                                      <Badge variant="outline" className="border-primary/50 text-primary h-5 text-xs">
+                                        <Check className="w-3 h-3 mr-1" />
+                                        Profesional
+                                      </Badge>
+                                    </div>
+                                    {replyAuthor?.titulo && <p className="text-xs text-primary">{replyAuthor.titulo}</p>}
+                                  </div>
+                                  {isClient && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {formatDistanceToNow(new Date(reply.fecha), { addSuffix: true, locale: es })}
+                                    </p>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                 </CardFooter>
               </Card>
             )
@@ -292,3 +412,5 @@ export function QATab() {
     </>
   )
 }
+
+    
