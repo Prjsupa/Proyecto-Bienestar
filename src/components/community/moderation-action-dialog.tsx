@@ -58,7 +58,7 @@ export function ModerationActionDialog({
           moderador_id: moderatorId,
           user_id: targetUserId,
           accion: actionType,
-          seccion,
+          seccion: section,
           razon: values.reason,
           contenido_id: contentId,
         });
