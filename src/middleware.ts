@@ -14,6 +14,10 @@ const PROTECTED_ROUTES = [
   "/moderation",
 ];
 
+const MODERATOR_RESTRICTED_ROUTES = [
+    "/schedule",
+];
+
 export async function middleware(request: NextRequest) {
   const { supabase, response } = await updateSession(request);
 
@@ -29,9 +33,25 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  if (user) {
+    if (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register") {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+    
+    // Check moderator restrictions
+    const { data: profile } = await supabase.from('usuarios').select('rol').eq('id', user.id).single();
+    const userRole = profile?.rol;
+
+    if (userRole === 2) {
+        const isRestrictedForModerator = MODERATOR_RESTRICTED_ROUTES.some((path) => 
+            request.nextUrl.pathname.startsWith(path)
+        );
+        if (isRestrictedForModerator) {
+            return NextResponse.redirect(new URL("/dashboard", request.url));
+        }
+    }
   }
+
 
   return response;
 }
@@ -48,5 +68,3 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
-
-    

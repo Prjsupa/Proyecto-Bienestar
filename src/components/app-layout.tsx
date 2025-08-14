@@ -15,7 +15,7 @@ import {
   ChevronDown,
   Shield,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import {
@@ -51,7 +51,7 @@ import { Skeleton } from "./ui/skeleton";
 import { cn } from "@/lib/utils";
 
 
-const navItems = [
+const allNavItems = [
   { href: "/dashboard", icon: Home, label: "Panel" },
   { href: "/recipes", icon: UtensilsCrossed, label: "Recetas" },
   {
@@ -66,7 +66,7 @@ const navItems = [
   { href: "/live", icon: Video, label: "En Vivo" },
   { href: "/community", icon: Users, label: "Comunidad" },
   { href: "/technique-clinic", icon: Dumbbell, label: "Técnica" },
-  { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita" },
+  { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita", roles: [0, 1] },
 ];
 
 const moderatorNavItems = [
@@ -114,6 +114,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, [supabase, supabase.auth]);
   
+  const navItems = useMemo(() => {
+    if (userRole === null) return [];
+    return allNavItems.filter(item => {
+        if (!item.roles) return true; // Visible para todos si no se especifican roles
+        return item.roles.includes(userRole);
+    });
+  }, [userRole]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.refresh();
