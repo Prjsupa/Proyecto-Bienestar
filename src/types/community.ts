@@ -89,3 +89,14 @@ export type ModerationAction = {
     fecha: string;
     contenido_id: string;
 };
+
+export type ModerationActionWithNames = ModerationAction & {
+    moderador: {
+        name: string | null;
+        last_name: string | null;
+    } | null;
+    usuario_afectado: {
+        name: string | null;
+        last_name: string | null;
+    } | null;
+};

@@ -11,6 +11,7 @@ const PROTECTED_ROUTES = [
   "/technique-clinic",
   "/schedule",
   "/routines",
+  "/moderation",
 ];
 
 export async function middleware(request: NextRequest) {

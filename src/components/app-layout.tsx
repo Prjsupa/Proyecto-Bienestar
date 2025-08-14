@@ -13,6 +13,7 @@ import {
   Video,
   CalendarPlus,
   ChevronDown,
+  Shield,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -68,10 +69,15 @@ const navItems = [
   { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita" },
 ];
 
+const moderatorNavItems = [
+    { href: "/moderation/history", icon: Shield, label: "Historial de Moderación"}
+]
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -79,6 +85,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+       if (user) {
+        const { data: profile } = await supabase.from('usuarios').select('rol').eq('id', user.id).single();
+        if (profile) setUserRole(profile.rol);
+      }
       setLoading(false);
     };
 
@@ -90,13 +100,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       if (!session?.user) {
         setLoading(false);
+      } else {
+         const fetchRole = async () => {
+            const { data: profile } = await supabase.from('usuarios').select('rol').eq('id', session!.user.id).single();
+            if (profile) setUserRole(profile.rol);
+        }
+        fetchRole();
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase.auth]);
+  }, [supabase, supabase.auth]);
   
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -176,6 +192,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             )
           )}
         </SidebarMenu>
+         {userRole === 2 && (
+            <SidebarMenu className="mt-auto pt-4 border-t">
+                <p className="px-4 text-xs font-semibold text-muted-foreground/80 tracking-wider uppercase mb-2 group-data-[collapsible=icon]:hidden">
+                    Moderación
+                </p>
+                {moderatorNavItems.map(item => (
+                    <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                            asChild
+                            isActive={pathname === item.href}
+                            tooltip={item.label}
+                        >
+                        <Link href={item.href} className="flex items-center gap-2">
+                            <item.icon />
+                            <span>{item.label}</span>
+                        </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+        )}
       </SidebarContent>
       <SidebarFooter>
          {loading ? (
