@@ -14,7 +14,7 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
-import { Users, UtensilsCrossed, ArrowRight, Dumbbell, Calendar, Video, PlusCircle, Activity } from "lucide-react";
+import { Users, UtensilsCrossed, ArrowRight, Dumbbell, Calendar, Video, PlusCircle, Activity, Shield } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -137,7 +137,6 @@ function ProfessionalDashboard({ greeting, stats }: { greeting: string, stats: a
         { href: "/live", icon: Video, label: "Gestionar Clases en Vivo" },
         { href: "/schedule", icon: Calendar, label: "Revisar Citas" },
         { href: "/technique-clinic", icon: Activity, label: "Clínica de Técnica" },
-        { href: "/community", icon: Users, label: "Moderar Comunidad" }
     ];
 
     return (
@@ -147,7 +146,7 @@ function ProfessionalDashboard({ greeting, stats }: { greeting: string, stats: a
                 <p className="text-muted-foreground">Bienvenido al centro de control de VitaNova.</p>
             </div>
             
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Recetas Totales</CardTitle>
@@ -175,6 +174,42 @@ function ProfessionalDashboard({ greeting, stats }: { greeting: string, stats: a
                         {stats.loading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{stats.appointments}</div>}
                     </CardContent>
                 </Card>
+            </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Acciones Rápidas</CardTitle>
+                    <CardDescription>Crea y gestiona el contenido de la plataforma desde aquí.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {quickActions.map(action => (
+                        <Button key={action.href} asChild variant="outline" className="justify-start h-12 text-base">
+                            <Link href={action.href}>
+                                <action.icon className="w-5 h-5 mr-3" />
+                                {action.label}
+                            </Link>
+                        </Button>
+                    ))}
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
+function ModeratorDashboard({ greeting, stats }: { greeting: string, stats: any }) {
+    const quickActions = [
+        { href: "/community", icon: Users, label: "Moderar Comunidad" },
+        { href: "/moderation/history", icon: Shield, label: "Ver Historial de Moderación" }
+    ];
+
+    return (
+        <div className="flex flex-col gap-8">
+            <div>
+                <h1 className="text-3xl font-bold font-headline">{greeting}</h1>
+                <p className="text-muted-foreground">Bienvenido al panel de moderación.</p>
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Usuarios Activos</CardTitle>
@@ -185,12 +220,22 @@ function ProfessionalDashboard({ greeting, stats }: { greeting: string, stats: a
                         <p className="text-xs text-muted-foreground">En el último mes</p>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Acciones Hoy</CardTitle>
+                        <Shield className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                         {stats.loading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{stats.moderation_actions}</div>}
+                         <p className="text-xs text-muted-foreground">Acciones de moderación</p>
+                    </CardContent>
+                </Card>
             </div>
 
             <Card>
                 <CardHeader>
                     <CardTitle>Acciones Rápidas</CardTitle>
-                    <CardDescription>Crea y gestiona el contenido de la plataforma desde aquí.</CardDescription>
+                    <CardDescription>Accede a las herramientas de moderación.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {quickActions.map(action => (
@@ -219,8 +264,15 @@ export default function DashboardPage() {
   const [dailyRoutine, setDailyRoutine] = useState<Routine | null>(null);
   const [routineLoading, setRoutineLoading] = useState(true);
   
-  // State for Professional Dashboard
-  const [stats, setStats] = useState({ recipes: 0, routines: 0, appointments: 0, users: 0, loading: true });
+  // State for Professional & Moderator Dashboards
+  const [stats, setStats] = useState({ 
+      recipes: 0, 
+      routines: 0, 
+      appointments: 0, 
+      users: 0, 
+      moderation_actions: 0, 
+      loading: true 
+  });
 
   const supabase = createClient();
 
@@ -245,22 +297,31 @@ export default function DashboardPage() {
         else if (hours < 18) setGreeting(`¡Buenas tardes, ${fullName}!`);
         else setGreeting(`¡Buenas noches, ${fullName}!`);
 
-        if (role === 1) {
-            // Fetch data for Professional Dashboard
+        if (role === 1) { // Professional
             setStats(prev => ({ ...prev, loading: true }));
             const { count: recipesCount } = await supabase.from('recetas').select('*', { count: 'exact', head: true });
             const { count: routinesCount } = await supabase.from('rutinas').select('*', { count: 'exact', head: true });
             const { count: appointmentsCount } = await supabase.from('cita').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente');
-            const { count: usersCount } = await supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('rol', 0);
-            setStats({
+            setStats(prev => ({
+                ...prev,
                 recipes: recipesCount ?? 0,
                 routines: routinesCount ?? 0,
                 appointments: appointmentsCount ?? 0,
-                users: usersCount ?? 0, // Mocked data
                 loading: false
-            });
-        } else {
-            // Fetch data for User Dashboard
+            }));
+        } else if (role === 2) { // Moderator
+            setStats(prev => ({ ...prev, loading: true }));
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const { count: usersCount } = await supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('rol', 0);
+            const { count: modActionsCount } = await supabase.from('accion_moderador').select('*', { count: 'exact', head: true }).gte('fecha', today.toISOString());
+             setStats(prev => ({
+                ...prev,
+                users: usersCount ?? 0,
+                moderation_actions: modActionsCount ?? 0,
+                loading: false
+            }));
+        } else { // Regular User
             setRecipeLoading(true);
             setRoutineLoading(true);
             const { data: recipeData } = await supabase.from('recetas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
@@ -299,21 +360,29 @@ export default function DashboardPage() {
       </AppLayout>
     );
   }
-
-  return (
-    <AppLayout>
-        {userRole === 1 ? (
-            <ProfessionalDashboard greeting={greeting} stats={stats} />
-        ) : (
-            <UserDashboard 
+  
+  const renderDashboard = () => {
+    switch (userRole) {
+        case 1:
+            return <ProfessionalDashboard greeting={greeting} stats={stats} />;
+        case 2:
+            return <ModeratorDashboard greeting={greeting} stats={stats} />;
+        default:
+            return <UserDashboard 
                 user={user}
                 greeting={greeting} 
                 dailyRecipe={dailyRecipe}
                 recipeLoading={recipeLoading}
                 dailyRoutine={dailyRoutine}
                 routineLoading={routineLoading}
-            />
-        )}
+            />;
+    }
+  }
+
+  return (
+    <AppLayout>
+        {renderDashboard()}
     </AppLayout>
   );
 }
+
