@@ -674,7 +674,6 @@ export default function TechniqueClinicPage() {
                 targetUserId={moderationInfo.targetUserId}
                 actionType={moderationInfo.actionType}
                 section={moderationInfo.section}
-                contentId={moderationInfo.contentId}
             />
         )}
       </div>

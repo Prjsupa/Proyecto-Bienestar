@@ -22,7 +22,6 @@ interface ModerationActionDialogProps {
   targetUserId: string;
   actionType: string;
   section: string;
-  contentId: string;
 }
 
 const formSchema = z.object({
@@ -37,7 +36,6 @@ export function ModerationActionDialog({
   targetUserId,
   actionType,
   section,
-  contentId,
 }: ModerationActionDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -51,11 +49,7 @@ export function ModerationActionDialog({
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      // 1. Execute the actual deletion callback FIRST.
-      // This is the onConfirm function passed from the parent component.
-      onConfirm();
-      
-      // 2. Log the moderation action AFTER the content is deleted.
+      // 1. Log the moderation action FIRST.
       const { error: logError } = await supabase
         .from('accion_moderador')
         .insert({
@@ -64,21 +58,22 @@ export function ModerationActionDialog({
           accion: actionType,
           seccion: section,
           razon: values.reason,
-          contenido_id: contentId,
         });
 
       if (logError) {
-        // Even if logging fails, the content is already deleted.
-        // We should notify the moderator about the logging failure.
+        // If logging fails, abort the entire operation.
         console.error("Error logging moderation action:", logError);
         toast({
           variant: "destructive",
-          title: "Contenido Eliminado, pero falló el registro",
-          description: "La acción de moderación se completó, pero no pudo ser registrada en el historial. Error: " + logError.message,
+          title: "Error al registrar la acción",
+          description: "No se pudo registrar la acción de moderación. El contenido no ha sido eliminado. Error: " + logError.message,
         });
-        onClose();
+        setIsSubmitting(false); // Make sure to re-enable the button
         return;
       }
+      
+      // 2. Execute the actual deletion callback only if logging was successful.
+      onConfirm();
       
       toast({
         title: "Acción completada",

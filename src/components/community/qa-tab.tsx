@@ -699,7 +699,6 @@ export function QATab() {
                 targetUserId={moderationInfo.targetUserId}
                 actionType={moderationInfo.actionType}
                 section={moderationInfo.section}
-                contentId={moderationInfo.contentId}
             />
         )}
     </>
