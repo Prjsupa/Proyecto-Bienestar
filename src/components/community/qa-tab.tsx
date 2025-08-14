@@ -22,8 +22,8 @@ import { createClient } from "@/utils/supabase/client";
 import type { ProfessionalQuestion, ProfessionalReply } from "@/types/community";
 import { Badge } from "../ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { ModerationActionDialog } from "./moderation-action-dialog";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -44,6 +44,15 @@ const editReplySchema = z.object({
     mensaje: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
 });
 
+type ModerationInfo = {
+    contentId: string;
+    targetUserId: string;
+    actionType: 'Eliminar Pregunta' | 'Eliminar Respuesta Profesional';
+    section: 'Comunidad - Preguntas';
+    onConfirm: () => void;
+};
+
+
 export function QATab() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<number | null>(null);
@@ -54,6 +63,7 @@ export function QATab() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<ProfessionalQuestion | null>(null);
   const [editingReply, setEditingReply] = useState<ProfessionalReply | null>(null);
+  const [moderationInfo, setModerationInfo] = useState<ModerationInfo | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -89,7 +99,7 @@ export function QATab() {
       setCurrentUser(user);
 
       if (user) {
-        const { data: profile, error } = await supabase
+        const { data: profile } = await supabase
             .from('usuarios')
             .select('rol')
             .eq('id', user.id)
@@ -425,28 +435,26 @@ export function QATab() {
                                     </DropdownMenuItem>
                                 )}
                                 {canDeleteQuestion && (
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                <span>Eliminar</span>
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente tu pregunta y sus respuestas.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDeleteQuestion(question.id)}>
-                                                    Continuar
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
+                                    <DropdownMenuItem 
+                                        onSelect={(e) => {
+                                            e.preventDefault();
+                                            if (isAuthor) {
+                                                handleDeleteQuestion(question.id);
+                                            } else {
+                                                setModerationInfo({
+                                                    contentId: question.id,
+                                                    targetUserId: question.user_id,
+                                                    actionType: 'Eliminar Pregunta',
+                                                    section: 'Comunidad - Preguntas',
+                                                    onConfirm: () => handleDeleteQuestion(question.id)
+                                                });
+                                            }
+                                        }} 
+                                        className="text-destructive"
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>Eliminar</span>
+                                    </DropdownMenuItem>
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -561,28 +569,26 @@ export function QATab() {
                                             </DropdownMenuItem>
                                         )}
                                         {canDeleteReply && (
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                        <Trash2 className="mr-2 h-4 w-4" />
-                                                        <span>Eliminar</span>
-                                                    </DropdownMenuItem>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Esta acción no se puede deshacer. Esto eliminará permanentemente tu respuesta.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDeleteReply(reply.id)}>
-                                                            Continuar
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
+                                            <DropdownMenuItem
+                                                onSelect={(e) => {
+                                                    e.preventDefault();
+                                                    if (isReplyAuthor) {
+                                                        handleDeleteReply(reply.id);
+                                                    } else {
+                                                        setModerationInfo({
+                                                            contentId: reply.id,
+                                                            targetUserId: reply.user_id,
+                                                            actionType: 'Eliminar Respuesta Profesional',
+                                                            section: 'Comunidad - Preguntas',
+                                                            onConfirm: () => handleDeleteReply(reply.id)
+                                                        });
+                                                    }
+                                                }}
+                                                className="text-destructive"
+                                            >
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                <span>Eliminar</span>
+                                            </DropdownMenuItem>
                                         )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -657,8 +663,18 @@ export function QATab() {
             </Form>
         </DialogContent>
       </Dialog>
+      {moderationInfo && currentUser && (
+            <ModerationActionDialog
+                isOpen={!!moderationInfo}
+                onClose={() => setModerationInfo(null)}
+                onConfirm={moderationInfo.onConfirm}
+                moderatorId={currentUser.id}
+                targetUserId={moderationInfo.targetUserId}
+                actionType={moderationInfo.actionType}
+                section={moderationInfo.section}
+                contentId={moderationInfo.contentId}
+            />
+        )}
     </>
   )
 }
-
-    

@@ -20,10 +20,10 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { createClient } from "@/utils/supabase/client";
 import type { TechniquePost, TechniqueReply } from "@/types/fitness";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { ModerationActionDialog } from "@/components/community/moderation-action-dialog";
 
 const postSchema = z.object({
   nota: z.string().optional(),
@@ -42,6 +42,14 @@ const editReplySchema = z.object({
   mensaje: z.string().min(1, "La respuesta no puede estar vacía.").max(1000),
 });
 
+type ModerationInfo = {
+    contentId: string;
+    targetUserId: string;
+    actionType: 'Eliminar Video de Técnica' | 'Eliminar Respuesta de Técnica';
+    section: 'Clínica de Técnica';
+    onConfirm: () => void;
+};
+
 
 export default function TechniqueClinicPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -53,6 +61,7 @@ export default function TechniqueClinicPage() {
   const [editingPost, setEditingPost] = useState<TechniquePost | null>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingReply, setEditingReply] = useState<TechniqueReply | null>(null);
+  const [moderationInfo, setModerationInfo] = useState<ModerationInfo | null>(null);
   
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -401,28 +410,26 @@ export default function TechniqueClinicPage() {
                                         </DropdownMenuItem>
                                     )}
                                     {canDeletePost && (
-                                        <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                        <DropdownMenuItem 
+                                            onSelect={(e) => {
+                                                e.preventDefault();
+                                                if (isAuthor) {
+                                                    handleDeletePost(post.id);
+                                                } else {
+                                                    setModerationInfo({
+                                                        contentId: post.id,
+                                                        targetUserId: post.user_id,
+                                                        actionType: 'Eliminar Video de Técnica',
+                                                        section: 'Clínica de Técnica',
+                                                        onConfirm: () => handleDeletePost(post.id)
+                                                    });
+                                                }
+                                            }} 
+                                            className="text-destructive"
+                                        >
                                             <Trash2 className="mr-2 h-4 w-4" />
                                             <span>Eliminar</span>
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Esto eliminará permanentemente tu publicación.
-                                            </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDeletePost(post.id)}>
-                                                Continuar
-                                            </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                        </AlertDialog>
+                                        </DropdownMenuItem>
                                     )}
                                   </DropdownMenuContent>
                                 </DropdownMenu>
@@ -529,23 +536,25 @@ export default function TechniqueClinicPage() {
                                                                     </DropdownMenuItem>
                                                                 )}
                                                                 {canDeleteReply && (
-                                                                    <AlertDialog>
-                                                                        <AlertDialogTrigger asChild>
-                                                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                                                <Trash2 className="mr-2 h-4 w-4" /><span>Eliminar</span>
-                                                                            </DropdownMenuItem>
-                                                                        </AlertDialogTrigger>
-                                                                        <AlertDialogContent>
-                                                                            <AlertDialogHeader>
-                                                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                                                                <AlertDialogDescription>Esta acción no se puede deshacer. Esto eliminará permanentemente tu respuesta.</AlertDialogDescription>
-                                                                            </AlertDialogHeader>
-                                                                            <AlertDialogFooter>
-                                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                                <AlertDialogAction onClick={() => handleDeleteReply(reply.id)}>Continuar</AlertDialogAction>
-                                                                            </AlertDialogFooter>
-                                                                        </AlertDialogContent>
-                                                                    </AlertDialog>
+                                                                    <DropdownMenuItem
+                                                                        onSelect={(e) => {
+                                                                            e.preventDefault();
+                                                                            if (isReplyAuthor) {
+                                                                                handleDeleteReply(reply.id);
+                                                                            } else {
+                                                                                setModerationInfo({
+                                                                                    contentId: reply.id,
+                                                                                    targetUserId: reply.user_id,
+                                                                                    actionType: 'Eliminar Respuesta de Técnica',
+                                                                                    section: 'Clínica de Técnica',
+                                                                                    onConfirm: () => handleDeleteReply(reply.id)
+                                                                                });
+                                                                            }
+                                                                        }}
+                                                                        className="text-destructive"
+                                                                    >
+                                                                        <Trash2 className="mr-2 h-4 w-4" /><span>Eliminar</span>
+                                                                    </DropdownMenuItem>
                                                                 )}
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
@@ -633,9 +642,19 @@ export default function TechniqueClinicPage() {
             </DialogContent>
         </Dialog>
 
+        {moderationInfo && currentUser && (
+            <ModerationActionDialog
+                isOpen={!!moderationInfo}
+                onClose={() => setModerationInfo(null)}
+                onConfirm={moderationInfo.onConfirm}
+                moderatorId={currentUser.id}
+                targetUserId={moderationInfo.targetUserId}
+                actionType={moderationInfo.actionType}
+                section={moderationInfo.section}
+                contentId={moderationInfo.contentId}
+            />
+        )}
       </div>
     </AppLayout>
   );
 }
-
-    

@@ -1,5 +1,4 @@
 
-
 export type Author = {
     id: string;
     name: string | null;
@@ -78,4 +77,15 @@ export type AppointmentWithUser = Cita & {
         name: string | null;
         last_name: string | null;
     } | null;
+};
+
+export type ModerationAction = {
+    id: string;
+    moderador_id: string;
+    user_id: string;
+    accion: string;
+    seccion: string;
+    razon: string;
+    fecha: string;
+    contenido_id: string;
 };

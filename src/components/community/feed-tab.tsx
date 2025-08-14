@@ -22,9 +22,9 @@ import { useToast } from "@/hooks/use-toast";
 import type { CommunityPost, Reply } from "@/types/community";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Label } from "../ui/label";
 import { Badge } from "../ui/badge";
+import { ModerationActionDialog } from "./moderation-action-dialog";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -45,6 +45,14 @@ const editReplySchema = z.object({
     content: z.string().min(1, "La respuesta no puede estar vacía.").max(500, "La respuesta no puede exceder los 500 caracteres."),
 });
 
+type ModerationInfo = {
+    contentId: string;
+    targetUserId: string;
+    actionType: 'Eliminar Publicación' | 'Eliminar Respuesta';
+    section: 'Comunidad - Feed';
+    onConfirm: () => void;
+};
+
 export function FeedTab() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<number | null>(null);
@@ -55,6 +63,7 @@ export function FeedTab() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editingPost, setEditingPost] = useState<CommunityPost | null>(null);
   const [editingReply, setEditingReply] = useState<Reply | null>(null);
+  const [moderationInfo, setModerationInfo] = useState<ModerationInfo | null>(null);
 
   const postFileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -70,14 +79,14 @@ export function FeedTab() {
             mensaje,
             img_url,
             fecha,
-            usuarios:user_id ( name, last_name, rol, titulo ),
+            usuarios:user_id ( id, name, last_name, rol, titulo ),
             comunidad_respuestas (
                 id,
                 post_id,
                 user_id,
                 mensaje,
                 fecha,
-                usuarios:user_id ( name, last_name, rol, titulo )
+                usuarios:user_id ( id, name, last_name, rol, titulo )
             )
         `)
         .order('fecha', { ascending: false })
@@ -435,28 +444,26 @@ export function FeedTab() {
                                     </DropdownMenuItem>
                                 )}
                                 {canDeletePost && (
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                <span>Eliminar</span>
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente la publicación.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDeletePost(post.id)}>
-                                                    Continuar
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
+                                    <DropdownMenuItem 
+                                        onSelect={(e) => {
+                                            e.preventDefault();
+                                            if (isPostAuthor) {
+                                                handleDeletePost(post.id);
+                                            } else {
+                                                setModerationInfo({
+                                                    contentId: post.id,
+                                                    targetUserId: post.user_id,
+                                                    actionType: 'Eliminar Publicación',
+                                                    section: 'Comunidad - Feed',
+                                                    onConfirm: () => handleDeletePost(post.id)
+                                                });
+                                            }
+                                        }} 
+                                        className="text-destructive"
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>Eliminar</span>
+                                    </DropdownMenuItem>
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -574,28 +581,26 @@ export function FeedTab() {
                                                         </DropdownMenuItem>
                                                     )}
                                                     {canDeleteReply && (
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                                    <span>Eliminar</span>
-                                                                </DropdownMenuItem>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        Esta acción no se puede deshacer. Esto eliminará permanentemente la respuesta.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleDeleteReply(reply.id)}>
-                                                                        Continuar
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
+                                                        <DropdownMenuItem 
+                                                            onSelect={(e) => {
+                                                                e.preventDefault();
+                                                                if (isReplyAuthor) {
+                                                                    handleDeleteReply(reply.id);
+                                                                } else {
+                                                                    setModerationInfo({
+                                                                        contentId: reply.id,
+                                                                        targetUserId: reply.user_id,
+                                                                        actionType: 'Eliminar Respuesta',
+                                                                        section: 'Comunidad - Feed',
+                                                                        onConfirm: () => handleDeleteReply(reply.id)
+                                                                    });
+                                                                }
+                                                            }} 
+                                                            className="text-destructive"
+                                                        >
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            <span>Eliminar</span>
+                                                        </DropdownMenuItem>
                                                     )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -682,8 +687,19 @@ export function FeedTab() {
                 </Form>
             </DialogContent>
         </Dialog>
+
+        {moderationInfo && currentUser && (
+            <ModerationActionDialog
+                isOpen={!!moderationInfo}
+                onClose={() => setModerationInfo(null)}
+                onConfirm={moderationInfo.onConfirm}
+                moderatorId={currentUser.id}
+                targetUserId={moderationInfo.targetUserId}
+                actionType={moderationInfo.actionType}
+                section={moderationInfo.section}
+                contentId={moderationInfo.contentId}
+            />
+        )}
     </>
   )
 }
-
-    
