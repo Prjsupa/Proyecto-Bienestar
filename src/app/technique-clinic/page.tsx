@@ -204,6 +204,29 @@ export default function TechniqueClinicPage() {
   };
 
   const handleDeletePost = async (postId: string) => {
+    const { data: post, error: fetchError } = await supabase
+        .from('clinica_tecnica')
+        .select('video_url')
+        .eq('id', postId)
+        .single();
+
+    if (fetchError) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo encontrar el video a eliminar.' });
+        return;
+    }
+
+    if (post.video_url) {
+        const videoPath = post.video_url.split('/clinica.tecnica/')[1];
+        const { error: storageError } = await supabase.storage
+            .from('clinica.tecnica')
+            .remove([videoPath]);
+        
+        if (storageError) {
+            toast({ variant: 'destructive', title: 'Error al eliminar video', description: storageError.message });
+            return;
+        }
+    }
+
     const { error } = await supabase
       .from('clinica_tecnica')
       .delete()

@@ -228,13 +228,40 @@ export function QATab() {
   };
 
   const handleDeleteQuestion = async (questionId: string) => {
-    const { error } = await supabase
+    // First, get the post to check for an image URL
+    const { data: question, error: fetchError } = await supabase
+        .from('pregunta_profesional')
+        .select('img_url')
+        .eq('id', questionId)
+        .single();
+
+    if (fetchError) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo encontrar la pregunta a eliminar.' });
+        return;
+    }
+
+    // If there's an image, delete it from storage
+    if (question.img_url) {
+        const imagePath = question.img_url.split('/pregunta.profesional/')[1];
+        const { error: storageError } = await supabase.storage
+            .from('pregunta.profesional')
+            .remove([imagePath]);
+        
+        if (storageError) {
+            toast({ variant: 'destructive', title: 'Error al eliminar imagen', description: storageError.message });
+            // We might want to stop here if the image deletion fails
+            return;
+        }
+    }
+
+    // Then, delete the post itself
+    const { error: deleteError } = await supabase
       .from('pregunta_profesional')
       .delete()
       .eq('id', questionId);
       
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
+    if (deleteError) {
+      toast({ variant: 'destructive', title: 'Error al eliminar', description: deleteError.message });
     } else {
       toast({ title: 'Pregunta eliminada' });
       await fetchQuestions();

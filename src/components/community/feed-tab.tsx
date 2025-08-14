@@ -234,6 +234,29 @@ export function FeedTab() {
   };
 
   const handleDeletePost = async (postId: string) => {
+    const { data: post, error: fetchError } = await supabase
+        .from('comunidad')
+        .select('img_url')
+        .eq('id', postId)
+        .single();
+    
+    if (fetchError) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo encontrar la publicación a eliminar.' });
+        return;
+    }
+
+    if (post.img_url) {
+        const imagePath = post.img_url.split('/publicaciones/')[1];
+        const { error: storageError } = await supabase.storage
+            .from('publicaciones')
+            .remove([imagePath]);
+        
+        if (storageError) {
+            toast({ variant: 'destructive', title: 'Error al eliminar imagen', description: storageError.message });
+            return;
+        }
+    }
+
     const { error } = await supabase
         .from('comunidad')
         .delete()

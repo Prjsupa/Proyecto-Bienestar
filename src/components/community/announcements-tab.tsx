@@ -165,6 +165,29 @@ export function AnnouncementsTab() {
   };
 
   const handleDeletePost = async (postId: string) => {
+    const { data: post, error: fetchError } = await supabase
+        .from('anuncio_profesional')
+        .select('img_url')
+        .eq('id', postId)
+        .single();
+    
+    if (fetchError) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo encontrar el anuncio a eliminar.' });
+        return;
+    }
+
+    if (post.img_url) {
+        const imagePath = post.img_url.split('/anuncio.profesional/')[1];
+        const { error: storageError } = await supabase.storage
+            .from('anuncio.profesional')
+            .remove([imagePath]);
+        
+        if (storageError) {
+            toast({ variant: 'destructive', title: 'Error al eliminar imagen', description: storageError.message });
+            return;
+        }
+    }
+
     const { error } = await supabase
       .from('anuncio_profesional')
       .delete()
