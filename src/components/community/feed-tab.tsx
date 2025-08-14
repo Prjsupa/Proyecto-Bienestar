@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Annoyed, Image as ImageIcon, MessageSquare, Paperclip, X, MoreHorizontal, Trash2, Edit, Check } from "lucide-react";
+import { Annoyed, Image as ImageIcon, MessageSquare, Paperclip, X, MoreHorizontal, Trash2, Edit, Check, Shield } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -397,6 +397,12 @@ export function FeedTab() {
                                 Profesional
                             </Badge>
                         )}
+                        {authorProfile?.rol === 2 && (
+                            <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 h-5 text-xs">
+                                <Shield className="w-3 h-3 mr-1" />
+                                Moderador
+                            </Badge>
+                        )}
                     </div>
                     {authorProfile?.rol === 1 && authorProfile.titulo && (
                         <p className="text-xs text-primary">{authorProfile.titulo}</p>
@@ -520,6 +526,12 @@ export function FeedTab() {
                                                             <Badge variant="outline" className="border-primary/50 text-primary h-5 text-xs">
                                                                 <Check className="w-3 h-3 mr-1" />
                                                                 Profesional
+                                                            </Badge>
+                                                        )}
+                                                        {replyAuthorProfile?.rol === 2 && (
+                                                            <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 h-5 text-xs">
+                                                                <Shield className="w-3 h-3 mr-1" />
+                                                                Moderador
                                                             </Badge>
                                                         )}
                                                     </div>

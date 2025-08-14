@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Annoyed, Image as ImageIcon, Paperclip, X, MoreHorizontal, Trash2, Edit, Megaphone, Send, Check } from "lucide-react";
+import { Annoyed, Image as ImageIcon, Paperclip, X, MoreHorizontal, Trash2, Edit, Megaphone, Send, Check, Shield } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -304,10 +304,18 @@ export function AnnouncementsTab() {
                         <div className="flex-1">
                             <div className="flex items-center gap-2">
                                 <p className="font-semibold">{authorName}</p>
+                                {author?.rol === 1 && (
                                 <Badge variant="outline" className="border-primary/50 text-primary h-5 text-xs">
                                     <Check className="w-3 h-3 mr-1" />
                                     Profesional
                                 </Badge>
+                                )}
+                                {author?.rol === 2 && (
+                                <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 h-5 text-xs">
+                                    <Shield className="w-3 h-3 mr-1" />
+                                    Moderador
+                                </Badge>
+                                )}
                             </div>
                             {author.titulo && <p className="text-xs text-primary">{author.titulo}</p>}
                             {isClient && (

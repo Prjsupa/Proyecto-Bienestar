@@ -12,7 +12,7 @@ import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, Dumbbell, Send, Annoyed, Video, MoreHorizontal, Edit, Trash2, MessageSquare, Check } from "lucide-react";
+import { Upload, Dumbbell, Send, Annoyed, Video, MoreHorizontal, Edit, Trash2, MessageSquare, Check, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -490,6 +490,12 @@ export default function TechniqueClinicPage() {
                                                                             Profesional
                                                                         </Badge>
                                                                     )}
+                                                                    {replyAuthor?.rol === 2 && (
+                                                                        <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 h-5 text-xs">
+                                                                            <Shield className="w-3 h-3 mr-1" />
+                                                                            Moderador
+                                                                        </Badge>
+                                                                    )}
                                                                 </div>
                                                                 {replyAuthor?.rol === 1 && replyAuthor.titulo && <p className="text-xs text-primary">{replyAuthor.titulo}</p>}
                                                             </div>
@@ -619,5 +625,3 @@ export default function TechniqueClinicPage() {
     </AppLayout>
   );
 }
-
-    

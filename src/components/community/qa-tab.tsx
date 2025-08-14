@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Annoyed, MessageSquare, Paperclip, X, Image as ImageIcon, Check, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { Annoyed, MessageSquare, Paperclip, X, Image as ImageIcon, Check, MoreHorizontal, Edit, Trash2, Shield } from "lucide-react";
 import Image from "next/image";
 
 import { useToast } from "@/hooks/use-toast";
@@ -522,6 +522,12 @@ export function QATab() {
                                             Profesional
                                         </Badge>
                                       )}
+                                      {replyAuthor?.rol === 2 && (
+                                        <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 h-5 text-xs">
+                                            <Shield className="w-3 h-3 mr-1" />
+                                            Moderador
+                                        </Badge>
+                                      )}
                                     </div>
                                     {replyAuthor?.rol === 1 && replyAuthor.titulo && <p className="text-xs text-primary">{replyAuthor.titulo}</p>}
                                   </div>
@@ -643,5 +649,3 @@ export function QATab() {
     </>
   )
 }
-
-    
