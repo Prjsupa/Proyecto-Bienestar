@@ -47,6 +47,7 @@ const editReplySchema = z.object({
 
 export function FeedTab() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<number | null>(null);
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [isClient, setIsClient] = useState(false);
@@ -93,13 +94,17 @@ export function FeedTab() {
   }, [supabase, toast]);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndData = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
+        if (user) {
+          const { data: profile } = await supabase.from('usuarios').select('rol').eq('id', user.id).single();
+          if (profile) setUserRole(profile.rol);
+        }
+        await fetchPosts();
+        setIsClient(true);
     }
-    fetchUser();
-    fetchPosts();
-    setIsClient(true);
+    fetchUserAndData();
   }, [fetchPosts, supabase]);
 
   const postForm = useForm<z.infer<typeof postSchema>>({
@@ -381,6 +386,8 @@ export function FeedTab() {
             const authorName = authorProfile ? `${authorProfile.name} ${authorProfile.last_name}`.trim() : "Usuario Anónimo";
             const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
             const isPostAuthor = currentUser && currentUser.id === post.user_id;
+            const isModerator = userRole === 2;
+            const canDeletePost = isPostAuthor || (isModerator && authorProfile?.rol === 0);
 
             return (
                 <Card key={post.id}>
@@ -413,7 +420,7 @@ export function FeedTab() {
                         </p>
                     )}
                     </div>
-                    {isPostAuthor && (
+                    {(isPostAuthor || canDeletePost) && (
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -421,32 +428,36 @@ export function FeedTab() {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => handleEditClick(post)}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    <span>Editar</span>
-                                </DropdownMenuItem>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            <span>Eliminar</span>
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Esto eliminará permanentemente tu publicación.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDeletePost(post.id)}>
-                                                Continuar
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                {isPostAuthor && (
+                                    <DropdownMenuItem onClick={() => handleEditClick(post)}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        <span>Editar</span>
+                                    </DropdownMenuItem>
+                                )}
+                                {canDeletePost && (
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                <span>Eliminar</span>
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente la publicación.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeletePost(post.id)}>
+                                                    Continuar
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     )}
@@ -511,6 +522,7 @@ export function FeedTab() {
                                 const replyAuthorName = replyAuthorProfile ? `${replyAuthorProfile.name} ${replyAuthorProfile.last_name}`.trim() : "Usuario Anónimo";
                                 const replyAuthorInitials = getInitials(replyAuthorProfile?.name, replyAuthorProfile?.last_name);
                                 const isReplyAuthor = currentUser && currentUser.id === reply.user_id;
+                                const canDeleteReply = isReplyAuthor || (isModerator && replyAuthorProfile?.rol === 0);
 
                                 return (
                                     <div key={reply.id} className="flex items-start gap-3 group">
@@ -547,7 +559,7 @@ export function FeedTab() {
                                             </div>
                                             <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
                                         </div>
-                                         {isReplyAuthor && (
+                                         {(isReplyAuthor || canDeleteReply) && (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -555,32 +567,36 @@ export function FeedTab() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent>
-                                                    <DropdownMenuItem onClick={() => handleEditReplyClick(reply)}>
-                                                        <Edit className="mr-2 h-4 w-4" />
-                                                        <span>Editar</span>
-                                                    </DropdownMenuItem>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                                <span>Eliminar</span>
-                                                            </DropdownMenuItem>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente tu respuesta.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={() => handleDeleteReply(reply.id)}>
-                                                                    Continuar
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
+                                                    {isReplyAuthor && (
+                                                        <DropdownMenuItem onClick={() => handleEditReplyClick(reply)}>
+                                                            <Edit className="mr-2 h-4 w-4" />
+                                                            <span>Editar</span>
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    {canDeleteReply && (
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                                    <span>Eliminar</span>
+                                                                </DropdownMenuItem>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        Esta acción no se puede deshacer. Esto eliminará permanentemente la respuesta.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDeleteReply(reply.id)}>
+                                                                        Continuar
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         )}
@@ -669,3 +685,5 @@ export function FeedTab() {
     </>
   )
 }
+
+    

@@ -392,6 +392,8 @@ export function QATab() {
             const authorInitials = getInitials(author?.name, author?.last_name);
             const isAuthor = currentUser && currentUser.id === question.user_id;
             const canReply = isProfessional || isAuthor;
+            const isModerator = userRole === 2;
+            const canDeleteQuestion = isAuthor || (isModerator && author?.rol === 0);
 
             return (
               <Card key={question.id}>
@@ -408,7 +410,7 @@ export function QATab() {
                         </p>
                       )}
                     </div>
-                    {isAuthor && (
+                    {(isAuthor || canDeleteQuestion) && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -416,32 +418,36 @@ export function QATab() {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => handleEditQuestionClick(question)}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    <span>Editar</span>
-                                </DropdownMenuItem>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            <span>Eliminar</span>
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Esto eliminará permanentemente tu pregunta y sus respuestas.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDeleteQuestion(question.id)}>
-                                                Continuar
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                {isAuthor && (
+                                    <DropdownMenuItem onClick={() => handleEditQuestionClick(question)}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        <span>Editar</span>
+                                    </DropdownMenuItem>
+                                )}
+                                {canDeleteQuestion && (
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                <span>Eliminar</span>
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente tu pregunta y sus respuestas.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeleteQuestion(question.id)}>
+                                                    Continuar
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     )}
@@ -505,6 +511,7 @@ export function QATab() {
                           const replyAuthorName = replyAuthor ? `${replyAuthor.name || ''} ${replyAuthor.last_name || ''}`.trim() : "Usuario";
                           const replyAuthorInitials = getInitials(replyAuthor?.name, replyAuthor?.last_name);
                           const isReplyAuthor = currentUser && currentUser.id === reply.user_id;
+                          const canDeleteReply = isReplyAuthor || (isModerator && replyAuthor?.rol === 0);
 
                           return (
                             <div key={reply.id} className="flex items-start gap-3 group">
@@ -539,7 +546,7 @@ export function QATab() {
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
                               </div>
-                              {isReplyAuthor && replyAuthor?.rol === 1 && (
+                              {(isReplyAuthor || canDeleteReply) && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -547,32 +554,36 @@ export function QATab() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
-                                        <DropdownMenuItem onClick={() => handleEditReplyClick(reply)}>
-                                            <Edit className="mr-2 h-4 w-4" />
-                                            <span>Editar</span>
-                                        </DropdownMenuItem>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                    <span>Eliminar</span>
-                                                </DropdownMenuItem>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Esta acción no se puede deshacer. Esto eliminará permanentemente tu respuesta.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDeleteReply(reply.id)}>
-                                                        Continuar
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                        {isReplyAuthor && (
+                                            <DropdownMenuItem onClick={() => handleEditReplyClick(reply)}>
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                <span>Editar</span>
+                                            </DropdownMenuItem>
+                                        )}
+                                        {canDeleteReply && (
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        <span>Eliminar</span>
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Esta acción no se puede deshacer. Esto eliminará permanentemente tu respuesta.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeleteReply(reply.id)}>
+                                                            Continuar
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                               )}
@@ -649,3 +660,5 @@ export function QATab() {
     </>
   )
 }
+
+    
