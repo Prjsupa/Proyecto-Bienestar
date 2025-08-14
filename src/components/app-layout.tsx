@@ -14,6 +14,7 @@ import {
   CalendarPlus,
   ChevronDown,
   Shield,
+  UserCog,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -70,6 +71,7 @@ const allNavItems = [
 ];
 
 const moderatorNavItems = [
+    { href: "/moderation/users", icon: UserCog, label: "Gestionar Usuarios"},
     { href: "/moderation/history", icon: Shield, label: "Historial de Moderación"}
 ]
 

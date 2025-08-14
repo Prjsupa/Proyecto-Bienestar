@@ -18,6 +18,10 @@ const MODERATOR_RESTRICTED_ROUTES = [
     "/schedule",
 ];
 
+const MODERATOR_ONLY_ROUTES = [
+    "/moderation"
+];
+
 export async function middleware(request: NextRequest) {
   const { supabase, response } = await updateSession(request);
 
@@ -38,15 +42,22 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     
-    // Check moderator restrictions
+    // Role-based restrictions
     const { data: profile } = await supabase.from('usuarios').select('rol').eq('id', user.id).single();
     const userRole = profile?.rol;
 
-    if (userRole === 2) {
+    if (userRole === 2) { // Moderator
         const isRestrictedForModerator = MODERATOR_RESTRICTED_ROUTES.some((path) => 
             request.nextUrl.pathname.startsWith(path)
         );
         if (isRestrictedForModerator) {
+            return NextResponse.redirect(new URL("/dashboard", request.url));
+        }
+    } else { // Not a moderator
+        const isModeratorOnlyRoute = MODERATOR_ONLY_ROUTES.some((path) =>
+            request.nextUrl.pathname.startsWith(path)
+        );
+        if (isModeratorOnlyRoute) {
             return NextResponse.redirect(new URL("/dashboard", request.url));
         }
     }

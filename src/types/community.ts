@@ -87,7 +87,6 @@ export type ModerationAction = {
     seccion: string;
     razon: string;
     fecha: string;
-    contenido_id: string;
 };
 
 export type ModerationActionWithNames = ModerationAction & {
@@ -100,3 +99,12 @@ export type ModerationActionWithNames = ModerationAction & {
         last_name: string | null;
     } | null;
 };
+
+export type UserWithRole = {
+    id: string;
+    name: string | null;
+    last_name: string | null;
+    email: string | null;
+    rol: number;
+    created_at: string;
+}
