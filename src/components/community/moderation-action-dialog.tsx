@@ -51,7 +51,11 @@ export function ModerationActionDialog({
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      // 1. Log the moderation action
+      // 1. Execute the actual deletion callback FIRST.
+      // This is the onConfirm function passed from the parent component.
+      onConfirm();
+      
+      // 2. Log the moderation action AFTER the content is deleted.
       const { error: logError } = await supabase
         .from('accion_moderador')
         .insert({
@@ -64,11 +68,17 @@ export function ModerationActionDialog({
         });
 
       if (logError) {
-        throw logError;
+        // Even if logging fails, the content is already deleted.
+        // We should notify the moderator about the logging failure.
+        console.error("Error logging moderation action:", logError);
+        toast({
+          variant: "destructive",
+          title: "Contenido Eliminado, pero falló el registro",
+          description: "La acción de moderación se completó, pero no pudo ser registrada en el historial. Error: " + logError.message,
+        });
+        onClose();
+        return;
       }
-      
-      // 2. Execute the actual deletion callback
-      onConfirm();
       
       toast({
         title: "Acción completada",
