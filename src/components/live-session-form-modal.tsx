@@ -52,25 +52,19 @@ export function LiveSessionFormModal({ isOpen, onClose, onSuccess, session, user
     },
   });
 
-  const formatDateForInput = (date: Date) => {
-    // We need to format the date to 'YYYY-MM-DDTHH:mm' which is what the datetime-local input expects.
-    // However, it expects it in the user's local timezone, not UTC.
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  const formatDateForInput = (isoString: string) => {
+    // Supabase stores timestamptz in ISO 8601 format (e.g., "2024-08-25T19:00:00-04:00")
+    // The datetime-local input needs "YYYY-MM-DDTHH:mm". We slice the ISO string to get this.
+    return isoString.slice(0, 16);
   };
   
   useEffect(() => {
     if (session) {
-      // When editing, we receive a UTC string. Convert it to a local Date object.
-      const localDate = new Date(session.fecha_hora);
+      // When editing, format the UTC string from Supabase to the required input format
       form.reset({
         titulo: session.titulo,
         descripcion: session.descripcion || '',
-        fecha_hora: formatDateForInput(localDate),
+        fecha_hora: formatDateForInput(session.fecha_hora),
         link: session.link,
         miniatura: null,
       });
