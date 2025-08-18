@@ -124,7 +124,7 @@ export function LiveSessionFormModal({ isOpen, onClose, onSuccess, session, user
       }
       
       const sessionDate = new Date(values.fecha_hora);
-      const availableUntilDate = addDays(sessionDate, 7);
+      const availableUntilDate = addDays(sessionDate, 15);
 
       const sessionData = {
         user_id: userId,
