@@ -52,19 +52,21 @@ export function LiveSessionFormModal({ isOpen, onClose, onSuccess, session, user
     },
   });
 
-  const formatDateForInput = (isoString: string) => {
-    // Supabase stores timestamptz in ISO 8601 format (e.g., "2024-08-25T19:00:00-04:00")
-    // The datetime-local input needs "YYYY-MM-DDTHH:mm". We slice the ISO string to get this.
-    return isoString.slice(0, 16);
+  const formatDateForInput = (dateString: string) => {
+    // The datetime-local input needs "YYYY-MM-DDTHH:mm".
+    // We get a full ISO string from Supabase (UTC), so we convert it to a Date object
+    // which automatically adjusts to the user's local timezone, and then format it.
+    const date = new Date(dateString);
+    // Slice to get YYYY-MM-DDTHH:mm
+    return date.toISOString().slice(0, 16);
   };
   
   useEffect(() => {
     if (session) {
-      // When editing, format the UTC string from Supabase to the required input format
       form.reset({
         titulo: session.titulo,
         descripcion: session.descripcion || '',
-        fecha_hora: formatDateForInput(session.fecha_hora),
+        fecha_hora: session.fecha_hora ? formatDateForInput(session.fecha_hora) : '',
         link: session.link,
         miniatura: null,
       });
@@ -124,9 +126,9 @@ export function LiveSessionFormModal({ isOpen, onClose, onSuccess, session, user
         user_id: userId,
         titulo: values.titulo,
         descripcion: values.descripcion,
-        fecha_hora: sessionDate.toISOString(),
+        fecha_hora: sessionDate.toISOString(), // Send as full ISO string
         link: values.link,
-        disponible_hasta: availableUntilDate.toISOString(),
+        disponible_hasta: availableUntilDate.toISOString(), // Send as full ISO string
         miniatura: imageUrl,
       };
       
