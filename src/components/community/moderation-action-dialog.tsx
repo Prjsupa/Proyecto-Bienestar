@@ -60,60 +60,56 @@ export function ModerationActionDialog({
     }
   }
 
-  const handleDelete = async (reason: string) => {
-    // 1. Log the moderation action
-    const { error: logError } = await supabase
-        .from('accion_moderador')
-        .insert({
-            moderador_id: moderatorId,
-            user_id: targetUserId,
-            accion: actionType,
-            seccion: section,
-            razon: reason,
-        });
-    if (logError) throw new Error(`Failed to log moderation action: ${logError.message}`);
-    
-    // 2. Create notification for the user
-    const notificationMessage = `Un moderador eliminó tu contenido en ${section}. Razón: "${reason}"`;
-    const { error: notificationError } = await supabase
-        .from('notificaciones')
-        .insert({ user_id: targetUserId, mensaje: notificationMessage, link: '/community' });
-    if (notificationError) console.warn('Could not create notification for user:', notificationError);
-
-    // 3. Delete the content
-    const { table, storage } = getTargetTableAndStorage();
-    
-    // 3a. If there's associated storage, delete the file first
-    if (storage) {
-        const { data: item, error: fetchError } = await supabase.from(table).select('img_url, video_url').eq('id', contentId).single();
-        if (fetchError) console.warn(`Could not fetch item to delete from storage: ${fetchError.message}`);
-        
-        const url = item?.img_url || item?.video_url;
-        if (url) {
-            const path = url.split(`/${storage}/`)[1];
-            if (path) {
-                 const { error: storageError } = await supabase.storage.from(storage).remove([path]);
-                 if (storageError) console.warn(`Failed to delete from storage: ${storageError.message}`);
-            }
-        }
-    }
-
-    // 3b. Delete the record from the database
-    const { error: deleteError } = await supabase.from(table).delete().eq('id', contentId);
-    if (deleteError) throw new Error(`Failed to delete content: ${deleteError.message}`);
-  }
-
-
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      await handleDelete(values.reason);
+        // 1. Log moderation action
+        const { error: logError } = await supabase
+            .from('accion_moderador')
+            .insert({
+                moderador_id: moderatorId,
+                user_id: targetUserId,
+                accion: actionType,
+                seccion: section,
+                razon: values.reason,
+            });
+        if (logError) throw new Error(`Error al registrar la acción: ${logError.message}`);
+        
+        // 2. Create notification for the user
+        const notificationMessage = `Un moderador eliminó tu contenido en ${section}. Razón: "${values.reason}"`;
+        const { error: notificationError } = await supabase
+            .from('notificaciones')
+            .insert({ user_id: targetUserId, mensaje: notificationMessage, link: '/community' });
+
+        if (notificationError) {
+             console.warn('Could not create notification for user:', notificationError);
+             // Don't throw here, just warn. Deletion is more important.
+        }
+
+        // 3. Delete content
+        const { table, storage } = getTargetTableAndStorage();
+        if (storage) {
+            const { data: item, error: fetchError } = await supabase.from(table).select('img_url, video_url').eq('id', contentId).single();
+            if (fetchError) console.warn(`Could not fetch item to delete from storage: ${fetchError.message}`);
+            
+            const url = item?.img_url || item?.video_url;
+            if (url) {
+                const path = url.split(`/${storage}/`)[1];
+                if (path) {
+                     const { error: storageError } = await supabase.storage.from(storage).remove([path]);
+                     if (storageError) console.warn(`Failed to delete from storage: ${storageError.message}`);
+                }
+            }
+        }
+        
+        const { error: deleteError } = await supabase.from(table).delete().eq('id', contentId);
+        if (deleteError) throw new Error(`Error al eliminar el contenido: ${deleteError.message}`);
       
       toast({
         title: "Acción completada",
         description: `El contenido ha sido eliminado y la acción registrada.`,
       });
-      onSuccess(); // Re-fetch data on the page
+      onSuccess();
       onClose();
 
     } catch (error: any) {
@@ -125,6 +121,7 @@ export function ModerationActionDialog({
       });
     } finally {
       setIsSubmitting(false);
+      form.reset();
     }
   };
 
