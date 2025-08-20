@@ -63,30 +63,7 @@ export function ModerationActionDialog({
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-        // 1. Log moderation action
-        const { error: logError } = await supabase
-            .from('accion_moderador')
-            .insert({
-                moderador_id: moderatorId,
-                user_id: targetUserId,
-                accion: actionType,
-                seccion: section,
-                razon: values.reason,
-            });
-        if (logError) throw new Error(`Error al registrar la acción: ${logError.message}`);
-        
-        // 2. Create notification for the user
-        const notificationMessage = `Un moderador eliminó tu contenido en ${section}. Razón: "${values.reason}"`;
-        const { error: notificationError } = await supabase
-            .from('notificaciones')
-            .insert({ user_id: targetUserId, mensaje: notificationMessage, link: '/community' });
-
-        if (notificationError) {
-             console.warn('Could not create notification for user:', notificationError);
-             // Don't throw here, just warn. Deletion is more important.
-        }
-
-        // 3. Delete content
+        // 1. Delete content file from storage if it exists
         const { table, storage } = getTargetTableAndStorage();
         if (storage) {
             const { data: item, error: fetchError } = await supabase.from(table).select('img_url, video_url').eq('id', contentId).single();
@@ -102,8 +79,21 @@ export function ModerationActionDialog({
             }
         }
         
+        // 2. Delete the content record from the table
         const { error: deleteError } = await supabase.from(table).delete().eq('id', contentId);
         if (deleteError) throw new Error(`Error al eliminar el contenido: ${deleteError.message}`);
+
+        // 3. Log the moderation action. This will trigger the notification.
+        const { error: logError } = await supabase
+            .from('accion_moderador')
+            .insert({
+                moderador_id: moderatorId,
+                user_id: targetUserId,
+                accion: actionType,
+                seccion: section,
+                razon: values.reason,
+            });
+        if (logError) throw new Error(`Error al registrar la acción: ${logError.message}`);
       
       toast({
         title: "Acción completada",
