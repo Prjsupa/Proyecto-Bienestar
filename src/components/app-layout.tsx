@@ -4,7 +4,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Bell,
   Home,
   UtensilsCrossed,
   Users,
@@ -51,6 +50,7 @@ import { VitaNovaIcon } from "./icons";
 import { createClient } from "@/utils/supabase/client";
 import { Skeleton } from "./ui/skeleton";
 import { cn } from "@/lib/utils";
+import { NotificationsDropdown } from "./notifications-dropdown";
 
 
 const allNavItems = [
@@ -299,11 +299,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </Sheet>
           </div>
 
-          <div className="flex w-full items-center justify-end gap-4">
-             <Button variant="ghost" size="icon" className="rounded-full">
-              <Bell className="h-5 w-5" />
-              <span className="sr-only">Alternar notificaciones</span>
-            </Button>
+          <div className="flex w-full items-center justify-end gap-2">
+             <NotificationsDropdown />
           </div>
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>

@@ -1,4 +1,5 @@
 
+
 export type Author = {
     id: string;
     name: string | null;
@@ -74,6 +75,7 @@ export type Cita = {
 
 export type AppointmentWithUser = Cita & {
     usuarios: {
+        id: string;
         name: string | null;
         last_name: string | null;
     } | null;
@@ -107,4 +109,13 @@ export type UserWithRole = {
     email: string | null;
     rol: number;
     created_at: string;
+}
+
+export type Notificacion = {
+    id: string;
+    user_id: string;
+    mensaje: string;
+    link: string | null;
+    leida: boolean;
+    fecha: string;
 }

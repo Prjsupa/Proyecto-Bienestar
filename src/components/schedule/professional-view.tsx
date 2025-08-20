@@ -31,6 +31,7 @@ export function ProfessionalSchedulerView() {
       .select(`
         *,
         usuarios (
+          id,
           name,
           last_name
         )
@@ -42,7 +43,7 @@ export function ProfessionalSchedulerView() {
       console.error('Error fetching appointments:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar las citas.' });
     } else {
-      setAppointments(data as AppointmentWithUser[]);
+      setAppointments(data as any[]);
     }
     setLoading(false);
   }, [supabase, toast]);
@@ -56,18 +57,33 @@ export function ProfessionalSchedulerView() {
     return appointments.filter(a => isSameDay(new Date(a.fecha_agendada), date));
   }, [appointments, date]);
 
-  const handleUpdateStatus = async (id: string, newStatus: Cita['estado']) => {
+  const handleUpdateStatus = async (appointment: AppointmentWithUser, newStatus: Cita['estado']) => {
     const { error } = await supabase
       .from('cita')
       .update({ estado: newStatus })
-      .eq('id', id);
+      .eq('id', appointment.id);
 
     if (error) {
       toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message });
-    } else {
-      toast({ title: 'Cita Actualizada', description: `La cita ha sido marcada como ${newStatus}.` });
-      fetchAppointments();
+      return;
     }
+    
+    // Create notification for the user
+    const notificationMessage = `Tu cita para el ${format(new Date(appointment.fecha_agendada), "dd/MM/yyyy 'a las' HH:mm", { locale: es })} ha sido ${newStatus === 'confirmada' ? 'confirmada' : 'cancelada'}.`;
+    const { error: notificationError } = await supabase
+      .from('notificaciones')
+      .insert({
+        user_id: appointment.user_id,
+        mensaje: notificationMessage,
+        link: '/schedule'
+      });
+
+    if (notificationError) {
+      console.warn("Could not create notification for appointment status change:", notificationError);
+    }
+    
+    toast({ title: 'Cita Actualizada', description: `La cita ha sido marcada como ${newStatus}.` });
+    fetchAppointments();
   };
 
   const getStatusInfo = (status: Cita['estado']) => {
@@ -180,11 +196,11 @@ export function ProfessionalSchedulerView() {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent>
-                                                        <DropdownMenuItem onClick={() => handleUpdateStatus(appt.id, 'confirmada')} disabled={appt.estado === 'confirmada'}>
+                                                        <DropdownMenuItem onClick={() => handleUpdateStatus(appt, 'confirmada')} disabled={appt.estado === 'confirmada'}>
                                                             <Check className="mr-2 h-4 w-4" />
                                                             <span>Confirmar</span>
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => handleUpdateStatus(appt.id, 'cancelada')} className="text-destructive">
+                                                        <DropdownMenuItem onClick={() => handleUpdateStatus(appt, 'cancelada')} className="text-destructive">
                                                             <X className="mr-2 h-4 w-4" />
                                                             <span>Cancelar Cita</span>
                                                         </DropdownMenuItem>

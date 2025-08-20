@@ -22,6 +22,7 @@ interface ModerationActionDialogProps {
   targetUserId: string;
   actionType: string;
   section: string;
+  contentId?: string;
 }
 
 const formSchema = z.object({
@@ -61,18 +62,25 @@ export function ModerationActionDialog({
         });
 
       if (logError) {
-        // If logging fails, abort the entire operation.
-        console.error("Error logging moderation action:", logError);
-        toast({
-          variant: "destructive",
-          title: "Error al registrar la acción",
-          description: "No se pudo registrar la acción de moderación. El contenido no ha sido eliminado. Error: " + logError.message,
-        });
-        setIsSubmitting(false); // Make sure to re-enable the button
-        return;
+        throw new Error("No se pudo registrar la acción de moderación. El contenido no ha sido eliminado. Error: " + logError.message);
       }
       
-      // 2. Execute the actual deletion callback only if logging was successful.
+       // 2. Create a notification for the user.
+       const notificationMessage = `Un moderador eliminó tu contenido en ${section}. Razón: "${values.reason}"`;
+       const { error: notificationError } = await supabase
+           .from('notificaciones')
+           .insert({
+               user_id: targetUserId,
+               mensaje: notificationMessage,
+               link: '/community' // A generic link for now
+           });
+
+       if (notificationError) {
+           // We can decide if this is a critical failure. For now, we'll just log it.
+           console.warn('Could not create notification for user:', notificationError);
+       }
+      
+      // 3. Execute the actual deletion callback only if logging was successful.
       onConfirm();
       
       toast({
@@ -86,7 +94,7 @@ export function ModerationActionDialog({
       toast({
         variant: "destructive",
         title: "Error",
-        description: "No se pudo completar la acción de moderación. " + error.message,
+        description: error.message,
       });
     } finally {
       setIsSubmitting(false);
