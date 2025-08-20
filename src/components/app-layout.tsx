@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Shield,
   UserCog,
+  UserPlus,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -72,6 +73,7 @@ const allNavItems = [
 
 const moderatorNavItems = [
     { href: "/moderation/users", icon: UserCog, label: "Gestionar Usuarios"},
+    { href: "/moderation/registrations", icon: UserPlus, label: "Gestionar Registros"},
     { href: "/moderation/history", icon: Shield, label: "Historial de Moderación"}
 ]
 

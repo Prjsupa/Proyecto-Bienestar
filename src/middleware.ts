@@ -33,8 +33,28 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(path)
   );
 
+  const isSpecialRegistration = request.nextUrl.pathname.startsWith('/register/');
+
   if (!user && isProtectedRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Handle special registration routes regardless of login status
+  if (isSpecialRegistration) {
+    const linkType = request.nextUrl.pathname.split('/')[2];
+    if (linkType === 'professional' || linkType === 'moderator') {
+      const { data } = await supabase
+        .from('registration_links')
+        .select('is_active')
+        .eq('id', linkType)
+        .single();
+      
+      if (!data?.is_active) {
+        // Redirect to a generic "not found" or "disabled" page,
+        // or just back to the main registration page.
+        return NextResponse.redirect(new URL("/register", request.url));
+      }
+    }
   }
 
   if (user) {
