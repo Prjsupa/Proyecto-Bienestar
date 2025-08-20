@@ -231,12 +231,6 @@ export function FeedTab() {
         await fetchPosts();
     }
   };
-
-  const handleDeletePost = async (postId: string) => {
-    // This function is now just a placeholder for the logic inside the dialog
-    // The actual deletion happens in the dialog's `onConfirm` logic
-    await fetchPosts();
-  };
   
   const handleEditReplyClick = (reply: Reply) => {
     setEditingReply(reply);
@@ -259,12 +253,6 @@ export function FeedTab() {
       await fetchPosts();
     }
   };
-
-  const handleDeleteReply = async (replyId: string) => {
-    // This function is now just a placeholder
-    await fetchPosts();
-  };
-
 
   const renderSkeletons = () => (
     <div className="space-y-6">
@@ -492,7 +480,7 @@ export function FeedTab() {
                                             </FormItem>
                                         )}
                                     />
-                                    <Button type="submit" size="sm" disabled={replyForm.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                                    <Button type="submit" disabled={replyForm.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
                                         {replyForm.formState.isSubmitting ? 'Enviando...' : 'Enviar Respuesta'}
                                     </Button>
                                 </div>
