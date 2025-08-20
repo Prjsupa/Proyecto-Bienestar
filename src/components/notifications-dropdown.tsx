@@ -109,14 +109,17 @@ export function NotificationsDropdown() {
                         </div>
                     ) : (
                         notifications.map(notif => (
-                            <DropdownMenuItem key={notif.id} asChild className={cn("flex items-start gap-3 p-3 data-[highlighted]:bg-muted/80", !notif.leida && "bg-secondary")}>
-                                <Link href={notif.link || '#'} onClick={() => handleMarkAsRead(notif.id)}>
-                                    {!notif.leida && <Circle className="h-2 w-2 mt-1.5 fill-primary text-primary flex-shrink-0" />}
-                                    <div className={cn("flex-grow", notif.leida && "ml-4")}>
-                                        <p className="text-sm whitespace-normal">{notif.mensaje}</p>
-                                        <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(notif.fecha), { addSuffix: true, locale: es })}</p>
-                                    </div>
-                                </Link>
+                            <DropdownMenuItem 
+                                key={notif.id} 
+                                className={cn("flex items-start gap-3 p-3 data-[highlighted]:bg-muted/80 cursor-pointer", !notif.leida && "bg-secondary")}
+                                onClick={() => handleMarkAsRead(notif.id)}
+                                onSelect={(e) => e.preventDefault()} // Prevent DropdownMenu from closing on click
+                            >
+                                {!notif.leida && <Circle className="h-2 w-2 mt-1.5 fill-primary text-primary flex-shrink-0" />}
+                                <div className={cn("flex-grow", notif.leida && "ml-4")}>
+                                    <p className="text-sm whitespace-normal">{notif.mensaje}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(notif.fecha), { addSuffix: true, locale: es })}</p>
+                                </div>
                             </DropdownMenuItem>
                         ))
                     )}
