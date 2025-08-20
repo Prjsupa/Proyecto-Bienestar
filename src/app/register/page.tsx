@@ -59,6 +59,7 @@ export default function RegisterPage() {
         data: {
           name: values.name,
           last_name: values.last_name,
+          rol: 0,
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
