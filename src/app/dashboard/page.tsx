@@ -14,7 +14,7 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
-import { Users, UtensilsCrossed, ArrowRight, Dumbbell, Calendar, Video, PlusCircle, Activity, Shield } from "lucide-react";
+import { Users, UtensilsCrossed, ArrowRight, Dumbbell, Calendar, Video, PlusCircle, Activity, Shield, UserCog, UserPlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -197,9 +197,11 @@ function ProfessionalDashboard({ greeting, stats }: { greeting: string, stats: a
 }
 
 function ModeratorDashboard({ greeting, stats }: { greeting: string, stats: any }) {
-    const quickActions = [
-        { href: "/community", icon: Users, label: "Moderar Comunidad" },
-        { href: "/moderation/history", icon: Shield, label: "Ver Historial de Moderación" }
+    const mainActions = [
+        { href: "/community", icon: Users, label: "Moderar Comunidad", description: "Revisa publicaciones, preguntas y respuestas." },
+        { href: "/moderation/users", icon: UserCog, label: "Gestionar Usuarios", description: "Visualiza a todos los usuarios por rol." },
+        { href: "/moderation/registrations", icon: UserPlus, label: "Gestionar Registros", description: "Activa o desactiva los enlaces de registro." },
+        { href: "/moderation/history", icon: Shield, label: "Historial de Moderación", description: "Consulta todas las acciones realizadas." },
     ];
 
     return (
@@ -209,45 +211,49 @@ function ModeratorDashboard({ greeting, stats }: { greeting: string, stats: any 
                 <p className="text-muted-foreground">Bienvenido al panel de moderación.</p>
             </div>
             
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Usuarios Activos</CardTitle>
+                        <CardTitle className="text-sm font-medium">Usuarios Totales (Rol 0)</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         {stats.loading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{stats.users}</div>}
-                        <p className="text-xs text-muted-foreground">En el último mes</p>
+                        <p className="text-xs text-muted-foreground">Total de usuarios regulares en la plataforma.</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Acciones Hoy</CardTitle>
+                        <CardTitle className="text-sm font-medium">Acciones de Moderación (Hoy)</CardTitle>
                         <Shield className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                          {stats.loading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{stats.moderation_actions}</div>}
-                         <p className="text-xs text-muted-foreground">Acciones de moderación</p>
+                         <p className="text-xs text-muted-foreground">Acciones realizadas en las últimas 24 horas.</p>
                     </CardContent>
                 </Card>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Acciones Rápidas</CardTitle>
-                    <CardDescription>Accede a las herramientas de moderación.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {quickActions.map(action => (
-                        <Button key={action.href} asChild variant="outline" className="justify-start h-12 text-base">
-                            <Link href={action.href}>
-                                <action.icon className="w-5 h-5 mr-3" />
-                                {action.label}
-                            </Link>
-                        </Button>
+            <div className="space-y-4">
+                 <h2 className="text-xl font-bold font-headline">Herramientas de Moderación</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {mainActions.map(action => (
+                        <Link href={action.href} key={action.href} className="block group">
+                            <Card className="h-full transition-all duration-300 hover:shadow-primary/20 hover:shadow-lg hover:-translate-y-1">
+                                <CardHeader className="flex flex-row items-center gap-4">
+                                    <div className="p-3 rounded-full bg-primary/10 text-primary">
+                                       <action.icon className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <CardTitle>{action.label}</CardTitle>
+                                        <CardDescription>{action.description}</CardDescription>
+                                    </div>
+                                </CardHeader>
+                            </Card>
+                        </Link>
                     ))}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     )
 }
@@ -386,3 +392,4 @@ export default function DashboardPage() {
   );
 }
 
+    
