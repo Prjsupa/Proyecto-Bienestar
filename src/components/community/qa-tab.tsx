@@ -49,7 +49,6 @@ type ModerationInfo = {
     targetUserId: string;
     actionType: 'Eliminar Pregunta' | 'Eliminar Respuesta Profesional';
     section: 'Comunidad - Preguntas';
-    onConfirm: () => void;
 };
 
 
@@ -226,47 +225,6 @@ export function QATab() {
       await fetchQuestions();
     }
   };
-
-  const handleDeleteQuestion = async (questionId: string) => {
-    // First, get the post to check for an image URL
-    const { data: question, error: fetchError } = await supabase
-        .from('pregunta_profesional')
-        .select('img_url')
-        .eq('id', questionId)
-        .single();
-
-    if (fetchError) {
-        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo encontrar la pregunta a eliminar.' });
-        return;
-    }
-
-    // If there's an image, delete it from storage
-    if (question.img_url) {
-        const imagePath = question.img_url.split('/pregunta.profesional/')[1];
-        const { error: storageError } = await supabase.storage
-            .from('pregunta.profesional')
-            .remove([imagePath]);
-        
-        if (storageError) {
-            toast({ variant: 'destructive', title: 'Error al eliminar imagen', description: storageError.message });
-            // We might want to stop here if the image deletion fails
-            return;
-        }
-    }
-
-    // Then, delete the post itself
-    const { error: deleteError } = await supabase
-      .from('pregunta_profesional')
-      .delete()
-      .eq('id', questionId);
-      
-    if (deleteError) {
-      toast({ variant: 'destructive', title: 'Error al eliminar', description: deleteError.message });
-    } else {
-      toast({ title: 'Pregunta eliminada' });
-      await fetchQuestions();
-    }
-  };
   
   const handleEditReplyClick = (reply: ProfessionalReply) => {
     setEditingReply(reply);
@@ -286,20 +244,6 @@ export function QATab() {
     } else {
       toast({ title: 'Respuesta actualizada' });
       setEditingReply(null);
-      await fetchQuestions();
-    }
-  };
-
-  const handleDeleteReply = async (replyId: string) => {
-    const { error } = await supabase
-      .from('respuesta_profesional')
-      .delete()
-      .eq('id', replyId);
-
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
-    } else {
-      toast({ title: 'Respuesta eliminada' });
       await fetchQuestions();
     }
   };
@@ -465,17 +409,12 @@ export function QATab() {
                                     <DropdownMenuItem 
                                         onSelect={(e) => {
                                             e.preventDefault();
-                                            if (isAuthor) {
-                                                handleDeleteQuestion(question.id);
-                                            } else {
-                                                setModerationInfo({
-                                                    contentId: question.id,
-                                                    targetUserId: question.user_id,
-                                                    actionType: 'Eliminar Pregunta',
-                                                    section: 'Comunidad - Preguntas',
-                                                    onConfirm: () => handleDeleteQuestion(question.id)
-                                                });
-                                            }
+                                            setModerationInfo({
+                                                contentId: question.id,
+                                                targetUserId: question.user_id,
+                                                actionType: 'Eliminar Pregunta',
+                                                section: 'Comunidad - Preguntas',
+                                            });
                                         }} 
                                         className="text-destructive"
                                     >
@@ -599,17 +538,12 @@ export function QATab() {
                                             <DropdownMenuItem
                                                 onSelect={(e) => {
                                                     e.preventDefault();
-                                                    if (isReplyAuthor) {
-                                                        handleDeleteReply(reply.id);
-                                                    } else {
-                                                        setModerationInfo({
-                                                            contentId: reply.id,
-                                                            targetUserId: reply.user_id,
-                                                            actionType: 'Eliminar Respuesta Profesional',
-                                                            section: 'Comunidad - Preguntas',
-                                                            onConfirm: () => handleDeleteReply(reply.id)
-                                                        });
-                                                    }
+                                                    setModerationInfo({
+                                                        contentId: reply.id,
+                                                        targetUserId: reply.user_id,
+                                                        actionType: 'Eliminar Respuesta Profesional',
+                                                        section: 'Comunidad - Preguntas',
+                                                    });
                                                 }}
                                                 className="text-destructive"
                                             >
@@ -694,11 +628,12 @@ export function QATab() {
             <ModerationActionDialog
                 isOpen={!!moderationInfo}
                 onClose={() => setModerationInfo(null)}
-                onConfirm={moderationInfo.onConfirm}
+                onSuccess={fetchQuestions}
                 moderatorId={currentUser.id}
                 targetUserId={moderationInfo.targetUserId}
                 actionType={moderationInfo.actionType}
                 section={moderationInfo.section}
+                contentId={moderationInfo.contentId}
             />
         )}
     </>

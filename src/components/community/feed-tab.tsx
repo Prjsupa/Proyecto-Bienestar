@@ -50,7 +50,6 @@ type ModerationInfo = {
     targetUserId: string;
     actionType: 'Eliminar Publicación' | 'Eliminar Respuesta';
     section: 'Comunidad - Feed';
-    onConfirm: () => void;
 };
 
 export function FeedTab() {
@@ -234,40 +233,9 @@ export function FeedTab() {
   };
 
   const handleDeletePost = async (postId: string) => {
-    const { data: post, error: fetchError } = await supabase
-        .from('comunidad')
-        .select('img_url')
-        .eq('id', postId)
-        .single();
-    
-    if (fetchError) {
-        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo encontrar la publicación a eliminar.' });
-        return;
-    }
-
-    if (post.img_url) {
-        const imagePath = post.img_url.split('/publicaciones/')[1];
-        const { error: storageError } = await supabase.storage
-            .from('publicaciones')
-            .remove([imagePath]);
-        
-        if (storageError) {
-            toast({ variant: 'destructive', title: 'Error al eliminar imagen', description: storageError.message });
-            return;
-        }
-    }
-
-    const { error } = await supabase
-        .from('comunidad')
-        .delete()
-        .eq('id', postId);
-
-    if (error) {
-        toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
-    } else {
-        toast({ title: 'Publicación eliminada' });
-        await fetchPosts();
-    }
+    // This function is now just a placeholder for the logic inside the dialog
+    // The actual deletion happens in the dialog's `onConfirm` logic
+    await fetchPosts();
   };
   
   const handleEditReplyClick = (reply: Reply) => {
@@ -293,17 +261,8 @@ export function FeedTab() {
   };
 
   const handleDeleteReply = async (replyId: string) => {
-    const { error } = await supabase
-      .from('comunidad_respuestas')
-      .delete()
-      .eq('id', replyId);
-
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
-    } else {
-      toast({ title: 'Respuesta eliminada' });
-      await fetchPosts();
-    }
+    // This function is now just a placeholder
+    await fetchPosts();
   };
 
 
@@ -470,17 +429,12 @@ export function FeedTab() {
                                     <DropdownMenuItem 
                                         onSelect={(e) => {
                                             e.preventDefault();
-                                            if (isPostAuthor) {
-                                                handleDeletePost(post.id);
-                                            } else {
-                                                setModerationInfo({
-                                                    contentId: post.id,
-                                                    targetUserId: post.user_id,
-                                                    actionType: 'Eliminar Publicación',
-                                                    section: 'Comunidad - Feed',
-                                                    onConfirm: () => handleDeletePost(post.id)
-                                                });
-                                            }
+                                            setModerationInfo({
+                                                contentId: post.id,
+                                                targetUserId: post.user_id,
+                                                actionType: 'Eliminar Publicación',
+                                                section: 'Comunidad - Feed',
+                                            });
                                         }} 
                                         className="text-destructive"
                                     >
@@ -607,17 +561,12 @@ export function FeedTab() {
                                                         <DropdownMenuItem 
                                                             onSelect={(e) => {
                                                                 e.preventDefault();
-                                                                if (isReplyAuthor) {
-                                                                    handleDeleteReply(reply.id);
-                                                                } else {
-                                                                    setModerationInfo({
-                                                                        contentId: reply.id,
-                                                                        targetUserId: reply.user_id,
-                                                                        actionType: 'Eliminar Respuesta',
-                                                                        section: 'Comunidad - Feed',
-                                                                        onConfirm: () => handleDeleteReply(reply.id)
-                                                                    });
-                                                                }
+                                                                setModerationInfo({
+                                                                    contentId: reply.id,
+                                                                    targetUserId: reply.user_id,
+                                                                    actionType: 'Eliminar Respuesta',
+                                                                    section: 'Comunidad - Feed',
+                                                                });
                                                             }} 
                                                             className="text-destructive"
                                                         >
@@ -715,7 +664,7 @@ export function FeedTab() {
             <ModerationActionDialog
                 isOpen={!!moderationInfo}
                 onClose={() => setModerationInfo(null)}
-                onConfirm={moderationInfo.onConfirm}
+                onSuccess={fetchPosts}
                 moderatorId={currentUser.id}
                 targetUserId={moderationInfo.targetUserId}
                 actionType={moderationInfo.actionType}

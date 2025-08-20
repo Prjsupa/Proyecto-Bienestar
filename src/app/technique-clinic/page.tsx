@@ -47,7 +47,6 @@ type ModerationInfo = {
     targetUserId: string;
     actionType: 'Eliminar Video de Técnica' | 'Eliminar Respuesta de Técnica';
     section: 'Clínica de Técnica';
-    onConfirm: () => void;
 };
 
 
@@ -203,43 +202,6 @@ export default function TechniqueClinicPage() {
     }
   };
 
-  const handleDeletePost = async (postId: string) => {
-    const { data: post, error: fetchError } = await supabase
-        .from('clinica_tecnica')
-        .select('video_url')
-        .eq('id', postId)
-        .single();
-
-    if (fetchError) {
-        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo encontrar el video a eliminar.' });
-        return;
-    }
-
-    if (post.video_url) {
-        const videoPath = post.video_url.split('/clinica.tecnica/')[1];
-        const { error: storageError } = await supabase.storage
-            .from('clinica.tecnica')
-            .remove([videoPath]);
-        
-        if (storageError) {
-            toast({ variant: 'destructive', title: 'Error al eliminar video', description: storageError.message });
-            return;
-        }
-    }
-
-    const { error } = await supabase
-      .from('clinica_tecnica')
-      .delete()
-      .eq('id', postId);
-
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
-    } else {
-      toast({ title: 'Publicación eliminada' });
-      await fetchPosts();
-    }
-  };
-
   const onReplySubmit = async (values: z.infer<typeof replySchema>, postId: string) => {
     if (!currentUser) {
         toast({ variant: 'destructive', title: 'Debes iniciar sesión para responder' });
@@ -278,20 +240,6 @@ export default function TechniqueClinicPage() {
       await fetchPosts();
     }
   };
-
-  const handleDeleteReply = async (replyId: string) => {
-    const { error } = await supabase
-      .from('clinica_tecnica_respuesta')
-      .delete()
-      .eq('id', replyId);
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
-    } else {
-      toast({ title: 'Respuesta eliminada' });
-      await fetchPosts();
-    }
-  };
-
 
   const getInitials = (name?: string | null, lastName?: string | null) => {
     if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
@@ -436,17 +384,12 @@ export default function TechniqueClinicPage() {
                                         <DropdownMenuItem 
                                             onSelect={(e) => {
                                                 e.preventDefault();
-                                                if (isAuthor) {
-                                                    handleDeletePost(post.id);
-                                                } else {
-                                                    setModerationInfo({
-                                                        contentId: post.id,
-                                                        targetUserId: post.user_id,
-                                                        actionType: 'Eliminar Video de Técnica',
-                                                        section: 'Clínica de Técnica',
-                                                        onConfirm: () => handleDeletePost(post.id)
-                                                    });
-                                                }
+                                                setModerationInfo({
+                                                    contentId: post.id,
+                                                    targetUserId: post.user_id,
+                                                    actionType: 'Eliminar Video de Técnica',
+                                                    section: 'Clínica de Técnica',
+                                                });
                                             }} 
                                             className="text-destructive"
                                         >
@@ -562,17 +505,12 @@ export default function TechniqueClinicPage() {
                                                                     <DropdownMenuItem
                                                                         onSelect={(e) => {
                                                                             e.preventDefault();
-                                                                            if (isReplyAuthor) {
-                                                                                handleDeleteReply(reply.id);
-                                                                            } else {
-                                                                                setModerationInfo({
-                                                                                    contentId: reply.id,
-                                                                                    targetUserId: reply.user_id,
-                                                                                    actionType: 'Eliminar Respuesta de Técnica',
-                                                                                    section: 'Clínica de Técnica',
-                                                                                    onConfirm: () => handleDeleteReply(reply.id)
-                                                                                });
-                                                                            }
+                                                                            setModerationInfo({
+                                                                                contentId: reply.id,
+                                                                                targetUserId: reply.user_id,
+                                                                                actionType: 'Eliminar Respuesta de Técnica',
+                                                                                section: 'Clínica de Técnica',
+                                                                            });
                                                                         }}
                                                                         className="text-destructive"
                                                                     >
@@ -669,11 +607,12 @@ export default function TechniqueClinicPage() {
             <ModerationActionDialog
                 isOpen={!!moderationInfo}
                 onClose={() => setModerationInfo(null)}
-                onConfirm={moderationInfo.onConfirm}
+                onSuccess={fetchPosts}
                 moderatorId={currentUser.id}
                 targetUserId={moderationInfo.targetUserId}
                 actionType={moderationInfo.actionType}
                 section={moderationInfo.section}
+                contentId={moderationInfo.contentId}
             />
         )}
       </div>

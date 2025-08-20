@@ -17,12 +17,12 @@ import { AlertTriangle } from "lucide-react";
 interface ModerationActionDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onSuccess: () => void; // Callback to re-fetch data after success
   moderatorId: string;
   targetUserId: string;
-  actionType: string;
+  actionType: 'Eliminar Publicación' | 'Eliminar Respuesta' | 'Eliminar Pregunta' | 'Eliminar Respuesta Profesional' | 'Eliminar Video de Técnica' | 'Eliminar Respuesta de Técnica';
   section: string;
-  contentId?: string;
+  contentId: string;
 }
 
 const formSchema = z.object({
@@ -32,11 +32,12 @@ const formSchema = z.object({
 export function ModerationActionDialog({
   isOpen,
   onClose,
-  onConfirm,
+  onSuccess,
   moderatorId,
   targetUserId,
   actionType,
   section,
+  contentId,
 }: ModerationActionDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -47,46 +48,72 @@ export function ModerationActionDialog({
     defaultValues: { reason: "" },
   });
 
+  const getTargetTableAndStorage = () => {
+    switch(actionType) {
+        case 'Eliminar Publicación': return { table: 'comunidad', storage: 'publicaciones' };
+        case 'Eliminar Respuesta': return { table: 'comunidad_respuestas', storage: null };
+        case 'Eliminar Pregunta': return { table: 'pregunta_profesional', storage: 'pregunta.profesional' };
+        case 'Eliminar Respuesta Profesional': return { table: 'respuesta_profesional', storage: null };
+        case 'Eliminar Video de Técnica': return { table: 'clinica_tecnica', storage: 'clinica.tecnica' };
+        case 'Eliminar Respuesta de Técnica': return { table: 'clinica_tecnica_respuesta', storage: null };
+        default: throw new Error('Invalid action type');
+    }
+  }
+
+  const handleDelete = async (reason: string) => {
+    // 1. Log the moderation action
+    const { error: logError } = await supabase
+        .from('accion_moderador')
+        .insert({
+            moderador_id: moderatorId,
+            user_id: targetUserId,
+            accion: actionType,
+            seccion: section,
+            razon: reason,
+        });
+    if (logError) throw new Error(`Failed to log moderation action: ${logError.message}`);
+    
+    // 2. Create notification for the user
+    const notificationMessage = `Un moderador eliminó tu contenido en ${section}. Razón: "${reason}"`;
+    const { error: notificationError } = await supabase
+        .from('notificaciones')
+        .insert({ user_id: targetUserId, mensaje: notificationMessage, link: '/community' });
+    if (notificationError) console.warn('Could not create notification for user:', notificationError);
+
+    // 3. Delete the content
+    const { table, storage } = getTargetTableAndStorage();
+    
+    // 3a. If there's associated storage, delete the file first
+    if (storage) {
+        const { data: item, error: fetchError } = await supabase.from(table).select('img_url, video_url').eq('id', contentId).single();
+        if (fetchError) console.warn(`Could not fetch item to delete from storage: ${fetchError.message}`);
+        
+        const url = item?.img_url || item?.video_url;
+        if (url) {
+            const path = url.split(`/${storage}/`)[1];
+            if (path) {
+                 const { error: storageError } = await supabase.storage.from(storage).remove([path]);
+                 if (storageError) console.warn(`Failed to delete from storage: ${storageError.message}`);
+            }
+        }
+    }
+
+    // 3b. Delete the record from the database
+    const { error: deleteError } = await supabase.from(table).delete().eq('id', contentId);
+    if (deleteError) throw new Error(`Failed to delete content: ${deleteError.message}`);
+  }
+
+
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      // 1. Log the moderation action FIRST.
-      const { error: logError } = await supabase
-        .from('accion_moderador')
-        .insert({
-          moderador_id: moderatorId,
-          user_id: targetUserId,
-          accion: actionType,
-          seccion: section,
-          razon: values.reason,
-        });
-
-      if (logError) {
-        throw new Error("No se pudo registrar la acción de moderación. El contenido no ha sido eliminado. Error: " + logError.message);
-      }
-      
-       // 2. Create a notification for the user.
-       const notificationMessage = `Un moderador eliminó tu contenido en ${section}. Razón: "${values.reason}"`;
-       const { error: notificationError } = await supabase
-           .from('notificaciones')
-           .insert({
-               user_id: targetUserId,
-               mensaje: notificationMessage,
-               link: '/community' // A generic link for now
-           });
-
-       if (notificationError) {
-           // We can decide if this is a critical failure. For now, we'll just log it.
-           console.warn('Could not create notification for user:', notificationError);
-       }
-      
-      // 3. Execute the actual deletion callback only if logging was successful.
-      onConfirm();
+      await handleDelete(values.reason);
       
       toast({
         title: "Acción completada",
         description: `El contenido ha sido eliminado y la acción registrada.`,
       });
+      onSuccess(); // Re-fetch data on the page
       onClose();
 
     } catch (error: any) {
@@ -102,7 +129,7 @@ export function ModerationActionDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive"/>Confirmar Eliminación</DialogTitle>
