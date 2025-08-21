@@ -57,35 +57,18 @@ export function ProfessionalSchedulerView() {
     return appointments.filter(a => isSameDay(new Date(a.fecha_agendada), date));
   }, [appointments, date]);
 
-  const handleUpdateStatus = async (appointment: AppointmentWithUser, newStatus: Cita['estado']) => {
-    // 1. Update the appointment status
+  const handleUpdateStatus = async (appointmentId: string, newStatus: Cita['estado']) => {
     const { error } = await supabase
       .from('cita')
       .update({ estado: newStatus })
-      .eq('id', appointment.id);
+      .eq('id', appointmentId);
 
     if (error) {
       toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message });
       return;
     }
     
-    // 2. Create a notification for the user
     const statusText = newStatus === 'confirmada' ? 'confirmada' : 'cancelada';
-    const notificationMessage = `Tu cita del ${format(new Date(appointment.fecha_agendada), "dd/MM/yyyy 'a las' HH:mm", { locale: es })} ha sido ${statusText}.`;
-    
-    const { error: notificationError } = await supabase
-      .from('notificaciones')
-      .insert({
-        user_id: appointment.user_id,
-        mensaje: notificationMessage,
-        link: '/schedule'
-      });
-
-    if (notificationError) {
-      // Log the error but don't block the UI flow, as the main action (status update) was successful.
-      console.error("Failed to create notification:", notificationError);
-    }
-    
     toast({ title: 'Cita Actualizada', description: `La cita ha sido marcada como ${statusText}.` });
     fetchAppointments();
   };
@@ -200,11 +183,11 @@ export function ProfessionalSchedulerView() {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent>
-                                                        <DropdownMenuItem onClick={() => handleUpdateStatus(appt, 'confirmada')} disabled={appt.estado === 'confirmada'}>
+                                                        <DropdownMenuItem onClick={() => handleUpdateStatus(appt.id, 'confirmada')} disabled={appt.estado === 'confirmada'}>
                                                             <Check className="mr-2 h-4 w-4" />
                                                             <span>Confirmar</span>
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => handleUpdateStatus(appt, 'cancelada')} className="text-destructive">
+                                                        <DropdownMenuItem onClick={() => handleUpdateStatus(appt.id, 'cancelada')} className="text-destructive">
                                                             <X className="mr-2 h-4 w-4" />
                                                             <span>Cancelar Cita</span>
                                                         </DropdownMenuItem>
