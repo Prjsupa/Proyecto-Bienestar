@@ -68,7 +68,7 @@ const allNavItems = [
   },
   { href: "/live", icon: Video, label: "En Vivo" },
   { href: "/community", icon: Users, label: "Comunidad" },
-  { href: "/technique-clinic", icon: Dumbbell, label: "Técnica" },
+  { href: "/technique-clinic", icon: Dumbbell, label: "Clínica de la Técnica" },
   { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita", roles: [0, 1] },
 ];
 
