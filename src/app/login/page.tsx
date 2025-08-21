@@ -24,7 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { VitaNovaIcon } from "@/components/icons"
+import { Logo } from "@/components/icons"
 import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@/utils/supabase/client"
 
@@ -73,7 +73,8 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
        <Link href="/" className="absolute top-4 left-4 flex items-center gap-2 text-foreground font-semibold">
-          <VitaNovaIcon className="h-6 w-6" />
+          <Logo className="h-6 w-6" />
+          <span>Marivi Power</span>
         </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>
@@ -111,14 +112,14 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={form.formState.isSubmitting}>
+              <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </form>
           </Form>
           <div className="mt-4 text-center text-sm">
             ¿No tienes una cuenta?{" "}
-            <Link href="/register" className="underline text-accent-foreground/80 font-semibold">
+            <Link href="/register" className="underline text-primary font-semibold">
               Regístrate
             </Link>
           </div>

@@ -46,11 +46,12 @@ import {
 } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { VitaNovaIcon } from "./icons";
+import { Logo } from "./icons";
 import { createClient } from "@/utils/supabase/client";
 import { Skeleton } from "./ui/skeleton";
 import { cn } from "@/lib/utils";
 import { NotificationsDropdown } from "./notifications-dropdown";
+import { ThemeToggle } from "./theme-toggle";
 
 
 const allNavItems = [
@@ -148,7 +149,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <>
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2">
-          <VitaNovaIcon className="w-8 h-8 text-primary" />
+          <Logo className="w-8 h-8 text-primary" />
+           <span className="font-bold text-lg group-data-[collapsible=icon]:hidden">Marivi Power</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -301,6 +303,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex w-full items-center justify-end gap-2">
              <NotificationsDropdown />
+             <ThemeToggle />
           </div>
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>

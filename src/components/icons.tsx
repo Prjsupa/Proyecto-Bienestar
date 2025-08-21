@@ -1,6 +1,8 @@
 import type { SVGProps } from "react";
 
-export function VitaNovaIcon(props: SVGProps<SVGSVGElement>) {
+export function Logo(props: SVGProps<SVGSVGElement>) {
+  // Este es un logo de marcador de posición.
+  // Reemplaza el contenido de este SVG con el de tu propio logo.
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -14,10 +16,7 @@ export function VitaNovaIcon(props: SVGProps<SVGSVGElement>) {
       strokeLinejoin="round"
       {...props}
     >
-      <path d="M12 22c-5 0-9-4.5-9-10S7 2 12 2s9 4.5 9 10-4 10-9 10z" />
-      <path d="M12 14a2.5 2.5 0 0 0 2.5-2.5c0-2-2.5-4-2.5-4s-2.5 2-2.5 4A2.5 2.5 0 0 0 12 14z" />
-      <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2z" />
-      <path d="M12 12c-3 0-5 2.5-5 5" />
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
     </svg>
   );
 }

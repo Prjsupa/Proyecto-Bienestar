@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
-import { VitaNovaIcon } from "@/components/icons"
+import { Logo } from "@/components/icons"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -94,7 +94,7 @@ export default function RegisterPage() {
             <CardTitle>Verifica tu correo electrónico</CardTitle>
             <CardDescription>
               Hemos enviado un enlace de verificación a <strong>{emailToVerify}</strong>. Por favor, verifica tu correo antes de{" "}
-              <Link href="/login" className="text-accent-foreground underline">
+              <Link href="/login" className="text-primary underline">
                 iniciar sesión
               </Link>.
             </CardDescription>
@@ -110,7 +110,8 @@ export default function RegisterPage() {
         href="/"
         className="absolute top-4 left-4 flex items-center gap-2 text-foreground font-semibold"
       >
-        <VitaNovaIcon className="h-6 w-6" />
+        <Logo className="h-6 w-6" />
+        <span>Marivi Power</span>
       </Link>
 
       <Card className="w-full max-w-md">
@@ -180,12 +181,12 @@ export default function RegisterPage() {
                 />
               </CardContent>
               <CardFooter className="flex-col gap-4">
-                <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={form.formState.isSubmitting}>
+                <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={form.formState.isSubmitting}>
                    {form.formState.isSubmitting ? "Registrando..." : "Registrarse"}
                 </Button>
                 <p className="text-sm text-muted-foreground">
                   ¿Ya tienes una cuenta?{" "}
-                  <Link href="/login" className="underline text-accent-foreground/80 font-semibold">
+                  <Link href="/login" className="underline text-primary font-semibold">
                     Iniciar Sesión
                   </Link>
                 </p>
