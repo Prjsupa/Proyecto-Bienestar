@@ -16,6 +16,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "../ui/separator";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   pregunta_1_edad: z.coerce.number().min(1, "La edad es requerida.").positive("La edad debe ser positiva."),
@@ -34,7 +35,7 @@ const formSchema = z.object({
   pregunta_13_compromiso: z.string({ required_error: "Debes seleccionar una opción." }),
 });
 
-const diagnosticosMedicos = [
+const diagnosticosMedicosOptions = [
     { id: 'hipotiroidismo', label: 'Hipotiroidismo' },
     { id: 'resistencia_insulina', label: 'Resistencia a la insulina' },
     { id: 'sop', label: 'SOP (Síndrome de Ovario Poliquístico)' },
@@ -65,22 +66,47 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      pregunta_1_edad: initialData?.pregunta_1_edad || undefined,
-      pregunta_2_estatura: initialData?.pregunta_2_estatura || undefined,
-      pregunta_3_peso: initialData?.pregunta_3_peso || undefined,
-      pregunta_4_grasa_corporal: initialData?.pregunta_4_grasa_corporal || 25,
-      pregunta_5_diagnostico_medico: initialData?.pregunta_5_diagnostico_medico || [],
-      pregunta_5_diagnostico_otro: initialData?.pregunta_5_diagnostico_otro || "",
-      pregunta_6_objetivo_principal: initialData?.pregunta_6_objetivo_principal || "",
-      pregunta_7_dias_ejercicio: initialData?.pregunta_7_dias_ejercicio || undefined,
-      pregunta_8_actividad_diaria: initialData?.pregunta_8_actividad_diaria || undefined,
-      pregunta_9_restricciones_alimentarias: initialData?.pregunta_9_restricciones_alimentarias || "",
-      pregunta_10_ciclo_menstrual: initialData?.pregunta_10_ciclo_menstrual || undefined,
-      pregunta_11_anticonceptivos: initialData?.pregunta_11_anticonceptivos || undefined,
-      pregunta_12_diagnostico_ginecologico: initialData?.pregunta_12_diagnostico_ginecologico || undefined,
-      pregunta_13_compromiso: initialData?.pregunta_13_compromiso || undefined,
+        pregunta_1_edad: undefined,
+        pregunta_2_estatura: undefined,
+        pregunta_3_peso: undefined,
+        pregunta_4_grasa_corporal: 25,
+        pregunta_5_diagnostico_medico: [],
+        pregunta_5_diagnostico_otro: "",
+        pregunta_6_objetivo_principal: "",
+        pregunta_7_dias_ejercicio: undefined,
+        pregunta_8_actividad_diaria: undefined,
+        pregunta_9_restricciones_alimentarias: "",
+        pregunta_10_ciclo_menstrual: undefined,
+        pregunta_11_anticonceptivos: undefined,
+        pregunta_12_diagnostico_ginecologico: undefined,
+        pregunta_13_compromiso: undefined,
     },
   });
+
+  useEffect(() => {
+    if (initialData) {
+        const diagnosticos = initialData.pregunta_5_diagnostico_medico || [];
+        const predefinidos = diagnosticos.filter(d => diagnosticosMedicosOptions.some(opt => opt.id === d));
+        const otro = diagnosticos.find(d => !diagnosticosMedicosOptions.some(opt => opt.id === d));
+
+        form.reset({
+            pregunta_1_edad: initialData.pregunta_1_edad || undefined,
+            pregunta_2_estatura: initialData.pregunta_2_estatura || undefined,
+            pregunta_3_peso: initialData.pregunta_3_peso || undefined,
+            pregunta_4_grasa_corporal: initialData.pregunta_4_grasa_corporal || 25,
+            pregunta_5_diagnostico_medico: predefinidos,
+            pregunta_5_diagnostico_otro: otro || "",
+            pregunta_6_objetivo_principal: initialData.pregunta_6_objetivo_principal || "",
+            pregunta_7_dias_ejercicio: initialData.pregunta_7_dias_ejercicio || undefined,
+            pregunta_8_actividad_diaria: initialData.pregunta_8_actividad_diaria || undefined,
+            pregunta_9_restricciones_alimentarias: initialData.pregunta_9_restricciones_alimentarias || "",
+            pregunta_10_ciclo_menstrual: initialData.pregunta_10_ciclo_menstrual || undefined,
+            pregunta_11_anticonceptivos: initialData.pregunta_11_anticonceptivos || undefined,
+            pregunta_12_diagnostico_ginecologico: initialData.pregunta_12_diagnostico_ginecologico || undefined,
+            pregunta_13_compromiso: initialData.pregunta_13_compromiso || undefined,
+        });
+    }
+  }, [initialData, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     
@@ -96,7 +122,6 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
       pregunta_3_peso: values.pregunta_3_peso,
       pregunta_4_grasa_corporal: values.pregunta_4_grasa_corporal,
       pregunta_5_diagnostico_medico: diagnosticosCompletos,
-      pregunta_5_diagnostico_otro: values.pregunta_5_diagnostico_otro,
       pregunta_6_objetivo_principal: values.pregunta_6_objetivo_principal,
       pregunta_7_dias_ejercicio: values.pregunta_7_dias_ejercicio,
       pregunta_8_actividad_diaria: values.pregunta_8_actividad_diaria,
@@ -174,7 +199,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
                     <FormItem>
                         <FormLabel>5. Diagnóstico médico actual.</FormLabel>
                         <FormDescription>Selecciona todo lo que aplique.</FormDescription>
-                        {diagnosticosMedicos.map((item) => (
+                        {diagnosticosMedicosOptions.map((item) => (
                             <FormField
                                 key={item.id}
                                 control={form.control}

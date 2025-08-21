@@ -25,7 +25,7 @@ export function HealthFormModal({ isOpen, onClose, userId, initialData, onSucces
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-3xl">
                 <DialogHeader>
-                    <DialogTitle>Cuestionario de Salud</DialogTitle>
+                    <DialogTitle>Formulario</DialogTitle>
                     <DialogDescription>
                         Tus respuestas nos ayudarán a crear un plan completamente personalizado para ti. Por favor, sé lo más precisa posible.
                     </DialogDescription>

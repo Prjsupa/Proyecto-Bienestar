@@ -7,7 +7,6 @@ export type HealthFormData = {
   pregunta_3_peso: number | null;
   pregunta_4_grasa_corporal: number | null;
   pregunta_5_diagnostico_medico: string[];
-  pregunta_5_diagnostico_otro: string | null;
   pregunta_6_objetivo_principal: string | null;
   pregunta_7_dias_ejercicio: string | null;
   pregunta_8_actividad_diaria: string | null;

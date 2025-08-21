@@ -237,7 +237,7 @@ export default function ProfilePage() {
                 {role === 0 && (
                     <Button variant="outline" onClick={() => setIsFormOpen(true)}>
                         <FileText className="mr-2 h-4 w-4" />
-                        Cuestionario de Salud
+                        Formulario
                     </Button>
                 )}
             </CardFooter>
