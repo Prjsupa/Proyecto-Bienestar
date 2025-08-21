@@ -15,8 +15,8 @@ const SUPABASE_STORAGE_URL = 'https://jqdbhsicpfdpzifphdft.supabase.co/storage/v
 // I am assuming the filenames for your logos.
 // If your filenames are different, please update them here.
 // This version is for the imagotype only (the logo without the text below it).
-const LOGO_FOR_LIGHT_MODE = 'imago-rojo-negro.png';
-const LOGO_FOR_DARK_MODE = 'imago-rojo-blanco.png';
+const LOGO_FOR_LIGHT_MODE = 'iso rojo@3x.png';
+const LOGO_FOR_DARK_MODE = 'iso blanco y rojo@3x.png';
 
 export function Logo() {
   const { resolvedTheme } = useTheme();
