@@ -58,6 +58,7 @@ export function ProfessionalSchedulerView() {
   }, [appointments, date]);
 
   const handleUpdateStatus = async (appointment: AppointmentWithUser, newStatus: Cita['estado']) => {
+    // 1. Update the appointment status
     const { error } = await supabase
       .from('cita')
       .update({ estado: newStatus })
@@ -68,8 +69,10 @@ export function ProfessionalSchedulerView() {
       return;
     }
     
-    // Create notification for the user
-    const notificationMessage = `Tu cita para el ${format(new Date(appointment.fecha_agendada), "dd/MM/yyyy 'a las' HH:mm", { locale: es })} ha sido ${newStatus === 'confirmada' ? 'confirmada' : 'cancelada'}.`;
+    // 2. Create a notification for the user
+    const statusText = newStatus === 'confirmada' ? 'confirmada' : 'cancelada';
+    const notificationMessage = `Tu cita del ${format(new Date(appointment.fecha_agendada), "dd/MM/yyyy 'a las' HH:mm", { locale: es })} ha sido ${statusText}.`;
+    
     const { error: notificationError } = await supabase
       .from('notificaciones')
       .insert({
@@ -79,10 +82,11 @@ export function ProfessionalSchedulerView() {
       });
 
     if (notificationError) {
-      console.warn("Could not create notification for appointment status change:", notificationError);
+      // Log the error but don't block the UI flow, as the main action (status update) was successful.
+      console.error("Failed to create notification:", notificationError);
     }
     
-    toast({ title: 'Cita Actualizada', description: `La cita ha sido marcada como ${newStatus}.` });
+    toast({ title: 'Cita Actualizada', description: `La cita ha sido marcada como ${statusText}.` });
     fetchAppointments();
   };
 
