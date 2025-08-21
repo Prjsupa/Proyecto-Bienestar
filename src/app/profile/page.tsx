@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { AppLayout } from "@/components/app-layout";
@@ -13,6 +13,51 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { HealthForm } from "@/components/profile/health-form";
+import type { HealthFormData } from "@/types/health-form";
+
+function ProfileSkeleton() {
+    return (
+        <AppLayout>
+            <div className="max-w-2xl mx-auto">
+                <div className="space-y-2 mb-8">
+                    <Skeleton className="h-8 w-1/2" />
+                    <Skeleton className="h-4 w-1/3" />
+                </div>
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-1/4" />
+                        <Skeleton className="h-4 w-2/5" />
+                    </CardHeader>
+                    <CardContent className="space-y-6 pt-6">
+                        <div className="flex items-center gap-6">
+                            <Skeleton className="h-24 w-24 rounded-full" />
+                            <div className="space-y-2">
+                            <Skeleton className="h-6 w-32" />
+                            <Skeleton className="h-4 w-48" />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+      </AppLayout>
+    )
+}
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -21,6 +66,7 @@ export default function ProfilePage() {
   const [lastName, setLastName] = useState("");
   const [title, setTitle] = useState("");
   const [role, setRole] = useState<number | null>(null);
+  const [healthData, setHealthData] = useState<HealthFormData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const router = useRouter();
@@ -43,13 +89,25 @@ export default function ProfilePage() {
             if (profileError) {
               console.error('Error fetching user profile:', profileError);
               toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar tu perfil.' });
-              setName(user.user_metadata?.name || "");
-              setLastName(user.user_metadata?.last_name || "");
             } else if (profileData) {
-              setName(profileData.name || "");
-              setLastName(profileData.last_name || "");
+              setName(profileData.name || user.user_metadata?.name || "");
+              setLastName(profileData.last_name || user.user_metadata?.last_name || "");
               setTitle(profileData.titulo || "");
               setRole(profileData.rol || 0);
+
+              if(profileData.rol === 0) {
+                const { data: formData, error: formError } = await supabase
+                    .from('formulario')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+                
+                if (formError) {
+                    console.error('Error fetching health form:', formError);
+                } else {
+                    setHealthData(formData);
+                }
+              }
             }
         } else {
             router.push('/login');
@@ -115,100 +173,76 @@ export default function ProfilePage() {
   const displayName = name && lastName ? `${name} ${lastName}` : name || user?.email || "Usuario";
 
   if (loading) {
-    return (
-      <AppLayout>
-        <div className="max-w-2xl mx-auto">
-            <div className="space-y-2 mb-8">
-                <Skeleton className="h-8 w-1/2" />
-                <Skeleton className="h-4 w-1/3" />
-            </div>
-            <Card>
-                <CardHeader>
-                    <Skeleton className="h-6 w-1/4" />
-                    <Skeleton className="h-4 w-2/5" />
-                </CardHeader>
-                <CardContent className="space-y-6 pt-6">
-                    <div className="flex items-center gap-6">
-                        <Skeleton className="h-24 w-24 rounded-full" />
-                        <div className="space-y-2">
-                          <Skeleton className="h-6 w-32" />
-                          <Skeleton className="h-4 w-48" />
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-10 w-full" />
-                        </div>
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-10 w-full" />
-                        </div>
-                    </div>
-                     <div className="space-y-2">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-10 w-full" />
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-      </AppLayout>
-    )
+    return <ProfileSkeleton />;
   }
   
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="space-y-2 mb-8">
-            <h1 className="text-3xl font-bold font-headline">Perfil</h1>
+            <h1 className="text-3xl font-bold font-headline">Mi Perfil</h1>
             <p className="text-muted-foreground">
-                Gestiona la información de tu cuenta.
+                Gestiona la información de tu cuenta y tu plan de bienestar.
             </p>
         </div>
 
-        <Card>
-            <CardHeader>
-                <CardTitle>Información Personal</CardTitle>
-                <CardDescription>Estos datos se mostrarán en tu perfil público.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 pt-6">
-                <div className="flex items-center gap-6">
-                     <div className="relative">
-                        <Avatar className="h-24 w-24">
-                            <AvatarFallback className="text-3xl">{getInitials(name, lastName)}</AvatarFallback>
-                        </Avatar>
+        <Tabs defaultValue="personal-info" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="personal-info">Información Personal</TabsTrigger>
+            {role === 0 && <TabsTrigger value="health-form">Cuestionario de Salud</TabsTrigger>}
+          </TabsList>
+          <TabsContent value="personal-info">
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle>Información Personal</CardTitle>
+                    <CardDescription>Estos datos se mostrarán en tu perfil público.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6 pt-6">
+                    <div className="flex items-center gap-6">
+                        <div className="relative">
+                            <Avatar className="h-24 w-24">
+                                <AvatarFallback className="text-3xl">{getInitials(name, lastName)}</AvatarFallback>
+                            </Avatar>
+                        </div>
+                        <div>
+                            <p className="text-xl font-semibold">{displayName}</p>
+                            <p className="text-sm text-muted-foreground">{user?.email}</p>
+                        </div>
                     </div>
-                    <div>
-                         <p className="text-xl font-semibold">{displayName}</p>
-                         <p className="text-sm text-muted-foreground">{user?.email}</p>
-                    </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="firstName">Nombre</Label>
-                        <Input id="firstName" value={name} onChange={(e) => setName(e.target.value)} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="firstName">Nombre</Label>
+                            <Input id="firstName" value={name} onChange={(e) => setName(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="lastName">Apellido</Label>
+                            <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                        </div>
                     </div>
+                    {role === 1 && (
+                        <div className="space-y-2">
+                            <Label htmlFor="title">Título Profesional</Label>
+                            <Input id="title" placeholder="Ej. Entrenador Personal, Nutricionista" value={title} onChange={(e) => setTitle(e.target.value)} />
+                        </div>
+                    )}
                     <div className="space-y-2">
-                        <Label htmlFor="lastName">Apellido</Label>
-                        <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                        <Label htmlFor="email">Correo electrónico</Label>
+                        <Input id="email" type="email" defaultValue={user?.email} disabled />
                     </div>
-                </div>
-                {role === 1 && (
-                    <div className="space-y-2">
-                        <Label htmlFor="title">Título Profesional</Label>
-                        <Input id="title" placeholder="Ej. Entrenador Personal, Nutricionista" value={title} onChange={(e) => setTitle(e.target.value)} />
-                    </div>
-                )}
-                 <div className="space-y-2">
-                    <Label htmlFor="email">Correo electrónico</Label>
-                    <Input id="email" type="email" defaultValue={user?.email} disabled />
-                </div>
-                <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSaveChanges} disabled={isSaving}>
-                    {isSaving ? "Guardando..." : "Guardar Cambios"}
-                </Button>
-            </CardContent>
-        </Card>
+                    <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSaveChanges} disabled={isSaving}>
+                        {isSaving ? "Guardando..." : "Guardar Cambios"}
+                    </Button>
+                </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {role === 0 && user && (
+            <TabsContent value="health-form">
+                <HealthForm userId={user.id} initialData={healthData} />
+            </TabsContent>
+          )}
+        </Tabs>
       </div>
     </AppLayout>
   );
