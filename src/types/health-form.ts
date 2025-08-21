@@ -15,6 +15,4 @@ export type HealthFormData = {
   pregunta_11_anticonceptivos: string | null;
   pregunta_12_diagnostico_ginecologico: string | null;
   pregunta_13_compromiso: string | null;
-  created_at?: string;
-  updated_at?: string;
 };

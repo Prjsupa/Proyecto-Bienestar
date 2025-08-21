@@ -130,7 +130,6 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
       pregunta_11_anticonceptivos: values.pregunta_11_anticonceptivos,
       pregunta_12_diagnostico_ginecologico: values.pregunta_12_diagnostico_ginecologico,
       pregunta_13_compromiso: values.pregunta_13_compromiso,
-      updated_at: new Date().toISOString(),
     };
     
     const { error } = await supabase
