@@ -148,8 +148,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const sidebarContent = (
     <>
       <SidebarHeader>
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2 font-bold group-data-[collapsible=icon]:justify-center">
           <Logo />
+          <span className="font-headline tracking-tight group-data-[collapsible=icon]:hidden">MARIVI POWER</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>

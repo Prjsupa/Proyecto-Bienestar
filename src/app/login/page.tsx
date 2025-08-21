@@ -72,8 +72,9 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
-       <Link href="/" className="absolute top-4 left-4 flex items-center gap-2 text-foreground font-semibold">
+       <Link href="/" className="absolute top-4 left-4 flex items-center gap-2 text-foreground font-bold">
           <Logo />
+          <span className="font-headline tracking-tight">MARIVI POWER</span>
         </Link>
       <Card className="w-full max-w-sm">
         <CardHeader>

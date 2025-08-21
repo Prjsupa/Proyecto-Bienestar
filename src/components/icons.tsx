@@ -13,10 +13,11 @@ import { useEffect, useState } from 'react';
 const SUPABASE_STORAGE_URL = 'https://jqdbhsicpfdpzifphdft.supabase.co/storage/v1/object/public';
 
 // === PLEASE VERIFY ===
-// I am assuming the filenames based on your upload.
+// I am assuming the filenames for your logos.
 // If your filenames are different, please update them here.
-const LOGO_FOR_LIGHT_MODE = 'negro rojo imago@3x.png'; // Assuming this is for light backgrounds
-const LOGO_FOR_DARK_MODE = 'blanco rojo imago@3x.png'; // This is the one you showed me
+// This version is for the imagotype only (the logo without the text below it).
+const LOGO_FOR_LIGHT_MODE = 'imago-rojo-negro.png';
+const LOGO_FOR_DARK_MODE = 'imago-rojo-blanco.png';
 
 export function Logo() {
   const { resolvedTheme } = useTheme();
@@ -27,8 +28,8 @@ export function Logo() {
   }, []);
 
   if (!mounted) {
-    // Render a placeholder or nothing on the server to avoid hydration mismatch
-    return <div style={{ width: '120px', height: '32px' }} aria-label="Marivi Power Logo" role="img"></div>;
+    // Render a placeholder on the server to avoid hydration mismatch and layout shift.
+    return <div style={{ width: '32px', height: '32px' }} aria-label="Marivi Power Logo" role="img"></div>;
   }
 
   const logoSrc = resolvedTheme === 'dark' ? LOGO_FOR_DARK_MODE : LOGO_FOR_LIGHT_MODE;
@@ -37,10 +38,10 @@ export function Logo() {
     <Image
       src={`${SUPABASE_STORAGE_URL}/logos.marivi/${logoSrc}`}
       alt="Marivi Power Logo"
-      width={120}
+      width={32}
       height={32}
       className="h-8 w-auto"
-      priority // The logo is important, so we prioritize its loading
+      priority
     />
   );
 }

@@ -25,8 +25,9 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="px-4 lg:px-6 h-16 flex items-center border-b">
-        <Link href="/" className="flex items-center justify-center gap-2" aria-label="Inicio">
+        <Link href="/" className="flex items-center justify-center gap-2 font-bold text-lg" aria-label="Inicio">
           <Logo />
+          <span className="font-headline tracking-tight">MARIVI POWER</span>
         </Link>
         <nav className="ml-auto flex items-center gap-4 sm:gap-6">
           <ThemeToggle />
