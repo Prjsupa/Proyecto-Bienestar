@@ -66,9 +66,9 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        pregunta_1_edad: undefined,
-        pregunta_2_estatura: undefined,
-        pregunta_3_peso: undefined,
+        pregunta_1_edad: '' as any,
+        pregunta_2_estatura: '' as any,
+        pregunta_3_peso: '' as any,
         pregunta_4_grasa_corporal: 25,
         pregunta_5_diagnostico_medico: [],
         pregunta_5_diagnostico_otro: "",
@@ -87,15 +87,15 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
     if (initialData) {
         const diagnosticos = initialData.pregunta_5_diagnostico_medico || [];
         const predefinidos = diagnosticos.filter(d => diagnosticosMedicosOptions.some(opt => opt.id === d));
-        const otro = diagnosticos.find(d => !diagnosticosMedicosOptions.some(opt => opt.id === d));
+        const otro = diagnosticos.find(d => !diagnosticosMedicosOptions.some(opt => opt.id === d)) || "";
 
         form.reset({
-            pregunta_1_edad: initialData.pregunta_1_edad || undefined,
-            pregunta_2_estatura: initialData.pregunta_2_estatura || undefined,
-            pregunta_3_peso: initialData.pregunta_3_peso || undefined,
+            pregunta_1_edad: initialData.pregunta_1_edad || ('' as any),
+            pregunta_2_estatura: initialData.pregunta_2_estatura || ('' as any),
+            pregunta_3_peso: initialData.pregunta_3_peso || ('' as any),
             pregunta_4_grasa_corporal: initialData.pregunta_4_grasa_corporal || 25,
             pregunta_5_diagnostico_medico: predefinidos,
-            pregunta_5_diagnostico_otro: otro || "",
+            pregunta_5_diagnostico_otro: otro,
             pregunta_6_objetivo_principal: initialData.pregunta_6_objetivo_principal || "",
             pregunta_7_dias_ejercicio: initialData.pregunta_7_dias_ejercicio || undefined,
             pregunta_8_actividad_diaria: initialData.pregunta_8_actividad_diaria || undefined,
@@ -111,7 +111,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     
     // Combine "Otro" with the rest of the diagnoses
-    const diagnosticosCompletos = values.pregunta_5_diagnostico_otro 
+    const diagnosticosCompletos = values.pregunta_5_diagnostico_otro && values.pregunta_5_diagnostico_otro.trim() !== ''
         ? [...values.pregunta_5_diagnostico_medico, values.pregunta_5_diagnostico_otro] 
         : values.pregunta_5_diagnostico_medico;
 
