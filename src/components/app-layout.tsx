@@ -149,8 +149,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <>
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2">
-          <Logo className="w-8 h-8 text-primary" />
-           <span className="font-bold text-lg group-data-[collapsible=icon]:hidden">Marivi Power</span>
+          <Logo />
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -264,7 +263,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <DropdownMenuItem asChild>
                       <Link href="/profile">Perfil</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Configuración</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                         Cerrar Sesión

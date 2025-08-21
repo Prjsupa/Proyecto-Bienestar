@@ -26,8 +26,7 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <header className="px-4 lg:px-6 h-16 flex items-center border-b">
         <Link href="/" className="flex items-center justify-center gap-2" aria-label="Inicio">
-          <Logo className="h-8 w-auto text-primary" />
-          <span className="font-bold text-xl">Marivi Power</span>
+          <Logo />
         </Link>
         <nav className="ml-auto flex items-center gap-4 sm:gap-6">
           <ThemeToggle />
