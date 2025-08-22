@@ -182,16 +182,27 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; 2024 Marivi Power. Todos los derechos reservados.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Términos de Servicio
-          </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Privacidad
-          </Link>
-        </nav>
+      <footer className="w-full bg-primary dark:bg-black text-primary-foreground py-12">
+        <div className="container flex flex-col items-center text-center gap-6">
+            <Image 
+                src={`${SUPABASE_STORAGE_URL}/logos.marivi/blanco@3x.png`}
+                alt="Marivi Power Logo"
+                width={120}
+                height={120}
+                className="h-20 w-auto md:h-24"
+                data-ai-hint="logo white"
+            />
+            <h3 className="font-headline text-2xl tracking-widest">MARIVI POWER</h3>
+            <div className="flex gap-4">
+                <Link href="#" className="text-sm hover:underline underline-offset-4" prefetch={false}>
+                    Términos de Servicio
+                </Link>
+                <Link href="#" className="text-sm hover:underline underline-offset-4" prefetch={false}>
+                    Privacidad
+                </Link>
+            </div>
+            <p className="text-xs text-primary-foreground/70">&copy; 2024 Marivi Power. Todos los derechos reservados.</p>
+        </div>
       </footer>
     </div>
   );
