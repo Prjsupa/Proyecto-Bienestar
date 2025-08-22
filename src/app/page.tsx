@@ -189,10 +189,18 @@ export default function LandingPage() {
                 alt="Marivi Power Logo"
                 width={120}
                 height={120}
-                className="h-20 w-auto md:h-24"
+                className="h-20 w-auto md:h-24 block dark:hidden"
                 data-ai-hint="logo white"
             />
-            <h3 className="font-headline text-2xl tracking-widest">MARIVI POWER</h3>
+            <Image 
+                src={`${SUPABASE_STORAGE_URL}/logos.marivi/rojo%20y%20blanco%20imago%403x.png`}
+                alt="Marivi Power Logo Dark"
+                width={120}
+                height={120}
+                className="h-20 w-auto md:h-24 hidden dark:block"
+                data-ai-hint="logo white red"
+            />
+            
             <div className="flex gap-4">
                 <Link href="#" className="text-sm hover:underline underline-offset-4" prefetch={false}>
                     Términos de Servicio
@@ -201,7 +209,7 @@ export default function LandingPage() {
                     Privacidad
                 </Link>
             </div>
-            <p className="text-xs text-primary-foreground/70">&copy; 2024 Marivi Power. Todos los derechos reservados.</p>
+            <p className="text-xs text-primary-foreground/70">Todos los derechos reservados a Marivi Barrios 2025&copy;</p>
         </div>
       </footer>
     </div>
