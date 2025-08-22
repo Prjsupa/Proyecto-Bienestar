@@ -24,6 +24,7 @@ import { Badge } from "../ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { ModerationActionDialog } from "./moderation-action-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -225,6 +226,28 @@ export function QATab() {
       await fetchQuestions();
     }
   };
+
+  const handleSimpleDelete = async (id: string, type: 'question' | 'reply') => {
+    const tableName = type === 'question' ? 'pregunta_profesional' : 'respuesta_profesional';
+    const storageName = type === 'question' ? 'pregunta.profesional' : null;
+
+    if (storageName) {
+        const { data: item, error: fetchError } = await supabase.from(tableName).select('img_url').eq('id', id).single();
+        if(item?.img_url) {
+            const imagePath = item.img_url.split(`/${storageName}/`)[1];
+            if (imagePath) await supabase.storage.from(storageName).remove([imagePath]);
+        }
+    }
+
+    const { error } = await supabase.from(tableName).delete().eq('id', id);
+
+    if (error) {
+        toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
+    } else {
+        toast({ title: 'Contenido eliminado' });
+        await fetchQuestions();
+    }
+  };
   
   const handleEditReplyClick = (reply: ProfessionalReply) => {
     setEditingReply(reply);
@@ -374,7 +397,7 @@ export function QATab() {
             const isAuthor = currentUser && currentUser.id === question.user_id;
             const canReply = isProfessional || isAuthor;
             const isModerator = userRole === 2;
-            const canDeleteQuestion = isAuthor || (isModerator && author?.rol === 0);
+            const isModeratingQuestion = isModerator && !isAuthor;
 
             return (
               <Card key={question.id}>
@@ -391,7 +414,7 @@ export function QATab() {
                         </p>
                       )}
                     </div>
-                    {(isAuthor || canDeleteQuestion) && (
+                    {(isAuthor || isModeratingQuestion) && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -405,8 +428,8 @@ export function QATab() {
                                         <span>Editar</span>
                                     </DropdownMenuItem>
                                 )}
-                                {canDeleteQuestion && (
-                                    <DropdownMenuItem 
+                                {isModeratingQuestion ? (
+                                    <DropdownMenuItem
                                         onSelect={(e) => {
                                             e.preventDefault();
                                             setModerationInfo({
@@ -415,12 +438,30 @@ export function QATab() {
                                                 actionType: 'Eliminar Pregunta',
                                                 section: 'Comunidad - Preguntas',
                                             });
-                                        }} 
+                                        }}
                                         className="text-destructive"
                                     >
                                         <Trash2 className="mr-2 h-4 w-4" />
-                                        <span>Eliminar</span>
+                                        <span>Eliminar (Mod)</span>
                                     </DropdownMenuItem>
+                                ) : isAuthor && (
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                <Trash2 className="mr-2 h-4 w-4" /><span>Eliminar</span>
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleSimpleDelete(question.id, 'question')}>Continuar</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -485,7 +526,7 @@ export function QATab() {
                           const replyAuthorName = replyAuthor ? `${replyAuthor.name || ''} ${replyAuthor.last_name || ''}`.trim() : "Usuario";
                           const replyAuthorInitials = getInitials(replyAuthor?.name, replyAuthor?.last_name);
                           const isReplyAuthor = currentUser && currentUser.id === reply.user_id;
-                          const canDeleteReply = isReplyAuthor || (isModerator && replyAuthor?.rol === 0);
+                          const isModeratingReply = isModerator && !isReplyAuthor;
 
                           return (
                             <div key={reply.id} className="flex items-start gap-3 group">
@@ -520,7 +561,7 @@ export function QATab() {
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
                               </div>
-                              {(isReplyAuthor || canDeleteReply) && (
+                              {(isReplyAuthor || isModeratingReply) && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -534,7 +575,7 @@ export function QATab() {
                                                 <span>Editar</span>
                                             </DropdownMenuItem>
                                         )}
-                                        {canDeleteReply && (
+                                        {isModeratingReply ? (
                                             <DropdownMenuItem
                                                 onSelect={(e) => {
                                                     e.preventDefault();
@@ -547,9 +588,26 @@ export function QATab() {
                                                 }}
                                                 className="text-destructive"
                                             >
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                <span>Eliminar</span>
+                                                <Trash2 className="mr-2 h-4 w-4" /><span>Eliminar (Mod)</span>
                                             </DropdownMenuItem>
+                                        ) : isReplyAuthor && (
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                        <Trash2 className="mr-2 h-4 w-4" /><span>Eliminar</span>
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                        <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleSimpleDelete(reply.id, 'reply')}>Continuar</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                         )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>

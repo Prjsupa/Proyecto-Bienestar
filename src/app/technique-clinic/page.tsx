@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ModerationActionDialog } from "@/components/community/moderation-action-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const postSchema = z.object({
   nota: z.string().optional(),
@@ -220,6 +221,28 @@ export default function TechniqueClinicPage() {
         await fetchPosts();
     }
   };
+
+  const handleSimpleDelete = async (id: string, type: 'post' | 'reply') => {
+    const tableName = type === 'post' ? 'clinica_tecnica' : 'clinica_tecnica_respuesta';
+    const storageName = type === 'post' ? 'clinica.tecnica' : null;
+
+    if (storageName) {
+        const { data: item, error: fetchError } = await supabase.from(tableName).select('video_url').eq('id', id).single();
+        if(item?.video_url) {
+            const videoPath = item.video_url.split(`/${storageName}/`)[1];
+            if (videoPath) await supabase.storage.from(storageName).remove([videoPath]);
+        }
+    }
+
+    const { error } = await supabase.from(tableName).delete().eq('id', id);
+
+    if (error) {
+        toast({ variant: 'destructive', title: 'Error al eliminar', description: error.message });
+    } else {
+        toast({ title: 'Contenido eliminado' });
+        await fetchPosts();
+    }
+  };
   
   const handleEditReplyClick = (reply: TechniqueReply) => {
     setEditingReply(reply);
@@ -349,7 +372,7 @@ export default function TechniqueClinicPage() {
                     const isAuthor = currentUser?.id === post.user_id;
                     const canReply = userRole === 1 || isAuthor;
                     const isModerator = userRole === 2;
-                    const canDeletePost = isAuthor || (isModerator && authorProfile?.rol === 0);
+                    const isModeratingPost = isModerator && !isAuthor;
 
 
                     return (
@@ -366,7 +389,7 @@ export default function TechniqueClinicPage() {
                                       </p>
                                   )}
                               </div>
-                              {(isAuthor || canDeletePost) && (
+                              {(isAuthor || isModeratingPost) && (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -380,7 +403,7 @@ export default function TechniqueClinicPage() {
                                         <span>Editar</span>
                                         </DropdownMenuItem>
                                     )}
-                                    {canDeletePost && (
+                                    {isModeratingPost ? (
                                         <DropdownMenuItem 
                                             onSelect={(e) => {
                                                 e.preventDefault();
@@ -394,8 +417,26 @@ export default function TechniqueClinicPage() {
                                             className="text-destructive"
                                         >
                                             <Trash2 className="mr-2 h-4 w-4" />
-                                            <span>Eliminar</span>
+                                            <span>Eliminar (Mod)</span>
                                         </DropdownMenuItem>
+                                    ) : isAuthor && (
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                    <Trash2 className="mr-2 h-4 w-4" /><span>Eliminar</span>
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                    <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleSimpleDelete(post.id, 'post')}>Continuar</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     )}
                                   </DropdownMenuContent>
                                 </DropdownMenu>
@@ -453,7 +494,7 @@ export default function TechniqueClinicPage() {
                                             const replyAuthorName = replyAuthor ? `${replyAuthor.name} ${replyAuthor.last_name}`.trim() : "Usuario";
                                             const replyAuthorInitials = getInitials(replyAuthor?.name, replyAuthor?.last_name);
                                             const isReplyAuthor = currentUser?.id === reply.user_id;
-                                            const canDeleteReply = isReplyAuthor || (isModerator && replyAuthor?.rol === 0);
+                                            const isModeratingReply = isModerator && !isReplyAuthor;
 
                                             return (
                                                 <div key={reply.id} className="flex items-start gap-3 group">
@@ -488,7 +529,7 @@ export default function TechniqueClinicPage() {
                                                         </div>
                                                         <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
                                                     </div>
-                                                    {(isReplyAuthor || canDeleteReply) && (
+                                                    {(isReplyAuthor || isModeratingReply) && (
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
                                                                 <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -501,8 +542,8 @@ export default function TechniqueClinicPage() {
                                                                         <Edit className="mr-2 h-4 w-4" /><span>Editar</span>
                                                                     </DropdownMenuItem>
                                                                 )}
-                                                                {canDeleteReply && (
-                                                                    <DropdownMenuItem
+                                                                {isModeratingReply ? (
+                                                                     <DropdownMenuItem
                                                                         onSelect={(e) => {
                                                                             e.preventDefault();
                                                                             setModerationInfo({
@@ -514,8 +555,26 @@ export default function TechniqueClinicPage() {
                                                                         }}
                                                                         className="text-destructive"
                                                                     >
-                                                                        <Trash2 className="mr-2 h-4 w-4" /><span>Eliminar</span>
+                                                                        <Trash2 className="mr-2 h-4 w-4" /><span>Eliminar (Mod)</span>
                                                                     </DropdownMenuItem>
+                                                                ) : isReplyAuthor && (
+                                                                    <AlertDialog>
+                                                                        <AlertDialogTrigger asChild>
+                                                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                                                <Trash2 className="mr-2 h-4 w-4" /><span>Eliminar</span>
+                                                                            </DropdownMenuItem>
+                                                                        </AlertDialogTrigger>
+                                                                        <AlertDialogContent>
+                                                                            <AlertDialogHeader>
+                                                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                                                <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                                                            </AlertDialogHeader>
+                                                                            <AlertDialogFooter>
+                                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                                <AlertDialogAction onClick={() => handleSimpleDelete(reply.id, 'reply')}>Continuar</AlertDialogAction>
+                                                                            </AlertDialogFooter>
+                                                                        </AlertDialogContent>
+                                                                    </AlertDialog>
                                                                 )}
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
