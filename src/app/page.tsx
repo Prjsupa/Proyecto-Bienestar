@@ -75,12 +75,12 @@ export default function LandingPage() {
               </div>
               <div className="relative flex items-center justify-center">
                  <Image
-                    src={`${SUPABASE_STORAGE_URL}/logos.marivi/blanco%20rojo%20imago%403x.png`}
+                    src={`${SUPABASE_STORAGE_URL}/logos.marivi/blanco@3x.png`}
                     width="600"
                     height="600"
                     alt="Logo Marivi Power"
                     data-ai-hint="logo"
-                    className="mx-auto w-2/3 lg:w-full max-w-md drop-shadow-2xl dark:invert"
+                    className="mx-auto w-2/3 lg:w-full max-w-md drop-shadow-2xl invert dark:invert-0"
                 />
               </div>
             </div>
