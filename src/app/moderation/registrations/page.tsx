@@ -31,10 +31,16 @@ function RegistrationControlCard({
     onToggle: (id: string, currentState: boolean) => void,
     loading: boolean
 }) {
+    const [registrationUrl, setRegistrationUrl] = useState('');
+    
+    useEffect(() => {
+        // This code runs only on the client, so window is available.
+        setRegistrationUrl(`${window.location.origin}/register/${type}`);
+    }, [type]);
+
     const link = links.find(l => l.id === type);
     const title = type === 'professional' ? 'Registro de Profesionales' : 'Registro de Moderadores';
     const description = `Controla si el enlace de registro para ${type === 'professional' ? 'profesionales' : 'moderadores'} está activo.`;
-    const registrationUrl = `${window.location.origin}/register/${type}`;
 
     return (
         <Card>
@@ -49,9 +55,13 @@ function RegistrationControlCard({
                             <p className="text-sm font-medium leading-none">
                                 {link?.is_active ? 'Registro Abierto' : 'Registro Cerrado'}
                             </p>
-                             <a href={registrationUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground underline hover:text-primary break-all">
-                                {registrationUrl}
-                             </a>
+                             {registrationUrl ? (
+                                <a href={registrationUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground underline hover:text-primary break-all">
+                                    {registrationUrl}
+                                </a>
+                             ) : (
+                                <Skeleton className="h-5 w-full mt-1" />
+                             )}
                         </div>
                         <Switch
                             checked={link?.is_active}
@@ -218,4 +228,3 @@ function UserHistoryTable({ users, loading }: { users: UserWithRole[], loading: 
         </Table>
     );
 }
-
