@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -407,7 +408,21 @@ export function QATab() {
                       <AvatarFallback>{authorInitials}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="font-semibold">{authorName}</p>
+                        <div className="flex items-center gap-2">
+                           <p className="font-semibold">{authorName}</p>
+                           {author?.rol === 1 && (
+                            <Badge variant="outline" className="border-primary/50 text-primary h-5 text-xs">
+                                <Check className="w-3 h-3 mr-1" />
+                                Profesional
+                            </Badge>
+                            )}
+                            {author?.rol === 2 && (
+                            <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 h-5 text-xs">
+                                <Shield className="w-3 h-3 mr-1" />
+                                Moderador
+                            </Badge>
+                            )}
+                        </div>
                       {isClient && (
                         <p className="text-xs text-muted-foreground">
                           preguntó {formatDistanceToNow(new Date(question.fecha), { addSuffix: true, locale: es })}
