@@ -11,10 +11,12 @@ const premiumPlan = {
     name: "Premium",
     price: "$100/mes",
     features: [
-        "Todas las características",
+        "Rutinas personalizadas",
         "Coaching avanzado y personalizado",
         "Recetas ilimitadas",
         "Chat 1 a 1 con el coach",
+        "Entrenamiento a tu ritmo",
+        "Todo esto y mucho más"
     ],
     cta: "Suscribirse Ahora"
 };
