@@ -372,7 +372,7 @@ export default function TechniqueClinicPage() {
                     const isAuthor = currentUser?.id === post.user_id;
                     const canReply = userRole === 1 || isAuthor;
                     const isModerator = userRole === 2;
-                    const isModeratingPost = isModerator && !isAuthor;
+                    const canModeratorDelete = isModerator && !isAuthor && authorProfile?.rol === 0;
 
 
                     return (
@@ -389,7 +389,7 @@ export default function TechniqueClinicPage() {
                                       </p>
                                   )}
                               </div>
-                              {(isAuthor || isModeratingPost) && (
+                              {(isAuthor || canModeratorDelete) && (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -403,7 +403,7 @@ export default function TechniqueClinicPage() {
                                         <span>Editar</span>
                                         </DropdownMenuItem>
                                     )}
-                                    {isModeratingPost ? (
+                                    {canModeratorDelete ? (
                                         <DropdownMenuItem 
                                             onSelect={(e) => {
                                                 e.preventDefault();
@@ -494,7 +494,7 @@ export default function TechniqueClinicPage() {
                                             const replyAuthorName = replyAuthor ? `${replyAuthor.name} ${replyAuthor.last_name}`.trim() : "Usuario";
                                             const replyAuthorInitials = getInitials(replyAuthor?.name, replyAuthor?.last_name);
                                             const isReplyAuthor = currentUser?.id === reply.user_id;
-                                            const isModeratingReply = isModerator && !isReplyAuthor;
+                                            const canModeratorDeleteReply = isModerator && !isReplyAuthor && replyAuthor?.rol === 0;
 
                                             return (
                                                 <div key={reply.id} className="flex items-start gap-3 group">
@@ -529,7 +529,7 @@ export default function TechniqueClinicPage() {
                                                         </div>
                                                         <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
                                                     </div>
-                                                    {(isReplyAuthor || isModeratingReply) && (
+                                                    {(isReplyAuthor || canModeratorDeleteReply) && (
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
                                                                 <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -542,7 +542,7 @@ export default function TechniqueClinicPage() {
                                                                         <Edit className="mr-2 h-4 w-4" /><span>Editar</span>
                                                                     </DropdownMenuItem>
                                                                 )}
-                                                                {isModeratingReply ? (
+                                                                {canModeratorDeleteReply ? (
                                                                      <DropdownMenuItem
                                                                         onSelect={(e) => {
                                                                             e.preventDefault();

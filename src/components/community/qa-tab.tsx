@@ -398,7 +398,7 @@ export function QATab() {
             const isAuthor = currentUser && currentUser.id === question.user_id;
             const canReply = isProfessional || isAuthor;
             const isModerator = userRole === 2;
-            const isModeratingQuestion = isModerator && !isAuthor;
+            const canModeratorDelete = isModerator && !isAuthor && author?.rol === 0;
 
             return (
               <Card key={question.id}>
@@ -429,7 +429,7 @@ export function QATab() {
                         </p>
                       )}
                     </div>
-                    {(isAuthor || isModeratingQuestion) && (
+                    {(isAuthor || canModeratorDelete) && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -443,7 +443,7 @@ export function QATab() {
                                         <span>Editar</span>
                                     </DropdownMenuItem>
                                 )}
-                                {isModeratingQuestion ? (
+                                {canModeratorDelete ? (
                                     <DropdownMenuItem
                                         onSelect={(e) => {
                                             e.preventDefault();
@@ -541,7 +541,7 @@ export function QATab() {
                           const replyAuthorName = replyAuthor ? `${replyAuthor.name || ''} ${replyAuthor.last_name || ''}`.trim() : "Usuario";
                           const replyAuthorInitials = getInitials(replyAuthor?.name, replyAuthor?.last_name);
                           const isReplyAuthor = currentUser && currentUser.id === reply.user_id;
-                          const isModeratingReply = isModerator && !isReplyAuthor;
+                          const canModeratorDeleteReply = isModerator && !isReplyAuthor && replyAuthor?.rol === 0;
 
                           return (
                             <div key={reply.id} className="flex items-start gap-3 group">
@@ -576,7 +576,7 @@ export function QATab() {
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
                               </div>
-                              {(isReplyAuthor || isModeratingReply) && (
+                              {(isReplyAuthor || canModeratorDeleteReply) && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -590,7 +590,7 @@ export function QATab() {
                                                 <span>Editar</span>
                                             </DropdownMenuItem>
                                         )}
-                                        {isModeratingReply ? (
+                                        {canModeratorDeleteReply ? (
                                             <DropdownMenuItem
                                                 onSelect={(e) => {
                                                     e.preventDefault();

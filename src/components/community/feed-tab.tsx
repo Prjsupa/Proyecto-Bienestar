@@ -389,7 +389,7 @@ export function FeedTab() {
             const authorInitials = getInitials(authorProfile?.name, authorProfile?.last_name);
             const isPostAuthor = currentUser && currentUser.id === post.user_id;
             const isModerator = userRole === 2;
-            const isModeratingOtherUser = isModerator && !isPostAuthor;
+            const canModeratorDelete = isModerator && !isPostAuthor && authorProfile?.rol === 0;
 
             return (
                 <Card key={post.id}>
@@ -422,7 +422,7 @@ export function FeedTab() {
                         </p>
                     )}
                     </div>
-                    {(isPostAuthor || isModeratingOtherUser) && (
+                    {(isPostAuthor || canModeratorDelete) && (
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -436,34 +436,7 @@ export function FeedTab() {
                                         <span>Editar</span>
                                     </DropdownMenuItem>
                                 )}
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem
-                                            className="text-destructive"
-                                            onSelect={(e) => e.preventDefault()}
-                                        >
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            <span>Eliminar</span>
-                                        </DropdownMenuItem>
-                                    </AlertDialogTrigger>
-                                    {isModeratingOtherUser ? (
-                                        <DialogContent>
-                                            <p>Use moderation dialog</p>
-                                        </DialogContent>
-                                    ) : (
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                                <AlertDialogDescription>Esta acción no se puede deshacer y eliminará tu publicación permanentemente.</AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleSimpleDelete(post.id, 'post')}>Continuar</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    )}
-                                </AlertDialog>
-                                {isModeratingOtherUser && (
+                                {canModeratorDelete ? (
                                     <DropdownMenuItem 
                                         onSelect={(e) => {
                                             e.preventDefault();
@@ -479,6 +452,24 @@ export function FeedTab() {
                                         <Trash2 className="mr-2 h-4 w-4" />
                                         <span>Eliminar (Mod)</span>
                                     </DropdownMenuItem>
+                                ) : isPostAuthor && (
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                <Trash2 className="mr-2 h-4 w-4" /><span>Eliminar</span>
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>Esta acción no se puede deshacer y eliminará tu publicación permanentemente.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleSimpleDelete(post.id, 'post')}>Continuar</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -544,7 +535,7 @@ export function FeedTab() {
                                 const replyAuthorName = replyAuthorProfile ? `${replyAuthorProfile.name} ${replyAuthorProfile.last_name}`.trim() : "Usuario Anónimo";
                                 const replyAuthorInitials = getInitials(replyAuthorProfile?.name, replyAuthorProfile?.last_name);
                                 const isReplyAuthor = currentUser && currentUser.id === reply.user_id;
-                                const isModeratingReply = isModerator && !isReplyAuthor;
+                                const canModeratorDeleteReply = isModerator && !isReplyAuthor && replyAuthorProfile?.rol === 0;
 
                                 return (
                                     <div key={reply.id} className="flex items-start gap-3 group">
@@ -581,7 +572,7 @@ export function FeedTab() {
                                             </div>
                                             <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{reply.mensaje}</p>
                                         </div>
-                                         {(isReplyAuthor || isModeratingReply) && (
+                                         {(isReplyAuthor || canModeratorDeleteReply) && (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -595,7 +586,7 @@ export function FeedTab() {
                                                             <span>Editar</span>
                                                         </DropdownMenuItem>
                                                     )}
-                                                    {isModeratingReply ? (
+                                                    {canModeratorDeleteReply ? (
                                                          <DropdownMenuItem 
                                                             onSelect={(e) => {
                                                                 e.preventDefault();
