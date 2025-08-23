@@ -10,13 +10,13 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 240 10% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 0 85% 20%; /* Dark Red: #600808 */
+    --primary: 0 100% 36%; /* Dark Red: #B70000 */
     --primary-foreground: 0 85.7% 97.3%;
     --secondary: 240 4.8% 95.9%; /* Lighter grey */
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 92.9%; /* Medium grey */
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 0 85% 20%; /* Dark Red accent: #600808 */
+    --accent: 0 100% 36%; /* Dark Red accent: #B70000 */
     --accent-foreground: 0 85.7% 97.3%;
     --destructive: 0 72.2% 50.6%;
     --destructive-foreground: 0 0% 98%;
@@ -24,7 +24,7 @@
     --warning-foreground: 48 96% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 0 85% 20%;
+    --ring: 0 100% 36%;
     --radius: 0.8rem;
 
     --chart-1: 0 72.2% 50.6%;
