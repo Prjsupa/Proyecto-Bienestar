@@ -44,20 +44,20 @@ type FormSchemaType = z.infer<typeof formSchema>;
 type FormFieldName = keyof FormSchemaType;
 
 const steps: { title: string; subtitle: string; fields: FormFieldName[] }[] = [
-    { title: 'Edad', subtitle: '¿Cuál es tu edad?', fields: ['pregunta_1_edad'] },
-    { title: 'Estatura', subtitle: '¿Cuál es tu estatura en centímetros?', fields: ['pregunta_2_estatura'] },
-    { title: 'Peso Actual', subtitle: '¿Cuál es tu peso actual en kilogramos?', fields: ['pregunta_3_peso'] },
-    { title: 'Grasa Corporal', subtitle: 'Mueve el slider para ajustar tu porcentaje de grasa corporal.', fields: ['pregunta_4_grasa_corporal'] },
-    { title: 'Historial Médico', subtitle: '¿Tienes algún diagnóstico médico actual? Selecciona todo lo que aplique.', fields: ['pregunta_5_diagnostico_medico', 'pregunta_5_diagnostico_otro'] },
-    { title: 'Objetivo Principal', subtitle: 'Describe claramente qué quieres lograr.', fields: ['pregunta_6_objetivo_principal'] },
-    { title: 'Frecuencia de Ejercicio', subtitle: '¿Con qué frecuencia puedes ejercitarte por semana?', fields: ['pregunta_7_dias_ejercicio'] },
-    { title: 'Actividad Diaria', subtitle: 'Fuera del ejercicio, ¿cómo es tu actividad diaria?', fields: ['pregunta_8_actividad_diaria'] },
-    { title: 'Alimentación', subtitle: '¿Tienes alergias, intolerancias o preferencias alimentarias?', fields: ['pregunta_9_restricciones_alimentarias'] },
-    { title: 'Ciclo Menstrual', subtitle: '¿Consideras que tu ciclo menstrual es regular?', fields: ['pregunta_10_ciclo_menstrual'] },
-    { title: 'Anticonceptivos', subtitle: '¿Usas anticonceptivos hormonales?', fields: ['pregunta_11_anticonceptivos'] },
-    { title: 'Salud Ginecológica', subtitle: '¿Tienes algún diagnóstico ginecológico relevante?', fields: ['pregunta_12_diagnostico_ginecologico'] },
-    { title: 'Nivel de Compromiso', subtitle: 'Siendo honesta, ¿cuál es tu nivel de compromiso?', fields: ['pregunta_13_compromiso'] },
-    { title: 'Lugar de Entrenamiento', subtitle: 'Elige con cuidado, si te equivocas tendrás que contactar con soporte.', fields: ['pregunta_14_entorno'] },
+    { title: '¿Cuál es tu edad?', subtitle: 'Esto nos ayudará a personalizar tu plan.', fields: ['pregunta_1_edad'] },
+    { title: '¿Cuál es tu estatura?', subtitle: 'Para calcular tu composición ideal.', fields: ['pregunta_2_estatura'] },
+    { title: '¿Cuál es tu peso actual?', subtitle: 'Sin juzgar, solo necesitamos el dato.', fields: ['pregunta_3_peso'] },
+    { title: 'Porcentaje de grasa corporal.', subtitle: 'Mueve el slider para ajustar el valor.', fields: ['pregunta_4_grasa_corporal'] },
+    { title: 'Diagnóstico médico actual.', subtitle: 'Selecciona todo lo que aplique.', fields: ['pregunta_5_diagnostico_medico', 'pregunta_5_diagnostico_otro'] },
+    { title: '¿Cuál es tu objetivo principal?', subtitle: 'Describe claramente lo que quieres lograr.', fields: ['pregunta_6_objetivo_principal'] },
+    { title: 'Días de ejercicio por semana.', subtitle: '¿Con qué frecuencia puedes ejercitarte?', fields: ['pregunta_7_dias_ejercicio'] },
+    { title: 'Nivel de actividad física diaria', subtitle: 'Más allá del ejercicio programado.', fields: ['pregunta_8_actividad_diaria'] },
+    { title: 'Restricciones alimentarias.', subtitle: 'Cuéntanos sobre alergias, intolerancias o preferencias.', fields: ['pregunta_9_restricciones_alimentarias'] },
+    { title: '¿Tienes ciclo menstrual regular?', subtitle: 'Esto afecta tu metabolismo y energía.', fields: ['pregunta_10_ciclo_menstrual'] },
+    { title: '¿Usas anticonceptivos hormonales?', subtitle: 'Pastillas, DIU hormonal, implante, etc.', fields: ['pregunta_11_anticonceptivos'] },
+    { title: '¿Tienes algún diagnóstico ginecológico?', subtitle: 'SOP, endometriosis, etc.', fields: ['pregunta_12_diagnostico_ginecologico'] },
+    { title: 'Nivel de compromiso con el plan.', subtitle: 'Sé honesta contigo misma.', fields: ['pregunta_13_compromiso'] },
+    { title: '¿En dónde entrenas?', subtitle: 'Elige con cuidado, si te equivocas tendrás que contactar con soporte.', fields: ['pregunta_14_entorno'] },
 ];
 
 const diagnosticosMedicosOptions = [
@@ -210,7 +210,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-2">
             <Progress value={progressValue} className="w-full" />
-            <p className="text-sm text-muted-foreground text-center">Paso {currentStep + 1} de {steps.length} - {currentTitle}</p>
+            <p className="text-sm text-muted-foreground text-center">Paso {currentStep + 1} de {steps.length}</p>
         </div>
         <Separator />
         <AnimatePresence mode="wait">
@@ -223,9 +223,9 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
             className="min-h-[280px] flex flex-col justify-center"
         >
             <div className="text-center w-full max-w-lg mx-auto">
-                <FormLabel className="text-2xl font-semibold text-center block mb-2">{steps[currentStep].subtitle}</FormLabel>
+                <FormLabel className="text-2xl font-semibold text-center block mb-2">{currentTitle}</FormLabel>
                 <FormDescription className="text-center mb-8">
-                     {currentTitle}
+                     {currentSubtitle}
                 </FormDescription>
                 
                 {currentFields.includes('pregunta_1_edad') && (
@@ -455,3 +455,5 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
     </Form>
   );
 }
+
+    
