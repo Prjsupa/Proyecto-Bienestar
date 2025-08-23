@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { User } from "@supabase/supabase-js";
-import { AppLayout } from "@/components/app-layout";
 import { RoutineCard, RoutineSkeleton } from "@/components/routine-card";
 import { RoutineDetailModal } from "@/components/routine-detail-modal";
 import { RoutineFormModal } from "@/components/routine-form-modal";
@@ -18,7 +17,11 @@ import { useToast } from "@/hooks/use-toast";
 
 type VisibilityFilter = 'all' | 'visible' | 'not-visible';
 
-export default function RoutinesHomePage() {
+interface RoutinesViewProps {
+  environment: 'casa' | 'gimnasio';
+}
+
+export function RoutinesView({ environment }: RoutinesViewProps) {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,18 +42,18 @@ export default function RoutinesHomePage() {
       const { data, error } = await supabase
         .from("rutinas")
         .select("*")
-        .ilike("entorno", "casa")
+        .ilike("entorno", environment)
         .order("fecha", { ascending: false });
 
       if (error) throw error;
       setRoutines(data || []);
     } catch (err: any) {
-      console.error("Error fetching home routines:", err);
+      console.error(`Error fetching ${environment} routines:`, err);
       setError("No se pudieron cargar las rutinas. Por favor, inténtalo de nuevo más tarde.");
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, [supabase, environment]);
 
   useEffect(() => {
     const fetchUserAndData = async () => {
@@ -66,7 +69,10 @@ export default function RoutinesHomePage() {
   }, [fetchRoutines, supabase]);
 
   const filteredRoutines = useMemo(() => {
-    if (visibilityFilter === 'all' || userRole !== 1) {
+    if (userRole !== 1) { // If not professional, only show visible routines
+        return routines.filter(r => r.visible);
+    }
+    if (visibilityFilter === 'all') {
       return routines;
     }
     if (visibilityFilter === 'visible') {
@@ -103,17 +109,9 @@ export default function RoutinesHomePage() {
   const isProfessional = userRole === 1;
 
   return (
-    <AppLayout>
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div>
-            <h1 className="text-3xl font-bold font-headline">Rutinas en Casa</h1>
-            <p className="text-muted-foreground">
-              Entrenamientos que puedes hacer en la comodidad de tu hogar.
-            </p>
-          </div>
-           {isProfessional && (
-            <div className="flex flex-col-reverse sm:flex-row items-end sm:items-center gap-4 w-full sm:w-auto">
+        {isProfessional && (
+            <div className="flex flex-col sm:flex-row justify-end items-start gap-4">
                 <Tabs value={visibilityFilter} onValueChange={(value) => setVisibilityFilter(value as VisibilityFilter)}>
                     <TabsList>
                         <TabsTrigger value="all">Todas</TabsTrigger>
@@ -126,8 +124,7 @@ export default function RoutinesHomePage() {
                     Añadir Rutina
                 </Button>
             </div>
-          )}
-        </div>
+        )}
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -197,21 +194,20 @@ export default function RoutinesHomePage() {
             </p>
           </div>
         )}
+        <RoutineDetailModal routine={selectedRoutine} isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} />
+        {isProfessional && currentUser && (
+            <RoutineFormModal
+                isOpen={isFormModalOpen}
+                onClose={handleCloseFormModal}
+                onSuccess={() => {
+                    fetchRoutines();
+                    handleCloseFormModal();
+                }}
+                routine={editingRoutine}
+                userId={currentUser.id}
+                environment={environment}
+            />
+        )}
       </div>
-      <RoutineDetailModal routine={selectedRoutine} isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} />
-      {isProfessional && currentUser && (
-        <RoutineFormModal
-            isOpen={isFormModalOpen}
-            onClose={handleCloseFormModal}
-            onSuccess={() => {
-                fetchRoutines();
-                handleCloseFormModal();
-            }}
-            routine={editingRoutine}
-            userId={currentUser.id}
-            environment="casa"
-        />
-      )}
-    </AppLayout>
   );
 }

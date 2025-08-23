@@ -57,15 +57,7 @@ import { ThemeToggle } from "./theme-toggle";
 const allNavItems = [
   { href: "/dashboard", icon: Home, label: "Panel" },
   { href: "/recipes", icon: UtensilsCrossed, label: "Recetas" },
-  {
-    href: "/routines",
-    icon: Dumbbell,
-    label: "Rutinas",
-    subItems: [
-      { href: "/routines/home", label: "Casa" },
-      { href: "/routines/gym", label: "Gimnasio" },
-    ],
-  },
+  { href: "/routines", icon: Dumbbell, label: "Rutinas" },
   { href: "/live", icon: Video, label: "En Vivo" },
   { href: "/community", icon: Users, label: "Comunidad" },
   { href: "/technique-clinic", icon: Dumbbell, label: "Clínica de la Técnica" },
@@ -156,54 +148,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <SidebarContent>
         <SidebarMenu>
           {navItems.map((item) =>
-            item.subItems ? (
-              <SidebarMenuItem key={item.href} className="group/collapsible">
-                <Collapsible defaultOpen={pathname.startsWith(item.href)}>
-                    <CollapsibleTrigger asChild>
-                        <SidebarMenuButton
-                            className="w-full justify-between group-data-[state=open]:bg-accent group-data-[state=open]:text-accent-foreground"
-                            isActive={pathname.startsWith(item.href)}
-                            tooltip={item.label}
-                        >
-                            <div className="flex items-center gap-2">
-                                <item.icon/>
-                                <span>{item.label}</span>
-                            </div>
-                            <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:-rotate-180" />
-                        </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="ml-7 mt-1 flex flex-col border-l border-border pl-3 group-data-[collapsible=icon]:hidden">
-                      {item.subItems.map((subItem) => (
-                        <Link
-                          key={subItem.href}
-                          href={subItem.href}
-                          className={cn(
-                            "py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground",
-                            pathname === subItem.href && "text-foreground font-semibold"
-                          )}
-                        >
-                          {subItem.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </SidebarMenuItem>
-            ) : (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === item.href}
-                  tooltip={item.label}
-                >
-                  <Link href={item.href} className="flex items-center gap-2">
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                tooltip={item.label}
+              >
+                <Link href={item.href} className="flex items-center gap-2">
+                  <item.icon />
+                  <span>{item.label}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           )}
         </SidebarMenu>
          {userRole === 2 && (
