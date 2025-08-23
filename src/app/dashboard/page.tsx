@@ -24,6 +24,7 @@ import type { Cita } from "@/types/community";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 function UserDashboard({ user, greeting, dailyRecipe, recipeLoading, dailyRoutine, routineLoading, appointment, appointmentLoading }: { user: User | null, greeting: string, dailyRecipe: Recipe | null, recipeLoading: boolean, dailyRoutine: Routine | null, routineLoading: boolean, appointment: Cita | null, appointmentLoading: boolean }) {
     const getStatusInfo = (status: Cita['estado']) => {
@@ -68,7 +69,7 @@ function UserDashboard({ user, greeting, dailyRecipe, recipeLoading, dailyRoutin
                     </CardContent>
                 </Card>
             
-                <Card className="lg:col-span-2">
+                <Card className="lg:col-span-2 bg-primary/5 dark:bg-primary/10 border-primary/20">
                     <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-2"><CalendarPlus className="w-5 h-5" /> Próxima Cita</CardTitle>
                         <CardDescription>Consulta o agenda tu próxima cita con un profesional.</CardDescription>
@@ -429,3 +430,5 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
+
+    
