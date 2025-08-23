@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { HealthFormData } from "@/types/health-form";
-import { HealthFormModal } from "@/components/profile/health-form-modal";
+import Link from "next/link";
 import { FileText } from "lucide-react";
 
 function ProfileSkeleton() {
@@ -66,33 +66,17 @@ export default function ProfilePage() {
   const [lastName, setLastName] = useState("");
   const [title, setTitle] = useState("");
   const [role, setRole] = useState<number | null>(null);
-  const [healthData, setHealthData] = useState<HealthFormData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
+  
   const router = useRouter();
   const { toast } = useToast();
   const supabase = createClient();
   
-  const fetchHealthData = async (userId: string) => {
-    const { data: formData, error: formError } = await supabase
-        .from('formulario')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-    
-    if (formError) {
-        console.error('Error fetching health form:', formError);
-    } else {
-        setHealthData(formData);
-    }
-  }
-
   const fetchProfileData = async (user: User) => {
       setUser(user);
       const { data: profileData, error: profileError } = await supabase
           .from('usuarios')
-          .select('name, last_name, rol, titulo, entorno')
+          .select('name, last_name, rol, titulo')
           .eq('id', user.id)
           .single();
 
@@ -104,10 +88,6 @@ export default function ProfilePage() {
           setLastName(profileData.last_name || user.user_metadata?.last_name || "");
           setTitle(profileData.titulo || "");
           setRole(profileData.rol || 0);
-
-          if (profileData.rol === 0) {
-              await fetchHealthData(user.id);
-          }
       }
       setLoading(false);
   };
@@ -235,31 +215,13 @@ export default function ProfilePage() {
                     <Input id="email" type="email" defaultValue={user?.email} disabled />
                 </div>
             </CardContent>
-            <CardFooter className="flex justify-between items-center">
+            <CardFooter>
                  <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSaveChanges} disabled={isSaving}>
                     {isSaving ? "Guardando..." : "Guardar Cambios"}
                 </Button>
-                {role === 0 && (
-                    <Button variant="outline" onClick={() => setIsFormOpen(true)}>
-                        <FileText className="mr-2 h-4 w-4" />
-                        Formulario
-                    </Button>
-                )}
             </CardFooter>
         </Card>
       </div>
-
-       {user && role === 0 && (
-            <HealthFormModal 
-                isOpen={isFormOpen} 
-                onClose={() => setIsFormOpen(false)} 
-                userId={user.id}
-                initialData={healthData}
-                onSuccess={() => fetchProfileData(user)}
-            />
-        )}
     </AppLayout>
   );
 }
-
-    

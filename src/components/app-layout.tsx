@@ -15,6 +15,7 @@ import {
   Shield,
   UserCog,
   UserPlus,
+  FileText,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -62,6 +63,7 @@ const allNavItems = [
   { href: "/community", icon: Users, label: "Comunidad" },
   { href: "/technique-clinic", icon: Dumbbell, label: "Clínica de la Técnica" },
   { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita", roles: [0, 1] },
+  { href: "/health-form", icon: FileText, label: "Mi Formulario", roles: [0] },
 ];
 
 const moderatorNavItems = [
