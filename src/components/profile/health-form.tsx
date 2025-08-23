@@ -44,19 +44,19 @@ type FormFieldName = keyof FormSchemaType;
 
 const steps: { title: string; subtitle: string; fields: FormFieldName[] }[] = [
     { title: 'Edad', subtitle: '¿Cuál es tu edad?', fields: ['pregunta_1_edad'] },
-    { title: 'Estatura', subtitle: '¿Cuál es tu estatura?', fields: ['pregunta_2_estatura'] },
-    { title: 'Peso Actual', subtitle: '¿Cuál es tu peso actual?', fields: ['pregunta_3_peso'] },
-    { title: 'Grasa Corporal', subtitle: 'Porcentaje de grasa corporal. Mueve el slider para ajustar el valor.', fields: ['pregunta_4_grasa_corporal'] },
-    { title: 'Historial Médico', subtitle: 'Diagnóstico médico actual. Selecciona todo lo que aplique.', fields: ['pregunta_5_diagnostico_medico', 'pregunta_5_diagnostico_otro'] },
-    { title: 'Objetivo Principal', subtitle: 'Describe claramente lo que quieres lograr.', fields: ['pregunta_6_objetivo_principal'] },
-    { title: 'Frecuencia de Ejercicio', subtitle: '¿Con qué frecuencia puedes ejercitarte?', fields: ['pregunta_7_dias_ejercicio'] },
-    { title: 'Actividad Diaria', subtitle: 'Más allá del ejercicio programado.', fields: ['pregunta_8_actividad_diaria'] },
-    { title: 'Alimentación', subtitle: 'Cuéntanos sobre alergias, intolerancias o preferencias.', fields: ['pregunta_9_restricciones_alimentarias'] },
-    { title: 'Ciclo Menstrual', subtitle: '¿Tienes ciclo menstrual regular?', fields: ['pregunta_10_ciclo_menstrual'] },
+    { title: 'Estatura', subtitle: '¿Cuál es tu estatura en centímetros?', fields: ['pregunta_2_estatura'] },
+    { title: 'Peso Actual', subtitle: '¿Cuál es tu peso actual en kilogramos?', fields: ['pregunta_3_peso'] },
+    { title: 'Grasa Corporal', subtitle: 'Mueve el slider para ajustar tu porcentaje de grasa corporal.', fields: ['pregunta_4_grasa_corporal'] },
+    { title: 'Historial Médico', subtitle: '¿Tienes algún diagnóstico médico actual? Selecciona todo lo que aplique.', fields: ['pregunta_5_diagnostico_medico', 'pregunta_5_diagnostico_otro'] },
+    { title: 'Objetivo Principal', subtitle: 'Describe claramente qué quieres lograr.', fields: ['pregunta_6_objetivo_principal'] },
+    { title: 'Frecuencia de Ejercicio', subtitle: '¿Con qué frecuencia puedes ejercitarte por semana?', fields: ['pregunta_7_dias_ejercicio'] },
+    { title: 'Actividad Diaria', subtitle: 'Fuera del ejercicio, ¿cómo es tu actividad diaria?', fields: ['pregunta_8_actividad_diaria'] },
+    { title: 'Alimentación', subtitle: '¿Tienes alergias, intolerancias o preferencias alimentarias?', fields: ['pregunta_9_restricciones_alimentarias'] },
+    { title: 'Ciclo Menstrual', subtitle: '¿Consideras que tu ciclo menstrual es regular?', fields: ['pregunta_10_ciclo_menstrual'] },
     { title: 'Anticonceptivos', subtitle: '¿Usas anticonceptivos hormonales?', fields: ['pregunta_11_anticonceptivos'] },
-    { title: 'Salud Ginecológica', subtitle: '¿Tienes algún diagnóstico ginecológico?', fields: ['pregunta_12_diagnostico_ginecologico'] },
-    { title: 'Nivel de Compromiso', subtitle: 'Sé honesta contigo misma.', fields: ['pregunta_13_compromiso'] },
-    { title: 'Lugar de Entrenamiento', subtitle: 'Elige con cuidado, si te equivocas tendrás que contactar con soporte para cambiar esto.', fields: ['pregunta_14_entorno'] },
+    { title: 'Salud Ginecológica', subtitle: '¿Tienes algún diagnóstico ginecológico relevante?', fields: ['pregunta_12_diagnostico_ginecologico'] },
+    { title: 'Nivel de Compromiso', subtitle: 'Siendo honesta, ¿cuál es tu nivel de compromiso?', fields: ['pregunta_13_compromiso'] },
+    { title: 'Lugar de Entrenamiento', subtitle: 'Elige con cuidado, si te equivocas tendrás que contactar con soporte.', fields: ['pregunta_14_entorno'] },
 ];
 
 const diagnosticosMedicosOptions = [
@@ -201,6 +201,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
   const progressValue = ((currentStep + 1) / steps.length) * 100;
   
   const currentFields = steps[currentStep].fields;
+  const currentTitle = steps[currentStep].title;
   const currentSubtitle = steps[currentStep].subtitle;
 
   return (
@@ -208,7 +209,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-2">
             <Progress value={progressValue} className="w-full" />
-            <p className="text-sm text-muted-foreground text-center">Paso {currentStep + 1} de {steps.length} - {steps[currentStep].title}</p>
+            <p className="text-sm text-muted-foreground text-center">Paso {currentStep + 1} de {steps.length} - {currentTitle}</p>
         </div>
         <Separator />
         <AnimatePresence mode="wait">
@@ -218,217 +219,221 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="min-h-[280px] flex flex-col justify-center"
+            className="min-h-[280px] flex flex-col justify-start"
         >
-          <FormLabel className="text-xl font-semibold">{currentSubtitle}</FormLabel>
-          <div className="mt-6">
-            {currentFields.includes('pregunta_1_edad') && (
-                <FormField control={form.control} name="pregunta_1_edad" render={({ field }) => (
-                    <FormItem>
-                        <FormControl><InputWithUnit unit="años" placeholder="Ej. 30" {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_2_estatura') && (
-                <FormField control={form.control} name="pregunta_2_estatura" render={({ field }) => (
-                    <FormItem>
-                        <FormControl><InputWithUnit unit="cm" placeholder="Ej. 165" {...field} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_3_peso') && (
-                <FormField control={form.control} name="pregunta_3_peso" render={({ field }) => (
-                    <FormItem>
-                        <FormControl><InputWithUnit unit="kg" placeholder="Ej. 70.5" {...field} step="0.1"/></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_4_grasa_corporal') && (
-                <FormField control={form.control} name="pregunta_4_grasa_corporal" render={({ field }) => (
-                    <FormItem>
-                        <FormControl>
-                            <div className="flex items-center gap-4 pt-2">
-                                <Slider min={5} max={50} step={1} value={[field.value]} onValueChange={(vals) => field.onChange(vals[0])} />
-                                <div className="w-16 text-center text-lg font-semibold text-primary">{field.value}%</div>
-                            </div>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_5_diagnostico_medico') && (
-                <Controller
-                    name="pregunta_5_diagnostico_medico"
-                    control={form.control}
-                    render={() => (
+            <div className="text-center w-full max-w-lg mx-auto">
+                <FormLabel className="text-xl font-semibold text-center block mb-2">{steps[currentStep].subtitle}</FormLabel>
+                <FormDescription className="text-center mb-8">
+                    {/* You can add more specific descriptions here if needed */}
+                </FormDescription>
+                
+                {currentFields.includes('pregunta_1_edad') && (
+                    <FormField control={form.control} name="pregunta_1_edad" render={({ field }) => (
                         <FormItem>
-                            {diagnosticosMedicosOptions.map((item) => (
-                                <FormField
-                                    key={item.id}
-                                    control={form.control}
-                                    name="pregunta_5_diagnostico_medico"
-                                    render={({ field }) => (
-                                        <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
-                                            <FormControl>
-                                                <Checkbox
-                                                    checked={field.value?.includes(item.id)}
-                                                    onCheckedChange={(checked) => {
-                                                        const updatedValue = field.value ? [...field.value] : [];
-                                                        if (checked) {
-                                                            if (item.id === 'ninguno') {
-                                                                return field.onChange(['ninguno']);
+                            <FormControl><InputWithUnit unit="años" placeholder="Ej. 30" {...field} /></FormControl>
+                            <FormMessage className="text-center" />
+                        </FormItem>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_2_estatura') && (
+                    <FormField control={form.control} name="pregunta_2_estatura" render={({ field }) => (
+                        <FormItem>
+                            <FormControl><InputWithUnit unit="cm" placeholder="Ej. 165" {...field} /></FormControl>
+                            <FormMessage className="text-center" />
+                        </FormItem>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_3_peso') && (
+                    <FormField control={form.control} name="pregunta_3_peso" render={({ field }) => (
+                        <FormItem>
+                            <FormControl><InputWithUnit unit="kg" placeholder="Ej. 70.5" {...field} step="0.1"/></FormControl>
+                            <FormMessage className="text-center" />
+                        </FormItem>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_4_grasa_corporal') && (
+                    <FormField control={form.control} name="pregunta_4_grasa_corporal" render={({ field }) => (
+                        <FormItem>
+                            <FormControl>
+                                <div className="flex items-center gap-4 pt-2">
+                                    <Slider min={5} max={50} step={1} value={[field.value]} onValueChange={(vals) => field.onChange(vals[0])} />
+                                    <div className="w-16 text-center text-lg font-semibold text-primary">{field.value}%</div>
+                                </div>
+                            </FormControl>
+                            <FormMessage className="text-center" />
+                        </FormItem>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_5_diagnostico_medico') && (
+                    <Controller
+                        name="pregunta_5_diagnostico_medico"
+                        control={form.control}
+                        render={() => (
+                            <FormItem className="text-left">
+                                {diagnosticosMedicosOptions.map((item) => (
+                                    <FormField
+                                        key={item.id}
+                                        control={form.control}
+                                        name="pregunta_5_diagnostico_medico"
+                                        render={({ field }) => (
+                                            <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value?.includes(item.id)}
+                                                        onCheckedChange={(checked) => {
+                                                            const updatedValue = field.value ? [...field.value] : [];
+                                                            if (checked) {
+                                                                if (item.id === 'ninguno') {
+                                                                    return field.onChange(['ninguno']);
+                                                                } else {
+                                                                    const filtered = updatedValue.filter(v => v !== 'ninguno');
+                                                                    return field.onChange([...filtered, item.id]);
+                                                                }
                                                             } else {
-                                                                const filtered = updatedValue.filter(v => v !== 'ninguno');
-                                                                return field.onChange([...filtered, item.id]);
+                                                                return field.onChange(updatedValue.filter((value) => value !== item.id));
                                                             }
-                                                        } else {
-                                                            return field.onChange(updatedValue.filter((value) => value !== item.id));
-                                                        }
-                                                    }}
-                                                />
-                                            </FormControl>
-                                            <Label className="font-normal">{item.label}</Label>
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                                <Label className="font-normal">{item.label}</Label>
+                                            </FormItem>
+                                        )}
+                                    />
+                                ))}
+                                <FormField
+                                    control={form.control}
+                                    name="pregunta_5_diagnostico_otro"
+                                    render={({ field }) => (
+                                        <FormItem className="flex items-center gap-3 pt-2">
+                                            <Label className="font-normal whitespace-nowrap mt-2">Otro:</Label>
+                                            <FormControl><Input placeholder="Especificar..." {...field} /></FormControl>
                                         </FormItem>
                                     )}
                                 />
-                            ))}
-                            <FormField
-                                control={form.control}
-                                name="pregunta_5_diagnostico_otro"
-                                render={({ field }) => (
-                                    <FormItem className="flex items-center gap-3 pt-2">
-                                        <Label className="font-normal whitespace-nowrap mt-2">Otro:</Label>
-                                        <FormControl><Input placeholder="Especificar..." {...field} /></FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                            <FormMessage />
+                                <FormMessage className="text-left" />
+                            </FormItem>
+                        )}
+                    />
+                )}
+                {currentFields.includes('pregunta_6_objetivo_principal') && (
+                    <FormField control={form.control} name="pregunta_6_objetivo_principal" render={({ field }) => (
+                        <FormItem>
+                            <FormControl><Textarea placeholder="Ej: Perder 10kg, ganar masa muscular, mejorar mi energía..." {...field} rows={5} /></FormControl>
+                            <FormMessage className="text-center" />
                         </FormItem>
-                    )}
-                />
-            )}
-            {currentFields.includes('pregunta_6_objetivo_principal') && (
-                <FormField control={form.control} name="pregunta_6_objetivo_principal" render={({ field }) => (
-                    <FormItem>
-                        <FormControl><Textarea placeholder="Ej: Perder 10kg, ganar masa muscular, mejorar mi energía..." {...field} rows={5} /></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_7_dias_ejercicio') && (
-                <FormField control={form.control} name="pregunta_7_dias_ejercicio" render={({ field }) => (
-                    <FormItem className="space-y-3">
-                        <FormControl>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_7_dias_ejercicio') && (
+                    <FormField control={form.control} name="pregunta_7_dias_ejercicio" render={({ field }) => (
+                        <FormItem className="space-y-3 text-left">
+                            <FormControl>
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="0" /></FormControl><Label className="font-normal">0 días (sedentario).</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="1-3" /></FormControl><Label className="font-normal">1-3 días por semana.</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="3-4" /></FormControl><Label className="font-normal">3-4 días por semana.</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="5+" /></FormControl><Label className="font-normal">5 o más días por semana.</Label></FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage className="text-left" />
+                        </FormItem>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_8_actividad_diaria') && (
+                    <FormField control={form.control} name="pregunta_8_actividad_diaria" render={({ field }) => (
+                        <FormItem className="space-y-3 text-left">
+                            <FormControl>
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="sedentario" /></FormControl><Label className="font-normal">Sedentario (trabajo de oficina, poca actividad).</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="moderada" /></FormControl><Label className="font-normal">Moderada (camino regularmente, algo activo).</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="alta" /></FormControl><Label className="font-normal">Alta (trabajo físico o muy activa en general).</Label></FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage className="text-left" />
+                        </FormItem>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_9_restricciones_alimentarias') && (
+                    <FormField control={form.control} name="pregunta_9_restricciones_alimentarias" render={({ field }) => (
+                        <FormItem>
+                            <FormControl><Textarea placeholder="Ej: Alergia a los frutos secos, intolerancia a la lactosa, vegetariana..." {...field} rows={5}/></FormControl>
+                            <FormMessage className="text-center" />
+                        </FormItem>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_10_ciclo_menstrual') && (
+                    <FormField control={form.control} name="pregunta_10_ciclo_menstrual" render={({ field }) => (
+                    <FormItem className="space-y-3 text-left">
+                            <FormControl>
                             <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="0" /></FormControl><Label className="font-normal">0 días (sedentario).</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="1-3" /></FormControl><Label className="font-normal">1-3 días por semana.</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="3-4" /></FormControl><Label className="font-normal">3-4 días por semana.</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="5+" /></FormControl><Label className="font-normal">5 o más días por semana.</Label></FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="si" /></FormControl><Label className="font-normal">Sí, tengo ciclo menstrual regular.</Label></FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no" /></FormControl><Label className="font-normal">No, mi ciclo es irregular.</Label></FormItem>
+                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no_aplica" /></FormControl><Label className="font-normal">No aplica (menopausia, etc.)</Label></FormItem>
                             </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
+                            </FormControl>
+                        <FormMessage className="text-left" />
                     </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_8_actividad_diaria') && (
-                <FormField control={form.control} name="pregunta_8_actividad_diaria" render={({ field }) => (
-                    <FormItem className="space-y-3">
-                        <FormControl>
-                            <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="sedentario" /></FormControl><Label className="font-normal">Sedentario (trabajo de oficina, poca actividad).</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="moderada" /></FormControl><Label className="font-normal">Moderada (camino regularmente, algo activo).</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="alta" /></FormControl><Label className="font-normal">Alta (trabajo físico o muy activa en general).</Label></FormItem>
-                            </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_9_restricciones_alimentarias') && (
-                <FormField control={form.control} name="pregunta_9_restricciones_alimentarias" render={({ field }) => (
-                    <FormItem>
-                        <FormControl><Textarea placeholder="Ej: Alergia a los frutos secos, intolerancia a la lactosa, vegetariana..." {...field} rows={5}/></FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_10_ciclo_menstrual') && (
-                <FormField control={form.control} name="pregunta_10_ciclo_menstrual" render={({ field }) => (
-                <FormItem className="space-y-3">
-                        <FormControl>
-                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
-                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="si" /></FormControl><Label className="font-normal">Sí, tengo ciclo menstrual regular.</Label></FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no" /></FormControl><Label className="font-normal">No, mi ciclo es irregular.</Label></FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no_aplica" /></FormControl><Label className="font-normal">No aplica (menopausia, etc.)</Label></FormItem>
-                        </RadioGroup>
-                        </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_11_anticonceptivos') && (
-                <FormField control={form.control} name="pregunta_11_anticonceptivos" render={({ field }) => (
-                    <FormItem className="space-y-3">
-                        <FormControl>
-                            <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="si" /></FormControl><Label className="font-normal">Sí, uso anticonceptivos hormonales.</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no" /></FormControl><Label className="font-normal">No, no uso anticonceptivos hormonales.</Label></FormItem>
-                            </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_12_diagnostico_ginecologico') && (
-                <FormField control={form.control} name="pregunta_12_diagnostico_ginecologico" render={({ field }) => (
-                    <FormItem className="space-y-3">
-                        <FormControl>
-                            <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="si" /></FormControl><Label className="font-normal">Sí, tengo un diagnóstico ginecológico.</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no" /></FormControl><Label className="font-normal">No, no tengo diagnósticos ginecológicos.</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no_estoy_segura" /></FormControl><Label className="font-normal">No estoy segura.</Label></FormItem>
-                            </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_13_compromiso') && (
-                    <FormField control={form.control} name="pregunta_13_compromiso" render={({ field }) => (
-                    <FormItem className="space-y-3">
-                        <FormControl>
-                            <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="1" /></FormControl><Label className="font-normal">Nivel 1: Recién empieza, quiero ir poco a poco.</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="2" /></FormControl><Label className="font-normal">Nivel 2: Me esfuerzo bastante, pero no me exijo al 100%.</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="3" /></FormControl><Label className="font-normal">Nivel 3: Estoy lista para seguir el plan al pie de la letra.</Label></FormItem>
-                            </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-            {currentFields.includes('pregunta_14_entorno') && (
-                <FormField control={form.control} name="pregunta_14_entorno" render={({ field }) => (
-                    <FormItem className="space-y-3">
-                        <FormControl>
-                            <RadioGroup 
-                                onValueChange={field.onChange} 
-                                value={field.value} 
-                                className="flex flex-col space-y-1" 
-                                disabled={entornoIsSet}
-                            >
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="casa" /></FormControl><Label className="font-normal">En Casa.</Label></FormItem>
-                                <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="gimnasio" /></FormControl><Label className="font-normal">En el Gimnasio.</Label></FormItem>
-                            </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-            )}
-          </div>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_11_anticonceptivos') && (
+                    <FormField control={form.control} name="pregunta_11_anticonceptivos" render={({ field }) => (
+                        <FormItem className="space-y-3 text-left">
+                            <FormControl>
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="si" /></FormControl><Label className="font-normal">Sí, uso anticonceptivos hormonales.</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no" /></FormControl><Label className="font-normal">No, no uso anticonceptivos hormonales.</Label></FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage className="text-left" />
+                        </FormItem>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_12_diagnostico_ginecologico') && (
+                    <FormField control={form.control} name="pregunta_12_diagnostico_ginecologico" render={({ field }) => (
+                        <FormItem className="space-y-3 text-left">
+                            <FormControl>
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="si" /></FormControl><Label className="font-normal">Sí, tengo un diagnóstico ginecológico.</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no" /></FormControl><Label className="font-normal">No, no tengo diagnósticos ginecológicos.</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no_estoy_segura" /></FormControl><Label className="font-normal">No estoy segura.</Label></FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage className="text-left" />
+                        </FormItem>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_13_compromiso') && (
+                        <FormField control={form.control} name="pregunta_13_compromiso" render={({ field }) => (
+                        <FormItem className="space-y-3 text-left">
+                            <FormControl>
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="1" /></FormControl><Label className="font-normal">Nivel 1: Recién empieza, quiero ir poco a poco.</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="2" /></FormControl><Label className="font-normal">Nivel 2: Me esfuerzo bastante, pero no me exijo al 100%.</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="3" /></FormControl><Label className="font-normal">Nivel 3: Estoy lista para seguir el plan al pie de la letra.</Label></FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage className="text-left" />
+                        </FormItem>
+                    )}/>
+                )}
+                {currentFields.includes('pregunta_14_entorno') && (
+                    <FormField control={form.control} name="pregunta_14_entorno" render={({ field }) => (
+                        <FormItem className="space-y-3 text-left">
+                            <FormControl>
+                                <RadioGroup 
+                                    onValueChange={field.onChange} 
+                                    value={field.value} 
+                                    className="flex flex-col space-y-1" 
+                                    disabled={entornoIsSet}
+                                >
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="casa" /></FormControl><Label className="font-normal">En Casa.</Label></FormItem>
+                                    <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="gimnasio" /></FormControl><Label className="font-normal">En el Gimnasio.</Label></FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage className="text-left" />
+                        </FormItem>
+                    )}/>
+                )}
+            </div>
         </motion.div>
         </AnimatePresence>
 
