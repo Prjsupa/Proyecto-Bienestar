@@ -4,7 +4,6 @@
 import * as React from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from "next/image";
-import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { AppLayout } from "@/components/app-layout";
@@ -16,7 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Video, Frown, PlusCircle, MoreHorizontal, Edit, Trash2, History } from 'lucide-react';
+import { Calendar, Clock, Video, Frown, PlusCircle, MoreHorizontal, Edit, Trash2, History, PlayCircle } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -27,47 +26,100 @@ import type { ClaseEnVivo } from '@/types/community';
 import type { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 import { LiveSessionFormModal } from '@/components/live-session-form-modal';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 
-function LiveSessionCard({ session, isProfessional }: { session: ClaseEnVivo, isProfessional: boolean }) {
+function VideoPlayerModal({ session, isOpen, onClose }: { session: ClaseEnVivo | null, isOpen: boolean, onClose: () => void }) {
+    if (!session || !session.link) return null;
+
+    const getYouTubeEmbedUrl = (url: string) => {
+        let videoId;
+        if (url.includes('youtu.be/')) {
+            videoId = url.split('youtu.be/')[1].split('?')[0];
+        } else if (url.includes('watch?v=')) {
+            videoId = url.split('watch?v=')[1].split('&')[0];
+        }
+        return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : null;
+    };
+    
+    const embedUrl = getYouTubeEmbedUrl(session.link);
+    
+    if (!embedUrl) {
+        return (
+             <Dialog open={isOpen} onOpenChange={onClose}>
+                <DialogContent>
+                    <div className="p-8 text-center">
+                        <Frown className="w-12 h-12 mx-auto text-destructive mb-4" />
+                        <h3 className="text-lg font-semibold">Enlace de Video Inválido</h3>
+                        <p className="text-sm text-muted-foreground">El enlace proporcionado no parece ser un video de YouTube válido.</p>
+                    </div>
+                </DialogContent>
+             </Dialog>
+        )
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="max-w-4xl p-0">
+                <div className="aspect-video">
+                    <iframe
+                        width="100%"
+                        height="100%"
+                        src={embedUrl}
+                        title={session.titulo}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                    ></iframe>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function LiveSessionCard({ session, isProfessional, onPlayClick }: { session: ClaseEnVivo, isProfessional: boolean, onPlayClick: (session: ClaseEnVivo) => void }) {
     const isLive = new Date() >= new Date(session.fecha_hora) && new Date() <= new Date(session.disponible_hasta);
 
     return (
         <div className="relative group/card flex">
-            <Link href={session.link || '#'} target="_blank" rel="noopener noreferrer" className="flex w-full">
-                <Card className="overflow-hidden flex flex-col group w-full transition-all duration-300 hover:shadow-primary/20 hover:shadow-lg hover:-translate-y-1">
-                    <CardHeader className="p-0 relative">
-                        <Image
-                        src={session.miniatura || "https://placehold.co/600x400.png"}
-                        alt={session.titulo}
-                        width={600}
-                        height={400}
-                        className="object-cover aspect-video group-hover:scale-105 transition-transform duration-300"
-                        data-ai-hint="fitness class yoga"
-                        />
-                        {isLive && <Badge className="absolute top-2 right-2 bg-destructive/90 backdrop-blur-sm text-destructive-foreground animate-pulse">EN VIVO</Badge>}
-                    </CardHeader>
-                    <CardContent className="p-4 flex-grow">
-                        <CardTitle className="font-headline text-lg mb-2">{session.titulo}</CardTitle>
-                        {session.descripcion && <p className="text-sm text-muted-foreground line-clamp-2">{session.descripcion}</p>}
-                        <div className="flex flex-col text-sm text-muted-foreground gap-2 pt-3">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-primary" />
-                                <span>{format(new Date(session.fecha_hora), "dd 'de' MMMM, yyyy", { locale: es })}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-primary" />
-                                <span>{format(new Date(session.fecha_hora), "HH:mm 'hrs'", { locale: es })}</span>
-                            </div>
+            <Card 
+                className="overflow-hidden flex flex-col group w-full transition-all duration-300 hover:shadow-primary/20 hover:shadow-lg hover:-translate-y-1"
+                onClick={() => onPlayClick(session)}
+            >
+                <CardHeader className="p-0 relative">
+                    <Image
+                    src={session.miniatura || "https://placehold.co/600x400.png"}
+                    alt={session.titulo}
+                    width={600}
+                    height={400}
+                    className="object-cover aspect-video group-hover:scale-105 transition-transform duration-300"
+                    data-ai-hint="fitness class yoga"
+                    />
+                    {isLive && <Badge className="absolute top-2 right-2 bg-destructive/90 backdrop-blur-sm text-destructive-foreground animate-pulse">EN VIVO</Badge>}
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <PlayCircle className="w-16 h-16 text-white/80" />
+                    </div>
+                </CardHeader>
+                <CardContent className="p-4 flex-grow">
+                    <CardTitle className="font-headline text-lg mb-2">{session.titulo}</CardTitle>
+                    {session.descripcion && <p className="text-sm text-muted-foreground line-clamp-2">{session.descripcion}</p>}
+                    <div className="flex flex-col text-sm text-muted-foreground gap-2 pt-3">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-primary" />
+                            <span>{format(new Date(session.fecha_hora), "dd 'de' MMMM, yyyy", { locale: es })}</span>
                         </div>
-                    </CardContent>
-                    <CardFooter className="p-4 pt-0">
-                        <p className="text-xs text-muted-foreground">
-                            Repetición hasta: {format(new Date(session.disponible_hasta), "dd/MM/yy", { locale: es })}
-                        </p>
-                    </CardFooter>
-                </Card>
-            </Link>
+                        <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-primary" />
+                            <span>{format(new Date(session.fecha_hora), "HH:mm 'hrs'", { locale: es })}</span>
+                        </div>
+                    </div>
+                </CardContent>
+                <CardFooter className="p-4 pt-0">
+                    <p className="text-xs text-muted-foreground">
+                        Repetición hasta: {format(new Date(session.disponible_hasta), "dd/MM/yy", { locale: es })}
+                    </p>
+                </CardFooter>
+            </Card>
             {isProfessional && (
                 <SessionDropdown session={session} />
             )}
@@ -92,7 +144,7 @@ function SessionDropdown({ session }: { session: ClaseEnVivo }) {
     };
 
     return (
-        <div className="absolute top-2 left-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+        <div className="absolute top-2 left-2 opacity-0 group-hover/card:opacity-100 transition-opacity z-10">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full">
@@ -171,6 +223,7 @@ export default function LivePage() {
     const [userRole, setUserRole] = useState<number | null>(null);
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [editingSession, setEditingSession] = useState<ClaseEnVivo | null>(null);
+    const [playingSession, setPlayingSession] = useState<ClaseEnVivo | null>(null);
 
     const supabase = createClient();
 
@@ -181,7 +234,7 @@ export default function LivePage() {
             .select('*')
             .order('fecha_hora', { ascending: true });
 
-        // Regular users only see upcoming/live sessions
+        // Regular users only see upcoming/live sessions that are not in the past
         if (role === 0 || role === null) {
             query = query.gt('disponible_hasta', new Date().toISOString());
         }
@@ -217,6 +270,10 @@ export default function LivePage() {
     const handleOpenFormModal = (session: ClaseEnVivo | null = null) => {
         setEditingSession(session);
         setIsFormModalOpen(true);
+    };
+    
+    const handlePlayClick = (session: ClaseEnVivo) => {
+        setPlayingSession(session);
     };
 
     const handleCloseFormModal = () => {
@@ -255,7 +312,7 @@ export default function LivePage() {
         return (
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {sessionList.map(session => (
-                    <LiveSessionCard key={session.id} session={session} isProfessional={isProfessional} />
+                    <LiveSessionCard key={session.id} session={session} isProfessional={isProfessional} onPlayClick={handlePlayClick} />
                 ))}
              </div>
         );
@@ -335,9 +392,12 @@ export default function LivePage() {
                 userId={currentUser.id}
             />
         )}
+        <VideoPlayerModal 
+            isOpen={!!playingSession}
+            onClose={() => setPlayingSession(null)}
+            session={playingSession}
+        />
         </AppLayout>
     </LivePageContext.Provider>
   );
 }
-
-    

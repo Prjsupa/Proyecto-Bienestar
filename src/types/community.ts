@@ -64,6 +64,7 @@ export type ClaseEnVivo = {
     link: string | null;
     disponible_hasta: string;
     miniatura: string | null;
+    reproduciendo?: boolean;
 }
 
 export type Cita = {
