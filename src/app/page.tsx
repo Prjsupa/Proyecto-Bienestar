@@ -71,13 +71,20 @@ export default function LandingPage() {
                     </Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
-                    <Link href="#features">
-                      Saber Más
-                    </Link>
                   </Button>
                 </div>
+                 <div className="relative flex items-center justify-center lg:justify-start w-full max-w-xs mx-auto lg:mx-0 mt-6">
+                    <Image
+                        src={`${SUPABASE_STORAGE_URL}/logos.marivi/blanco@3x.png`}
+                        width="400"
+                        height="400"
+                        alt="Logo Marivi Power"
+                        data-ai-hint="logo"
+                        className="w-1/2 drop-shadow-lg invert dark:invert-0"
+                    />
+                </div>
               </div>
-              <div className="flex flex-col items-center justify-center gap-6">
+              <div className="flex items-center justify-center">
                 <Image
                     src={`${SUPABASE_STORAGE_URL}/logos.marivi/marivi_inicio.jpg`}
                     width="600"
@@ -86,16 +93,6 @@ export default function LandingPage() {
                     data-ai-hint="woman smiling fitness"
                     className="mx-auto rounded-xl object-cover aspect-[3/4] w-full max-w-sm shadow-2xl"
                 />
-                <div className="relative flex items-center justify-center w-full max-w-xs">
-                    <Image
-                        src={`${SUPABASE_STORAGE_URL}/logos.marivi/blanco@3x.png`}
-                        width="400"
-                        height="400"
-                        alt="Logo Marivi Power"
-                        data-ai-hint="logo"
-                        className="mx-auto w-1/2 drop-shadow-lg invert dark:invert-0"
-                    />
-                </div>
               </div>
             </div>
           </div>
