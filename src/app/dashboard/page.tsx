@@ -370,7 +370,7 @@ export default function DashboardPage() {
             setDailyRoutine(routineData);
             setRoutineLoading(false);
 
-            const { data: appointmentData } = await supabase.from('cita').select('*').eq('user_id', user.id).in('estado', ['pendiente', 'confirmada']).order('fecha_agendada', { ascending: false }).limit(1).single();
+            const { data: appointmentData } = await supabase.from('cita').select('*').eq('user_id', user.id).in('estado', ['pendiente', 'confirmada', 'cancelada']).order('fecha_agendada', { ascending: false }).limit(1).single();
             setAppointment(appointmentData);
             setAppointmentLoading(false);
         }
@@ -429,5 +429,3 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
-
-    
