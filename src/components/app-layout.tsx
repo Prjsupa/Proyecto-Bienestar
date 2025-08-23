@@ -161,7 +161,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <Collapsible defaultOpen={pathname.startsWith(item.href)}>
                     <CollapsibleTrigger asChild>
                         <SidebarMenuButton
-                            className="w-full justify-between group-data-[state=open]:bg-sidebar-accent"
+                            className="w-full justify-between group-data-[state=open]:bg-accent group-data-[state=open]:text-accent-foreground"
                             isActive={pathname.startsWith(item.href)}
                             tooltip={item.label}
                         >
@@ -173,14 +173,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         </SidebarMenuButton>
                     </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="ml-7 mt-1 flex flex-col border-l border-border pl-3">
+                    <div className="ml-7 mt-1 flex flex-col border-l border-border pl-3 group-data-[collapsible=icon]:hidden">
                       {item.subItems.map((subItem) => (
                         <Link
                           key={subItem.href}
                           href={subItem.href}
                           className={cn(
                             "py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground",
-                            pathname === subItem.href && "text-foreground"
+                            pathname === subItem.href && "text-foreground font-semibold"
                           )}
                         >
                           {subItem.label}
@@ -240,7 +240,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
          ) : user ? (
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-sidebar-accent">
+                    <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-accent hover:text-accent-foreground">
                         <Avatar>
                             <AvatarImage src={user.user_metadata?.avatar_url} alt={displayName} />
                             <AvatarFallback>{userInitials}</AvatarFallback>
