@@ -30,7 +30,7 @@ export default function LandingPage() {
         <div className="container flex items-center justify-between">
             <Link href="/" className="flex items-center justify-center gap-2 font-bold text-lg" aria-label="Inicio">
                 <Logo />
-                <span className="font-headline tracking-tight">MARIVI POWER</span>
+                <span className="font-logo tracking-widest text-xl">MARIVI POWER</span>
             </Link>
             <nav className="flex items-center gap-2 sm:gap-4">
                 <ThemeToggle />

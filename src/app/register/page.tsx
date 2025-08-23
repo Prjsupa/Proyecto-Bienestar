@@ -111,7 +111,7 @@ export default function RegisterPage() {
         className="absolute top-4 left-4 flex items-center gap-2 text-foreground font-bold"
       >
         <Logo />
-        <span className="font-headline tracking-tight">MARIVI POWER</span>
+        <span className="font-logo tracking-widest text-lg">MARIVI POWER</span>
       </Link>
 
       <Card className="w-full max-w-md">

@@ -78,7 +78,7 @@ export default function HealthFormPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle className="text-2xl font-headline flex items-center gap-2">
-                           <FileText className="w-6 h-6" /> Formulario de Bienestar
+                           <FileText className="w-6 h-6" /> Formulario
                         </CardTitle>
                         <CardDescription>
                             {isEditing 

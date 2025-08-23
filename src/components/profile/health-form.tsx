@@ -447,7 +447,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
             <Button type="button" onClick={nextStep}>Siguiente</Button>
           ) : (
             <Button type="submit" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Guardando..." : "Guardar Cuestionario"}
+              {form.formState.isSubmitting ? "Guardando..." : "Guardar"}
             </Button>
           )}
         </div>
