@@ -27,9 +27,10 @@ import type { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 import { LiveSessionFormModal } from '@/components/live-session-form-modal';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { LiveChat } from '@/components/live-chat';
 
 
-function VideoPlayerModal({ session, isOpen, onClose }: { session: ClaseEnVivo | null, isOpen: boolean, onClose: () => void }) {
+function VideoPlayerModal({ session, isOpen, onClose, user }: { session: ClaseEnVivo | null, isOpen: boolean, onClose: () => void, user: User | null }) {
     if (!session || !session.link) return null;
 
     const getYouTubeEmbedUrl = (url: string) => {
@@ -63,9 +64,9 @@ function VideoPlayerModal({ session, isOpen, onClose }: { session: ClaseEnVivo |
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl p-0">
+            <DialogContent className="max-w-6xl h-[80vh] flex flex-col md:flex-row p-0 gap-0">
                 <DialogTitle className="sr-only">{session.titulo}</DialogTitle>
-                <div className="aspect-video">
+                <div className="w-full md:w-3/4 h-1/2 md:h-full">
                     <iframe
                         width="100%"
                         height="100%"
@@ -75,6 +76,9 @@ function VideoPlayerModal({ session, isOpen, onClose }: { session: ClaseEnVivo |
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowFullScreen
                     ></iframe>
+                </div>
+                 <div className="w-full md:w-1/4 h-1/2 md:h-full border-l flex flex-col">
+                    {user && <LiveChat claseId={session.id} currentUser={user} />}
                 </div>
             </DialogContent>
         </Dialog>
@@ -400,6 +404,7 @@ export default function LivePage() {
             isOpen={!!playingSession}
             onClose={() => setPlayingSession(null)}
             session={playingSession}
+            user={currentUser}
         />
         </AppLayout>
     </LivePageContext.Provider>

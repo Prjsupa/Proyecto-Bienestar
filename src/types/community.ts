@@ -120,3 +120,12 @@ export type Notificacion = {
     leida: boolean;
     fecha: string;
 }
+
+export type LiveChatMessage = {
+    id: string;
+    clase_id: string;
+    user_id: string;
+    mensaje: string;
+    fecha: string;
+    usuarios: Author | null;
+}
