@@ -19,6 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "../ui/separator";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
@@ -219,12 +220,12 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="min-h-[280px] flex flex-col justify-start"
+            className="min-h-[280px] flex flex-col justify-center"
         >
             <div className="text-center w-full max-w-lg mx-auto">
-                <FormLabel className="text-xl font-semibold text-center block mb-2">{steps[currentStep].subtitle}</FormLabel>
+                <FormLabel className="text-2xl font-semibold text-center block mb-2">{steps[currentStep].subtitle}</FormLabel>
                 <FormDescription className="text-center mb-8">
-                    {/* You can add more specific descriptions here if needed */}
+                     {currentTitle}
                 </FormDescription>
                 
                 {currentFields.includes('pregunta_1_edad') && (
