@@ -26,6 +26,15 @@
     --input: 240 5.9% 90%;
     --ring: 0 84.2% 60.2%;
     --radius: 0.8rem;
+
+    /* Sidebar Variables */
+    --sidebar: 240 10% 99%;
+    --sidebar-foreground: 240 10% 3.9%;
+    --sidebar-border: 240 5.9% 90%;
+    --sidebar-accent: 0 84.2% 60.2%; /* Red */
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-ring: 0 84.2% 60.2%;
+
     --chart-1: 0 72.2% 50.6%;
     --chart-2: 0 84.2% 60.2%;
     --chart-3: 0 72.2% 70.6%;
@@ -55,6 +64,15 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 0 72.2% 50.6%;
+
+    /* Sidebar Variables */
+    --sidebar: 0 0% 5.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 14.9%;
+    --sidebar-accent: 0 72.2% 50.6%; /* Red */
+    --sidebar-accent-foreground: 0 85.7% 97.3%;
+    --sidebar-ring: 0 72.2% 50.6%;
+    
     --chart-1: 0 72.2% 50.6%;
     --chart-2: 0 84.2% 60.2%;
     --chart-3: 0 72.2% 70.6%;
