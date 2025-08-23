@@ -26,24 +26,26 @@ const SUPABASE_STORAGE_URL = 'https://jqdbhsicpfdpzifphdft.supabase.co/storage/v
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="px-[272.5px] w-full h-16 flex items-center border-b sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
-        <Link href="/" className="flex items-center justify-center gap-2 font-bold text-lg" aria-label="Inicio">
-          <Logo />
-          <span className="font-headline tracking-tight">MARIVI POWER</span>
-        </Link>
-        <nav className="ml-auto flex items-center gap-2 sm:gap-4">
-          <ThemeToggle />
-          <Button variant="ghost" asChild>
-            <Link href="/login">
-              Iniciar Sesión
+      <header className="h-16 flex items-center border-b sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
+        <div className="container flex items-center justify-between">
+            <Link href="/" className="flex items-center justify-center gap-2 font-bold text-lg" aria-label="Inicio">
+                <Logo />
+                <span className="font-headline tracking-tight">MARIVI POWER</span>
             </Link>
-          </Button>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
-            <Link href="/register">
-              Comenzar
-            </Link>
-          </Button>
-        </nav>
+            <nav className="flex items-center gap-2 sm:gap-4">
+                <ThemeToggle />
+                <Button variant="ghost" asChild>
+                    <Link href="/login">
+                    Iniciar Sesión
+                    </Link>
+                </Button>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
+                    <Link href="/register">
+                    Comenzar
+                    </Link>
+                </Button>
+            </nav>
+        </div>
       </header>
       <main className="flex-1">
         <section className="w-full py-20 md:py-32 lg:py-40 relative overflow-hidden">
