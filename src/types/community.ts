@@ -109,6 +109,7 @@ export type UserWithRole = {
     last_name: string | null;
     email: string | null;
     rol: number;
+    entorno: 'casa' | 'gimnasio' | null;
     created_at: string;
 }
 
