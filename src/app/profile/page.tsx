@@ -88,39 +88,44 @@ export default function ProfilePage() {
     }
   }
 
+  const fetchProfileData = async (user: User) => {
+      setUser(user);
+      const { data: profileData, error: profileError } = await supabase
+          .from('usuarios')
+          .select('name, last_name, rol, titulo, entorno')
+          .eq('id', user.id)
+          .single();
+
+      if (profileError) {
+          console.error('Error fetching user profile:', profileError);
+          toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar tu perfil.' });
+      } else if (profileData) {
+          setName(profileData.name || user.user_metadata?.name || "");
+          setLastName(profileData.last_name || user.user_metadata?.last_name || "");
+          setTitle(profileData.titulo || "");
+          setRole(profileData.rol || 0);
+
+          if (profileData.rol === 0) {
+              await fetchHealthData(user.id);
+          }
+      }
+      setLoading(false);
+  };
+
+
   useEffect(() => {
-    setLoading(true);
-    const getUserData = async () => {
+    const getInitialData = async () => {
+        setLoading(true);
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-            setUser(user);
-            
-            const { data: profileData, error: profileError } = await supabase
-              .from('usuarios')
-              .select('name, last_name, rol, titulo')
-              .eq('id', user.id)
-              .single();
-
-            if (profileError) {
-              console.error('Error fetching user profile:', profileError);
-              toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar tu perfil.' });
-            } else if (profileData) {
-              setName(profileData.name || user.user_metadata?.name || "");
-              setLastName(profileData.last_name || user.user_metadata?.last_name || "");
-              setTitle(profileData.titulo || "");
-              setRole(profileData.rol || 0);
-
-              if(profileData.rol === 0) {
-                await fetchHealthData(user.id);
-              }
-            }
+            await fetchProfileData(user);
         } else {
             router.push('/login');
+            setLoading(false);
         }
-        setLoading(false);
     };
     
-    getUserData();
+    getInitialData();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         if (!session?.user) {
@@ -250,9 +255,11 @@ export default function ProfilePage() {
                 onClose={() => setIsFormOpen(false)} 
                 userId={user.id}
                 initialData={healthData}
-                onSuccess={() => fetchHealthData(user.id)}
+                onSuccess={() => fetchProfileData(user)}
             />
         )}
     </AppLayout>
   );
 }
+
+    

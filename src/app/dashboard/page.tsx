@@ -60,7 +60,7 @@ function UserDashboard({ user, greeting, dailyRecipe, recipeLoading, dailyRoutin
                             <h3 className="font-semibold font-headline">{dailyRoutine.titulo}</h3>
                             <p className="text-sm text-muted-foreground line-clamp-2">{dailyRoutine.descripcion}</p>
                             <Button asChild variant="link" className="p-0 h-auto">
-                                <Link href="/routines/home">Ver Todas las Rutinas <ArrowRight className="w-4 h-4 ml-1" /></Link>
+                                <Link href="/routines">Ver Todas las Rutinas <ArrowRight className="w-4 h-4 ml-1" /></Link>
                             </Button>
                         </div>
                     ) : (
@@ -162,7 +162,7 @@ function UserDashboard({ user, greeting, dailyRecipe, recipeLoading, dailyRoutin
 function ProfessionalDashboard({ greeting, stats }: { greeting: string, stats: any }) {
     const quickActions = [
         { href: "/recipes", icon: UtensilsCrossed, label: "Gestionar Recetas" },
-        { href: "/routines/home", icon: Dumbbell, label: "Gestionar Rutinas" },
+        { href: "/routines", icon: Dumbbell, label: "Gestionar Rutinas" },
         { href: "/live", icon: Video, label: "Gestionar Clases en Vivo" },
         { href: "/schedule", icon: Calendar, label: "Revisar Citas" },
         { href: "/technique-clinic", icon: Activity, label: "Clínica de Técnica" },
@@ -321,7 +321,7 @@ export default function DashboardPage() {
       setUser(user);
 
       if (user) {
-        const { data: profile } = await supabase.from('usuarios').select('rol, name, last_name').eq('id', user.id).single();
+        const { data: profile } = await supabase.from('usuarios').select('rol, name, last_name, entorno').eq('id', user.id).single();
         const role = profile?.rol ?? 0;
         setUserRole(role);
 
@@ -367,7 +367,11 @@ export default function DashboardPage() {
             setDailyRecipe(recipeData);
             setRecipeLoading(false);
 
-            const { data: routineData } = await supabase.from('rutinas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
+            const routineQuery = supabase.from('rutinas').select('*').eq('visible', true);
+            if (profile?.entorno) {
+                routineQuery.eq('entorno', profile.entorno);
+            }
+            const { data: routineData } = await routineQuery.order('fecha', { ascending: false }).limit(1).single();
             setDailyRoutine(routineData);
             setRoutineLoading(false);
 
@@ -430,5 +434,7 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
+
+    
 
     

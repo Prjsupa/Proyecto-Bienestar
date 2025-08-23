@@ -26,7 +26,7 @@ const formSchema = z.object({
   pregunta_5_diagnostico_medico: z.array(z.string()),
   pregunta_5_diagnostico_otro: z.string().optional(),
   pregunta_6_objetivo_principal: z.string().min(1, "El objetivo es requerido."),
-  pregunta_7_dias_ejercicio: z.string({ required_error: "Debes seleccionar una opción." }),
+  pregunta_7_lugar_entrenamiento: z.enum(['casa', 'gimnasio'], { required_error: "Debes seleccionar una opción." }),
   pregunta_8_actividad_diaria: z.string({ required_error: "Debes seleccionar una opción." }),
   pregunta_9_restricciones_alimentarias: z.string().optional(),
   pregunta_10_ciclo_menstrual: z.string({ required_error: "Debes seleccionar una opción." }),
@@ -73,7 +73,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
         pregunta_5_diagnostico_medico: [],
         pregunta_5_diagnostico_otro: "",
         pregunta_6_objetivo_principal: "",
-        pregunta_7_dias_ejercicio: undefined,
+        pregunta_7_lugar_entrenamiento: undefined,
         pregunta_8_actividad_diaria: undefined,
         pregunta_9_restricciones_alimentarias: "",
         pregunta_10_ciclo_menstrual: undefined,
@@ -97,7 +97,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
             pregunta_5_diagnostico_medico: predefinidos,
             pregunta_5_diagnostico_otro: otro,
             pregunta_6_objetivo_principal: initialData.pregunta_6_objetivo_principal || "",
-            pregunta_7_dias_ejercicio: initialData.pregunta_7_dias_ejercicio || undefined,
+            pregunta_7_lugar_entrenamiento: initialData.pregunta_7_lugar_entrenamiento || undefined,
             pregunta_8_actividad_diaria: initialData.pregunta_8_actividad_diaria || undefined,
             pregunta_9_restricciones_alimentarias: initialData.pregunta_9_restricciones_alimentarias || "",
             pregunta_10_ciclo_menstrual: initialData.pregunta_10_ciclo_menstrual || undefined,
@@ -123,7 +123,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
       pregunta_4_grasa_corporal: values.pregunta_4_grasa_corporal,
       pregunta_5_diagnostico_medico: diagnosticosCompletos,
       pregunta_6_objetivo_principal: values.pregunta_6_objetivo_principal,
-      pregunta_7_dias_ejercicio: values.pregunta_7_dias_ejercicio,
+      pregunta_7_lugar_entrenamiento: values.pregunta_7_lugar_entrenamiento,
       pregunta_8_actividad_diaria: values.pregunta_8_actividad_diaria,
       pregunta_9_restricciones_alimentarias: values.pregunta_9_restricciones_alimentarias,
       pregunta_10_ciclo_menstrual: values.pregunta_10_ciclo_menstrual,
@@ -132,13 +132,26 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
       pregunta_13_compromiso: values.pregunta_13_compromiso,
     };
     
-    const { error } = await supabase
+    // First, save the health form
+    const { error: formError } = await supabase
         .from('formulario')
         .upsert(formDataToSave, { onConflict: 'user_id' });
 
-    if (error) {
-        console.error("Error saving form", error);
-        toast({ variant: "destructive", title: "Error", description: "No se pudo guardar el formulario. " + error.message });
+    if (formError) {
+        console.error("Error saving form", formError);
+        toast({ variant: "destructive", title: "Error", description: "No se pudo guardar el formulario. " + formError.message });
+        return;
+    }
+
+    // Then, update the user's entorno preference
+    const { error: userError } = await supabase
+        .from('usuarios')
+        .update({ entorno: values.pregunta_7_lugar_entrenamiento })
+        .eq('id', userId);
+
+    if (userError) {
+        console.error("Error updating user environment", userError);
+        toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar tu preferencia de entorno. " + userError.message });
     } else {
         toast({ title: "Formulario Guardado", description: "Tus respuestas se han guardado correctamente." });
         onFormSubmit();
@@ -254,16 +267,14 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
             )}/>
             <Separator/>
            
-            <FormField control={form.control} name="pregunta_7_dias_ejercicio" render={({ field }) => (
+            <FormField control={form.control} name="pregunta_7_lugar_entrenamiento" render={({ field }) => (
                 <FormItem className="space-y-3">
-                     <FormLabel>7. Días de ejercicio por semana.</FormLabel>
-                     <FormDescription>¿Con qué frecuencia puedes ejercitarte?</FormDescription>
+                     <FormLabel>7. ¿Dónde prefieres entrenar?</FormLabel>
+                     <FormDescription>Esto determinará las rutinas que te mostraremos.</FormDescription>
                      <FormControl>
                         <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
-                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="0" /></FormControl><FormLabel className="font-normal">0 días (sedentario).</FormLabel></FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="1-3" /></FormControl><FormLabel className="font-normal">1-3 días por semana.</FormLabel></FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="3-4" /></FormControl><FormLabel className="font-normal">3-4 días por semana.</FormLabel></FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="5+" /></FormControl><FormLabel className="font-normal">5 o más días por semana.</FormLabel></FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="casa" /></FormControl><FormLabel className="font-normal">En Casa.</FormLabel></FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="gimnasio" /></FormControl><FormLabel className="font-normal">En el Gimnasio.</FormLabel></FormItem>
                         </RadioGroup>
                      </FormControl>
                     <FormMessage />
@@ -366,3 +377,5 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
       </Form>
   );
 }
+
+    
