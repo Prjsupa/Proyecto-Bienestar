@@ -15,6 +15,5 @@ export type HealthFormData = {
   pregunta_11_anticonceptivos: string | null;
   pregunta_12_diagnostico_ginecologico: string | null;
   pregunta_13_compromiso: string | null;
+  pregunta_14_entorno: 'casa' | 'gimnasio' | null;
 };
-
-    

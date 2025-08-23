@@ -33,6 +33,7 @@ const formSchema = z.object({
   pregunta_11_anticonceptivos: z.string({ required_error: "Debes seleccionar una opción." }),
   pregunta_12_diagnostico_ginecologico: z.string({ required_error: "Debes seleccionar una opción." }),
   pregunta_13_compromiso: z.string({ required_error: "Debes seleccionar una opción." }),
+  pregunta_14_entorno: z.enum(['casa', 'gimnasio'], { required_error: "Debes seleccionar una opción." }),
 });
 
 const diagnosticosMedicosOptions = [
@@ -80,6 +81,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
         pregunta_11_anticonceptivos: undefined,
         pregunta_12_diagnostico_ginecologico: undefined,
         pregunta_13_compromiso: undefined,
+        pregunta_14_entorno: undefined,
     },
   });
 
@@ -104,6 +106,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
             pregunta_11_anticonceptivos: initialData.pregunta_11_anticonceptivos || undefined,
             pregunta_12_diagnostico_ginecologico: initialData.pregunta_12_diagnostico_ginecologico || undefined,
             pregunta_13_compromiso: initialData.pregunta_13_compromiso || undefined,
+            pregunta_14_entorno: initialData.pregunta_14_entorno || undefined,
         });
     }
   }, [initialData, form]);
@@ -115,7 +118,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
         ? [...values.pregunta_5_diagnostico_medico, values.pregunta_5_diagnostico_otro] 
         : values.pregunta_5_diagnostico_medico;
 
-    const formDataToSave = {
+    const formDataToSave: Partial<HealthFormData> = {
       user_id: userId,
       pregunta_1_edad: values.pregunta_1_edad,
       pregunta_2_estatura: values.pregunta_2_estatura,
@@ -132,6 +135,10 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
       pregunta_13_compromiso: values.pregunta_13_compromiso,
     };
     
+    if (!initialData?.pregunta_14_entorno) {
+        formDataToSave.pregunta_14_entorno = values.pregunta_14_entorno;
+    }
+
     // First, save the health form
     const { error: formError } = await supabase
         .from('formulario')
@@ -143,20 +150,26 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
         return;
     }
 
-    // Then, update the user's entorno preference
-    const { error: userError } = await supabase
-        .from('usuarios')
-        .update({ entorno: values.pregunta_7_lugar_entrenamiento })
-        .eq('id', userId);
+    // Then, if the entorno was not set before, update the user's entorno preference
+    if (!initialData?.pregunta_14_entorno) {
+        const { error: userError } = await supabase
+            .from('usuarios')
+            .update({ entorno: values.pregunta_14_entorno })
+            .eq('id', userId);
 
-    if (userError) {
-        console.error("Error updating user environment", userError);
-        toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar tu preferencia de entorno. " + userError.message });
-    } else {
-        toast({ title: "Formulario Guardado", description: "Tus respuestas se han guardado correctamente." });
-        onFormSubmit();
+        if (userError) {
+            console.error("Error updating user environment", userError);
+            toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar tu preferencia de entorno. " + userError.message });
+            return; // Stop if this critical part fails
+        }
     }
+
+    toast({ title: "Formulario Guardado", description: "Tus respuestas se han guardado correctamente." });
+    onFormSubmit();
   };
+  
+  const entornoIsSet = !!initialData?.pregunta_14_entorno;
+
 
   return (
     <Form {...form}>
@@ -369,6 +382,22 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
                     <FormMessage />
                 </FormItem>
             )}/>
+
+             <Separator/>
+            
+            <FormField control={form.control} name="pregunta_14_entorno" render={({ field }) => (
+                <FormItem className="space-y-3">
+                     <FormLabel>14. ¿En dónde entrenas?</FormLabel>
+                     <FormDescription>Elige con cuidado, si te equivocas tendrás que contactar con soporte para cambiar esto.</FormDescription>
+                     <FormControl>
+                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1" disabled={entornoIsSet}>
+                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="casa" /></FormControl><FormLabel className="font-normal">En Casa.</FormLabel></FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="gimnasio" /></FormControl><FormLabel className="font-normal">En el Gimnasio.</FormLabel></FormItem>
+                        </RadioGroup>
+                     </FormControl>
+                    <FormMessage />
+                </FormItem>
+            )}/>
             
             <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? "Guardando..." : "Guardar Cuestionario"}
@@ -377,5 +406,3 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
       </Form>
   );
 }
-
-    
