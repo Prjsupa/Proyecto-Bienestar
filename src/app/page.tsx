@@ -54,10 +54,10 @@ export default function LandingPage() {
                 style={{backgroundImage: `url(${SUPABASE_STORAGE_URL}/logos.marivi/negro%20rojo%20imago%403x.png)`}}
             />
           <div className="container px-4 md:px-6 relative">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-              <div className="flex flex-col justify-center space-y-4 text-center lg:text-left">
+            <div className="grid gap-10 lg:grid-cols-2 lg:gap-12 xl:gap-20">
+              <div className="flex flex-col justify-center space-y-6 text-center lg:text-left">
                 <div className="space-y-4">
-                  <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl xl:text-7xl/none font-headline">
+                  <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
                     Transforma tu Cuerpo y Mente
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl font-body mx-auto lg:mx-0">
@@ -77,15 +77,25 @@ export default function LandingPage() {
                   </Button>
                 </div>
               </div>
-              <div className="relative flex items-center justify-center">
-                 <Image
-                    src={`${SUPABASE_STORAGE_URL}/logos.marivi/blanco@3x.png`}
+              <div className="flex flex-col items-center justify-center gap-6">
+                <Image
+                    src={`${SUPABASE_STORAGE_URL}/logos.marivi/marivi_inicio.jpg`}
                     width="600"
-                    height="600"
-                    alt="Logo Marivi Power"
-                    data-ai-hint="logo"
-                    className="mx-auto w-2/3 lg:w-full max-w-md drop-shadow-2xl invert dark:invert-0"
+                    height="800"
+                    alt="Marivi Barrios sonriendo"
+                    data-ai-hint="woman smiling fitness"
+                    className="mx-auto rounded-xl object-cover aspect-[3/4] w-full max-w-sm shadow-2xl"
                 />
+                <div className="relative flex items-center justify-center w-full max-w-xs">
+                    <Image
+                        src={`${SUPABASE_STORAGE_URL}/logos.marivi/blanco@3x.png`}
+                        width="400"
+                        height="400"
+                        alt="Logo Marivi Power"
+                        data-ai-hint="logo"
+                        className="mx-auto w-1/2 drop-shadow-lg invert dark:invert-0"
+                    />
+                </div>
               </div>
             </div>
           </div>
