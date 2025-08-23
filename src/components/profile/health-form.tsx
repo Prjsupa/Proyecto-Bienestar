@@ -285,7 +285,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
                      <FormLabel>7. Días de ejercicio por semana.</FormLabel>
                      <FormDescription>¿Con qué frecuencia puedes ejercitarte?</FormDescription>
                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="0" /></FormControl><FormLabel className="font-normal">0 días (sedentario).</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="1-3" /></FormControl><FormLabel className="font-normal">1-3 días por semana.</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="3-4" /></FormControl><FormLabel className="font-normal">3-4 días por semana.</FormLabel></FormItem>
@@ -302,7 +302,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
                      <FormLabel>8. Nivel de actividad física diaria</FormLabel>
                      <FormDescription>Más allá del ejercicio programado.</FormDescription>
                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="sedentario" /></FormControl><FormLabel className="font-normal">Sedentario (trabajo de oficina, poca actividad).</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="moderada" /></FormControl><FormLabel className="font-normal">Moderada (camino regularmente, algo activo).</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="alta" /></FormControl><FormLabel className="font-normal">Alta (trabajo físico o muy activa en general).</FormLabel></FormItem>
@@ -328,7 +328,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
                      <FormLabel>10. ¿Tienes ciclo menstrual regular?</FormLabel>
                      <FormDescription>Esto afecta tu metabolismo y energía.</FormDescription>
                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="si" /></FormControl><FormLabel className="font-normal">Sí, tengo ciclo menstrual regular.</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No, mi ciclo es irregular.</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no_aplica" /></FormControl><FormLabel className="font-normal">No aplica (menopausia, etc.)</FormLabel></FormItem>
@@ -344,7 +344,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
                      <FormLabel>11. ¿Usas anticonceptivos hormonales?</FormLabel>
                      <FormDescription>Pastillas, DIU hormonal, implante, etc.</FormDescription>
                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="si" /></FormControl><FormLabel className="font-normal">Sí, uso anticonceptivos hormonales.</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No, no uso anticonceptivos hormonales.</FormLabel></FormItem>
                         </RadioGroup>
@@ -359,7 +359,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
                      <FormLabel>12. ¿Tienes algún diagnóstico ginecológico?</FormLabel>
                      <FormDescription>SOP, endometriosis, etc.</FormDescription>
                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="si" /></FormControl><FormLabel className="font-normal">Sí, tengo un diagnóstico ginecológico.</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no" /></FormControl><FormLabel className="font-normal">No, no tengo diagnósticos ginecológicos.</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="no_estoy_segura" /></FormControl><FormLabel className="font-normal">No estoy segura.</FormLabel></FormItem>
@@ -375,7 +375,7 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
                      <FormLabel>13. Nivel de compromiso con el plan.</FormLabel>
                      <FormDescription>Sé honesta contigo misma.</FormDescription>
                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                        <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="1" /></FormControl><FormLabel className="font-normal">Nivel 1: Recién empieza, quiero ir poco a poco.</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="2" /></FormControl><FormLabel className="font-normal">Nivel 2: Me esfuerzo bastante, pero no me exijo al 100%.</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="3" /></FormControl><FormLabel className="font-normal">Nivel 3: Estoy lista para seguir el plan al pie de la letra.</FormLabel></FormItem>
@@ -392,7 +392,12 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
                      <FormLabel>14. ¿En dónde entrenas?</FormLabel>
                      <FormDescription>Elige con cuidado, si te equivocas tendrás que contactar con soporte para cambiar esto.</FormDescription>
                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1" disabled={entornoIsSet}>
+                        <RadioGroup 
+                            onValueChange={field.onChange} 
+                            value={field.value} 
+                            className="flex flex-col space-y-1" 
+                            disabled={entornoIsSet}
+                        >
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="casa" /></FormControl><FormLabel className="font-normal">En Casa.</FormLabel></FormItem>
                             <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="gimnasio" /></FormControl><FormLabel className="font-normal">En el Gimnasio.</FormLabel></FormItem>
                         </RadioGroup>
@@ -408,3 +413,4 @@ export function HealthForm({ userId, initialData, onFormSubmit }: HealthFormProp
       </Form>
   );
 }
+
