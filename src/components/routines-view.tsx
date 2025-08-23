@@ -39,10 +39,14 @@ export function RoutinesView({ environment }: RoutinesViewProps) {
   const fetchRoutines = useCallback(async () => {
     try {
       setLoading(true);
+      // RLS now handles filtering, so we can simplify the query.
+      // Professionals will get routines for the specified environment.
+      // Users will get routines for their *own* environment, and this clause will
+      // be redundant but harmless.
       const { data, error } = await supabase
         .from("rutinas")
         .select("*")
-        .ilike("entorno", environment)
+        .eq("entorno", environment) 
         .order("fecha", { ascending: false });
 
       if (error) throw error;
@@ -69,8 +73,9 @@ export function RoutinesView({ environment }: RoutinesViewProps) {
   }, [fetchRoutines, supabase]);
 
   const filteredRoutines = useMemo(() => {
-    if (userRole !== 1) { // If not professional, only show visible routines
-        return routines.filter(r => r.visible);
+    // RLS handles the main logic. This client-side filter is only for the professional's UI toggle.
+    if (userRole !== 1) { 
+        return routines; // For users, RLS has already filtered, so we show everything we receive.
     }
     if (visibilityFilter === 'all') {
       return routines;
@@ -160,7 +165,7 @@ export function RoutinesView({ environment }: RoutinesViewProps) {
                               </DropdownMenuItem>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
                                       <Trash2 className="mr-2 h-4 w-4" />
                                       <span>Eliminar</span>
                                   </DropdownMenuItem>
@@ -211,3 +216,5 @@ export function RoutinesView({ environment }: RoutinesViewProps) {
       </div>
   );
 }
+
+    

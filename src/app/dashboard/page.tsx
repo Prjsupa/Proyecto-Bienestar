@@ -321,7 +321,7 @@ export default function DashboardPage() {
       setUser(user);
 
       if (user) {
-        const { data: profile } = await supabase.from('usuarios').select('rol, name, last_name, entorno').eq('id', user.id).single();
+        const { data: profile } = await supabase.from('usuarios').select('rol, name, last_name').eq('id', user.id).single();
         const role = profile?.rol ?? 0;
         setUserRole(role);
 
@@ -366,12 +366,9 @@ export default function DashboardPage() {
             const { data: recipeData } = await supabase.from('recetas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
             setDailyRecipe(recipeData);
             setRecipeLoading(false);
-
-            const routineQuery = supabase.from('rutinas').select('*').eq('visible', true);
-            if (profile?.entorno) {
-                routineQuery.eq('entorno', profile.entorno);
-            }
-            const { data: routineData } = await routineQuery.order('fecha', { ascending: false }).limit(1).single();
+            
+            // For routines, Supabase RLS will handle filtering by 'entorno'
+            const { data: routineData } = await supabase.from('rutinas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
             setDailyRoutine(routineData);
             setRoutineLoading(false);
 
@@ -434,6 +431,8 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
+
+    
 
     
 
