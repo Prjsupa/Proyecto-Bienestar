@@ -64,16 +64,7 @@ export default function LandingPage() {
                     Planes de salud a medida, recetas deliciosas y una comunidad de apoyo para ayudarte a alcanzar tus metas de bienestar.
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-start">
-                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
-                    <Link href="/register">
-                      Únete Ahora
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" asChild>
-                  </Button>
-                </div>
-                 <div className="relative flex items-center justify-center lg:justify-start w-full max-w-xs mx-auto lg:mx-0 mt-6">
+                <div className="relative flex items-center justify-center lg:justify-start w-full max-w-xs mx-auto lg:mx-0 mt-6">
                     <Image
                         src={`${SUPABASE_STORAGE_URL}/logos.marivi/blanco@3x.png`}
                         width="400"
@@ -83,6 +74,16 @@ export default function LandingPage() {
                         className="w-1/2 drop-shadow-lg invert dark:invert-0"
                     />
                 </div>
+                <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-start">
+                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
+                    <Link href="/register">
+                      Únete Ahora
+                    </Link>
+                  </Button>
+                  <Button size="lg" variant="outline" asChild>
+                  </Button>
+                </div>
+                 
               </div>
               <div className="flex items-center justify-center">
                 <Image
