@@ -26,7 +26,7 @@ const SUPABASE_STORAGE_URL = 'https://jqdbhsicpfdpzifphdft.supabase.co/storage/v
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="px-4 lg:px-6 h-16 flex items-center border-b sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
+      <header className="px-[272.5px] w-full h-16 flex items-center border-b sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
         <Link href="/" className="flex items-center justify-center gap-2 font-bold text-lg" aria-label="Inicio">
           <Logo />
           <span className="font-headline tracking-tight">MARIVI POWER</span>

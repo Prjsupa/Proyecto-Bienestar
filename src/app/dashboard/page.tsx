@@ -14,14 +14,27 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
-import { Users, UtensilsCrossed, ArrowRight, Dumbbell, Calendar, Video, PlusCircle, Activity, Shield, UserCog, UserPlus } from "lucide-react";
+import { Users, UtensilsCrossed, ArrowRight, Dumbbell, Calendar, Video, PlusCircle, Activity, Shield, UserCog, UserPlus, CalendarPlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { Recipe } from "@/types/recipe";
 import type { Routine } from "@/types/routine";
+import type { Cita } from "@/types/community";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
 
-function UserDashboard({ user, greeting, dailyRecipe, recipeLoading, dailyRoutine, routineLoading }: { user: User | null, greeting: string, dailyRecipe: Recipe | null, recipeLoading: boolean, dailyRoutine: Routine | null, routineLoading: boolean }) {
+function UserDashboard({ user, greeting, dailyRecipe, recipeLoading, dailyRoutine, routineLoading, appointment, appointmentLoading }: { user: User | null, greeting: string, dailyRecipe: Recipe | null, recipeLoading: boolean, dailyRoutine: Routine | null, routineLoading: boolean, appointment: Cita | null, appointmentLoading: boolean }) {
+    const getStatusInfo = (status: Cita['estado']) => {
+        switch (status) {
+            case 'pendiente': return { variant: 'secondary', text: 'Pendiente' };
+            case 'confirmada': return { variant: 'default', text: 'Confirmada' };
+            case 'cancelada': return { variant: 'destructive', text: 'Cancelada' };
+            default: return { variant: 'outline', text: 'Desconocido' };
+        }
+    }
+    
     return (
         <div className="flex flex-col gap-6">
             <div>
@@ -30,7 +43,7 @@ function UserDashboard({ user, greeting, dailyRecipe, recipeLoading, dailyRoutin
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card>
+                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-2"><Dumbbell className="w-5 h-5" /> Rutina del Día</CardTitle>
                     </CardHeader>
@@ -55,16 +68,38 @@ function UserDashboard({ user, greeting, dailyRecipe, recipeLoading, dailyRoutin
                     </CardContent>
                 </Card>
             
-                <Card className="bg-gradient-to-tr from-primary/80 to-accent/80 text-primary-foreground lg:col-span-2">
+                <Card className="lg:col-span-2">
                     <CardHeader>
-                        <CardTitle className="font-headline">Coaching Personalizado</CardTitle>
-                        <CardDescription className="text-primary-foreground/80">Tu coach está disponible para ayudarte.</CardDescription>
+                        <CardTitle className="font-headline flex items-center gap-2"><CalendarPlus className="w-5 h-5" /> Próxima Cita</CardTitle>
+                        <CardDescription>Consulta o agenda tu próxima cita con un profesional.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm">{`"¡Recuerda mantenerte hidratado durante tu entrenamiento de hoy, ${user?.user_metadata?.name || 'campeón'}!" - Coach Sarah`}</p>
+                        {appointmentLoading ? (
+                            <div className="space-y-2">
+                                <Skeleton className="h-6 w-1/2" />
+                                <Skeleton className="h-4 w-1/4" />
+                            </div>
+                        ) : appointment ? (
+                             <div className="space-y-2">
+                                <p className="font-semibold text-lg">{format(new Date(appointment.fecha_agendada), "eeee, dd 'de' MMMM", { locale: es })}</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-muted-foreground">Estado:</p>
+                                    <Badge variant={getStatusInfo(appointment.estado).variant}>{getStatusInfo(appointment.estado).text}</Badge>
+                                </div>
+                             </div>
+                        ) : (
+                            <div className="text-center py-4 flex flex-col items-center gap-2">
+                                <p className="text-sm text-muted-foreground">No tienes ninguna cita programada.</p>
+                                <Button asChild>
+                                    <Link href="/schedule">Agendar Cita Ahora</Link>
+                                </Button>
+                            </div>
+                        )}
                     </CardContent>
-                    <CardFooter>
-                        <Button variant="secondary" className="bg-background/20 hover:bg-background/30 text-primary-foreground">Chatear con el Coach</Button>
+                     <CardFooter>
+                        <Button asChild variant="link" className="p-0 h-auto text-sm">
+                            <Link href="/schedule">Gestionar mis citas <ArrowRight className="w-4 h-4 ml-1" /></Link>
+                        </Button>
                     </CardFooter>
                 </Card>
             </div>
@@ -111,16 +146,9 @@ function UserDashboard({ user, greeting, dailyRecipe, recipeLoading, dailyRoutin
                     <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-2"><Users className="w-5 h-5" /> Novedades de la Comunidad</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <Image src="https://placehold.co/40x40.png" alt="Avatar de usuario" width={40} height={40} className="rounded-full" data-ai-hint="person smiling" />
-                            <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Mark R.</span> compartió una nueva técnica de peso muerto.</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Image src="https://placehold.co/40x40.png" alt="Avatar de usuario" width={40} height={40} className="rounded-full" data-ai-hint="woman jogging" />
-                            <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Jane D.</span> está buscando un compañero para correr.</p>
-                        </div>
-                        <Button asChild variant="link" className="p-0 h-auto">
+                    <CardContent className="flex flex-col items-center text-center justify-center h-full gap-2">
+                       <p className="text-sm text-muted-foreground">Conecta con otros miembros y comparte tu progreso.</p>
+                        <Button asChild variant="outline">
                             <Link href="/community">Únete a la Conversación <ArrowRight className="w-4 h-4 ml-1" /></Link>
                         </Button>
                     </CardContent>
@@ -269,6 +297,8 @@ export default function DashboardPage() {
   const [recipeLoading, setRecipeLoading] = useState(true);
   const [dailyRoutine, setDailyRoutine] = useState<Routine | null>(null);
   const [routineLoading, setRoutineLoading] = useState(true);
+  const [appointment, setAppointment] = useState<Cita | null>(null);
+  const [appointmentLoading, setAppointmentLoading] = useState(true);
   
   // State for Professional & Moderator Dashboards
   const [stats, setStats] = useState({ 
@@ -330,6 +360,8 @@ export default function DashboardPage() {
         } else { // Regular User
             setRecipeLoading(true);
             setRoutineLoading(true);
+            setAppointmentLoading(true);
+
             const { data: recipeData } = await supabase.from('recetas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
             setDailyRecipe(recipeData);
             setRecipeLoading(false);
@@ -337,6 +369,10 @@ export default function DashboardPage() {
             const { data: routineData } = await supabase.from('rutinas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
             setDailyRoutine(routineData);
             setRoutineLoading(false);
+
+            const { data: appointmentData } = await supabase.from('cita').select('*').eq('user_id', user.id).in('estado', ['pendiente', 'confirmada']).order('fecha_agendada', { ascending: false }).limit(1).single();
+            setAppointment(appointmentData);
+            setAppointmentLoading(false);
         }
 
       }
@@ -381,6 +417,8 @@ export default function DashboardPage() {
                 recipeLoading={recipeLoading}
                 dailyRoutine={dailyRoutine}
                 routineLoading={routineLoading}
+                appointment={appointment}
+                appointmentLoading={appointmentLoading}
             />;
     }
   }
