@@ -7,6 +7,7 @@ import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { AppLayout } from '@/components/app-layout';
 import { HealthForm } from '@/components/profile/health-form';
+import { HealthSummary } from '@/components/profile/health-summary';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import type { HealthFormData } from '@/types/health-form';
@@ -16,6 +17,7 @@ export default function HealthFormPage() {
     const [user, setUser] = useState<User | null>(null);
     const [initialData, setInitialData] = useState<HealthFormData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
     const router = useRouter();
     const supabase = createClient();
 
@@ -29,7 +31,12 @@ export default function HealthFormPage() {
                     .select('*')
                     .eq('user_id', user.id)
                     .maybeSingle();
-                setInitialData(formData);
+                
+                if (formData && formData.pregunta_1_edad) {
+                    setInitialData(formData);
+                } else {
+                    setIsEditing(true); // If no data, go straight to form
+                }
             } else {
                 router.push('/login');
             }
@@ -40,8 +47,9 @@ export default function HealthFormPage() {
     }, [router, supabase]);
 
     const handleSuccess = () => {
-        // Redirect to dashboard or profile after successful submission
-        router.push('/dashboard');
+        // After submitting, force a reload to fetch new data and show summary
+        router.refresh(); 
+        setIsEditing(false);
     }
 
     if (loading) {
@@ -57,10 +65,6 @@ export default function HealthFormPage() {
                             <Skeleton className="h-6 w-1/3" />
                             <Skeleton className="h-10 w-full" />
                             <Skeleton className="h-10 w-full" />
-                            <div className="flex justify-between">
-                                <Skeleton className="h-10 w-24" />
-                                <Skeleton className="h-10 w-24" />
-                            </div>
                         </CardContent>
                     </Card>
                 </div>
@@ -77,16 +81,26 @@ export default function HealthFormPage() {
                            <FileText className="w-6 h-6" /> Formulario de Bienestar
                         </CardTitle>
                         <CardDescription>
-                            Tus respuestas nos ayudarán a crear un plan completamente personalizado para ti. Por favor, sé lo más precisa posible.
+                            {isEditing 
+                                ? "Tus respuestas nos ayudarán a crear un plan completamente personalizado para ti. Por favor, sé lo más precisa posible."
+                                : "Este es el resumen de tus respuestas. Si necesitas actualizar tu información, puedes hacerlo aquí."
+                            }
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-6">
                         {user && (
-                            <HealthForm 
-                                userId={user.id} 
-                                initialData={initialData} 
-                                onFormSubmit={handleSuccess} 
-                            />
+                            isEditing || !initialData ? (
+                                <HealthForm 
+                                    userId={user.id} 
+                                    initialData={initialData} 
+                                    onFormSubmit={handleSuccess} 
+                                />
+                            ) : (
+                                <HealthSummary 
+                                    formData={initialData}
+                                    onEdit={() => setIsEditing(true)}
+                                />
+                            )
                         )}
                     </CardContent>
                 </Card>
@@ -94,4 +108,3 @@ export default function HealthFormPage() {
         </AppLayout>
     );
 }
-
