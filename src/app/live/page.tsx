@@ -26,7 +26,7 @@ import type { ClaseEnVivo } from '@/types/community';
 import type { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 import { LiveSessionFormModal } from '@/components/live-session-form-modal';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 
 function VideoPlayerModal({ session, isOpen, onClose }: { session: ClaseEnVivo | null, isOpen: boolean, onClose: () => void }) {
@@ -48,6 +48,7 @@ function VideoPlayerModal({ session, isOpen, onClose }: { session: ClaseEnVivo |
         return (
              <Dialog open={isOpen} onOpenChange={onClose}>
                 <DialogContent>
+                    <DialogTitle className="sr-only">Error de video</DialogTitle>
                     <div className="p-8 text-center">
                         <Frown className="w-12 h-12 mx-auto text-destructive mb-4" />
                         <h3 className="text-lg font-semibold">Enlace de Video Inválido</h3>
@@ -61,6 +62,7 @@ function VideoPlayerModal({ session, isOpen, onClose }: { session: ClaseEnVivo |
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-4xl p-0">
+                <DialogTitle className="sr-only">{session.titulo}</DialogTitle>
                 <div className="aspect-video">
                     <iframe
                         width="100%"
