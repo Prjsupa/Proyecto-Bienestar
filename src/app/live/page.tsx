@@ -64,7 +64,7 @@ function VideoPlayerModal({ session, isOpen, onClose, user }: { session: ClaseEn
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-6xl h-[80vh] flex flex-col md:flex-row p-0 gap-0">
+            <DialogContent className="max-w-6xl h-[90vh] flex flex-col md:flex-row p-0 gap-0">
                 <DialogTitle className="sr-only">{session.titulo}</DialogTitle>
                 <div className="w-full md:w-3/4 h-1/2 md:h-full">
                     <iframe
