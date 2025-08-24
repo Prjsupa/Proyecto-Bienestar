@@ -15,12 +15,14 @@ import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { HealthFormData } from "@/types/health-form";
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { FileText, UserCircle } from "lucide-react";
+import { HealthForm } from "@/components/profile/health-form";
+import { HealthSummary } from "@/components/profile/health-summary";
 
 function ProfileSkeleton() {
     return (
         <AppLayout>
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto space-y-8">
                 <div className="space-y-2 mb-8">
                     <Skeleton className="h-8 w-1/2" />
                     <Skeleton className="h-4 w-1/3" />
@@ -48,10 +50,15 @@ function ProfileSkeleton() {
                                 <Skeleton className="h-10 w-full" />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-10 w-full" />
-                        </div>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-1/3" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-40 w-full" />
                     </CardContent>
                 </Card>
             </div>
@@ -67,42 +74,52 @@ export default function ProfilePage() {
   const [title, setTitle] = useState("");
   const [role, setRole] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [healthData, setHealthData] = useState<HealthFormData | null>(null);
+  const [isEditingHealth, setIsEditingHealth] = useState(false);
   
   const router = useRouter();
   const { toast } = useToast();
   const supabase = createClient();
   
-  const fetchProfileData = async (user: User) => {
-      setUser(user);
-      const { data: profileData, error: profileError } = await supabase
-          .from('usuarios')
-          .select('name, last_name, rol, titulo')
-          .eq('id', user.id)
-          .single();
-
-      if (profileError) {
-          console.error('Error fetching user profile:', profileError);
-          toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar tu perfil.' });
-      } else if (profileData) {
-          setName(profileData.name || user.user_metadata?.name || "");
-          setLastName(profileData.last_name || user.user_metadata?.last_name || "");
-          setTitle(profileData.titulo || "");
-          setRole(profileData.rol || 0);
-      }
-      setLoading(false);
-  };
-
-
   useEffect(() => {
     const getInitialData = async () => {
         setLoading(true);
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-            await fetchProfileData(user);
+            setUser(user);
+            const { data: profileData, error: profileError } = await supabase
+                .from('usuarios')
+                .select('name, last_name, rol, titulo')
+                .eq('id', user.id)
+                .single();
+
+            if (profileError) {
+                console.error('Error fetching user profile:', profileError);
+                toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar tu perfil.' });
+            } else if (profileData) {
+                setName(profileData.name || user.user_metadata?.name || "");
+                setLastName(profileData.last_name || user.user_metadata?.last_name || "");
+                setTitle(profileData.titulo || "");
+                setRole(profileData.rol || 0);
+            }
+            
+            if (profileData?.rol === 0) { // Only fetch health form for regular users
+                const { data: formData } = await supabase
+                    .from('formulario')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+                
+                if (formData && formData.pregunta_1_edad) {
+                    setHealthData(formData);
+                } else {
+                    setIsEditingHealth(true); // If no data, go straight to form
+                }
+            }
         } else {
             router.push('/login');
-            setLoading(false);
         }
+        setLoading(false);
     };
     
     getInitialData();
@@ -120,6 +137,17 @@ export default function ProfilePage() {
     if (name && lastName) return `${name[0]}${lastName[0]}`.toUpperCase();
     if (name) return name.substring(0, 2).toUpperCase();
     return "US";
+  }
+  
+  const handleFormSuccess = async () => {
+    if (!user) return;
+    const { data: formData } = await supabase
+        .from('formulario')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+    setHealthData(formData);
+    setIsEditingHealth(false);
   }
 
   const handleSaveChanges = async () => {
@@ -168,7 +196,7 @@ export default function ProfilePage() {
   
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-8">
         <div className="space-y-2 mb-8">
             <h1 className="text-3xl font-bold font-headline">Mi Perfil</h1>
             <p className="text-muted-foreground">
@@ -178,7 +206,10 @@ export default function ProfilePage() {
 
         <Card>
             <CardHeader>
-                <CardTitle>Información Personal</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                    <UserCircle className="w-6 h-6" />
+                    Información Personal
+                </CardTitle>
                 <CardDescription>Estos datos se mostrarán en tu perfil público.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
@@ -221,6 +252,38 @@ export default function ProfilePage() {
                 </Button>
             </CardFooter>
         </Card>
+        
+        {role === 0 && (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-2xl font-headline flex items-center gap-2">
+                        <FileText className="w-6 h-6" /> Formulario de Salud
+                    </CardTitle>
+                    <CardDescription>
+                        {isEditingHealth 
+                            ? "Tus respuestas nos ayudarán a crear un plan completamente personalizado para ti."
+                            : "Este es el resumen de tus respuestas. Si necesitas actualizar tu información, puedes hacerlo aquí."
+                        }
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                    {user && (
+                        isEditingHealth || !healthData ? (
+                            <HealthForm 
+                                userId={user.id} 
+                                initialData={healthData} 
+                                onFormSubmit={handleFormSuccess} 
+                            />
+                        ) : (
+                            <HealthSummary 
+                                formData={healthData}
+                                onEdit={() => setIsEditingHealth(true)}
+                            />
+                        )
+                    )}
+                </CardContent>
+            </Card>
+        )}
       </div>
     </AppLayout>
   );
