@@ -97,7 +97,11 @@ export default function ManageRegistrationsPage() {
 
     const fetchUsers = useCallback(async () => {
         setLoadingUsers(true);
-        const { data, error } = await supabase.rpc('get_all_users_with_details');
+        // Replace RPC with a direct select call
+        const { data, error } = await supabase
+            .from('usuarios')
+            .select('*');
+
         if (error) {
             console.error("Error fetching users:", error);
             toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar la lista de usuarios.' });
@@ -228,3 +232,5 @@ function UserHistoryTable({ users, loading }: { users: UserWithRole[], loading: 
         </Table>
     );
 }
+
+    

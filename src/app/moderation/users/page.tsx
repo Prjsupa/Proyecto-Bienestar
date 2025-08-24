@@ -115,7 +115,10 @@ export default function ManageUsersPage() {
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.rpc('get_all_users_with_details');
+    // Replace RPC with a direct select call
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*');
 
     if (error) {
       console.error("Error fetching users:", error);
@@ -140,7 +143,7 @@ export default function ManageUsersPage() {
       .eq('id', userId);
       
     if (error) {
-      toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message });
+      toast({ variant: 'destructive', title: 'Error al actualizar', description: 'No tienes permiso para realizar esta acción.' });
       // Revert UI on error
       fetchUsers();
     } else {
@@ -264,3 +267,5 @@ export default function ManageUsersPage() {
     </AppLayout>
   )
 }
+
+    
