@@ -9,7 +9,7 @@ Este documento detalla las funcionalidades, capacidades y restricciones para cad
 El usuario regular es el consumidor principal de la plataforma. Su experiencia está centrada en el consumo de contenido y la interacción para alcanzar sus metas de bienestar.
 
 ### 1.1. Registro y Flujo Inicial
-- **Registro**: El usuario se registra con nombre, apellido, correo y contraseña. Por defecto, se le asigna el **rol 0**.
+- **Registro**: El usuario se registra con nombre, apellido, correo y contraseña.
 - **Formulario de Salud Obligatorio**: Tras confirmar su correo e iniciar sesión por primera vez, el usuario es redirigido forzosamente a un formulario de salud. No puede acceder a ninguna otra sección de la plataforma hasta que complete y guarde este formulario.
     - **Campos del Formulario**: Edad, estatura, peso, % de grasa corporal, diagnóstico médico (checkbox y campo "otro"), objetivo principal, días de ejercicio, actividad diaria, restricciones alimentarias, ciclo menstrual, uso de anticonceptivos, diagnóstico ginecológico, nivel de compromiso y entorno de entrenamiento.
 - **Entorno de Entrenamiento**: Una de las preguntas del formulario inicial define su entorno de entrenamiento (`casa` o `gimnasio`), lo que personaliza el contenido que verá.
@@ -22,16 +22,16 @@ El usuario regular es el consumidor principal de la plataforma. Su experiencia e
 
 ### 1.3. Contenido
 - **Recetas**:
-    - **Vista**: Una cuadrícula de tarjetas de recetas (`RecipeCard`) con imagen, título, categoría y descripción.
-    - **Interacción**: Al hacer clic, se abre un modal (`RecipeDetailModal`) que muestra la imagen, título, descripción completa, categoría, y dos columnas para **ingredientes** y **pasos de preparación**.
+    - **Vista**: Una cuadrícula de tarjetas de recetas con imagen, título, categoría y descripción.
+    - **Interacción**: Al hacer clic, se abre un modal que muestra la imagen, título, descripción completa, categoría, y dos columnas para **ingredientes** y **pasos de preparación**.
     - **Acceso**: Puede ver todas las recetas marcadas como "visibles" por los profesionales.
 - **Rutinas**:
-    - **Vista**: Una cuadrícula de tarjetas de rutinas (`RoutineCard`) con título, descripción y equipo necesario.
-    - **Interacción**: Al hacer clic, se abre un modal (`RoutineDetailModal`) que muestra el título, descripción, equipo necesario y los **ejercicios** detallados.
+    - **Vista**: Una cuadrícula de tarjetas de rutinas con título, descripción y equipo necesario.
+    - **Interacción**: Al hacer clic, se abre un modal que muestra el título, descripción, equipo necesario y los **ejercicios** detallados.
     - **Acceso**: Ve únicamente las rutinas correspondientes a su entorno (`casa` o `gimnasio`) que estén marcadas como "visibles".
 - **Clases en Vivo**:
-    - **Vista**: Una cuadrícula de tarjetas de clases (`LiveSessionCard`) con miniatura, título, fecha y hora. Las clases en curso tienen una insignia "EN VIVO".
-    - **Interacción**: Al hacer clic, se abre un modal (`VideoPlayerModal`) que contiene el reproductor de video incrustado y un **chat en vivo** para interactuar durante la transmisión.
+    - **Vista**: Una cuadrícula de tarjetas de clases con miniatura, título, fecha y hora. Las clases en curso tienen una insignia "EN VIVO".
+    - **Interacción**: Al hacer clic, se abre un modal que contiene el reproductor de video incrustado y un **chat en vivo** para interactuar durante la transmisión.
     - **Acceso**: Ve las clases futuras y las que están actualmente en vivo. Puede acceder a las grabaciones de clases pasadas hasta su fecha de expiración (15 días después de la emisión).
 
 ### 1.4. Interacción y Comunidad
@@ -50,13 +50,13 @@ El usuario regular es el consumidor principal de la plataforma. Su experiencia e
 
 ### 1.5. Citas y Perfil
 - **Agendar Cita**:
-    - **Vista**: Un calendario (`Calendar`) donde los días no disponibles (fines de semana, días completos) están deshabilitados.
-    - **Interacción**: Al seleccionar un día válido, se muestra una lista de horarios disponibles. El usuario selecciona día y hora para confirmar.
+    - **Vista**: Un calendario donde los días no disponibles (fines de semana, días completos) están deshabilitados.
+    - **Interacción**: Al seleccionar un día válido, se muestra una lista de horarios disponibles de 9am a 4pm. El usuario selecciona día y hora para confirmar.
     - **Gestión**: Puede posponer (re-agendar) o cancelar sus citas existentes.
 - **Perfil**:
     - Puede ver y actualizar su información personal (nombre, apellido).
     - Puede acceder y editar las respuestas de su formulario de salud en cualquier momento a través de la misma interfaz de pasos del registro inicial.
-- **Notificaciones**: Recibe notificaciones en un menú desplegable (`DropdownMenu`) cuando un moderador elimina uno de sus contenidos.
+- **Notificaciones**: Recibe notificaciones en un menú desplegable  cuando un moderador elimina uno de sus contenidos, y cuando alguien a respondido a su publicación (sea en cualquier subsección de Comunidad o de la Clínica de la Técnica).
 
 ---
 
@@ -71,7 +71,7 @@ El profesional es el creador de contenido y el experto que guía a los usuarios.
 ### 2.2. Gestión de Contenido
 - **Recetas**:
     - **Vista de Gestión**: Igual que el cliente, pero con filtros para ver contenido "visible", "oculto" o "todo". Las recetas ocultas tienen una distinción visual.
-    - **Crear/Editar**: A través de un modal (`RecipeFormModal`), puede gestionar los siguientes campos:
+    - **Crear/Editar**: A través de un modal, puede gestionar los siguientes campos:
         - `Título` (texto)
         - `Descripción` (texto largo)
         - `Categoría` (texto)
@@ -82,7 +82,7 @@ El profesional es el creador de contenido y el experto que guía a los usuarios.
     - **Acciones**: Puede **crear, editar y eliminar** cualquier receta.
 - **Rutinas**:
     - **Vista de Gestión**: Un gestor con pestañas para "Casa" y "Gimnasio". Dentro de cada pestaña, puede filtrar por visibilidad.
-    - **Crear/Editar**: A través de un modal (`RoutineFormModal`), puede gestionar:
+    - **Crear/Editar**: A través de un modal, puede gestionar:
         - `Título` (texto)
         - `Descripción` (texto largo)
         - `Equipo` (texto largo)
@@ -91,7 +91,7 @@ El profesional es el creador de contenido y el experto que guía a los usuarios.
         - El `Entorno` (`casa`/`gimnasio`) se asigna automáticamente según la pestaña activa.
     - **Acciones**: Puede **crear, editar y eliminar** cualquier rutina en ambos entornos.
 - **Clases en Vivo**:
-    - **Crear/Editar**: A través de un modal (`LiveSessionFormModal`), puede gestionar:
+    - **Crear/Editar**: A través de un modal, puede gestionar:
         - `Título` (texto)
         - `Descripción` (texto largo)
         - `Enlace del Directo` (URL de YouTube)
@@ -100,7 +100,7 @@ El profesional es el creador de contenido y el experto que guía a los usuarios.
     - **Acciones**: Puede **crear, programar, editar y eliminar** clases en vivo.
 - **Comunidad - Anuncios**:
     - **Crear Anuncio**: Es el único rol que puede crear anuncios, que consisten en un **mensaje** (texto) y una **imagen** opcional.
-    - **Acciones**: Puede **editar y eliminar** cualquier anuncio.
+    - **Acciones**: Puede **editar y eliminar** cualquier anuncio propio.
 
 ### 2.3. Interacción con Usuarios
 - **Comunidad - Pregúntale a un Profesional**:
@@ -110,8 +110,8 @@ El profesional es el creador de contenido y el experto que guía a los usuarios.
     - Puede ver todos los videos subidos por los usuarios.
     - Puede publicar respuestas de feedback en cualquier video, las cuales se destacan visualmente.
 - **Gestión de Citas**:
-    - **Vista**: Ve una lista de todas las citas agendadas por los usuarios en una tabla (`Table`).
-    - **Filtros**: Puede filtrar las citas por día usando un selector de calendario (`Calendar`).
+    - **Vista**: Ve una lista de todas las citas agendadas por los usuarios en una tabla.
+    - **Filtros**: Puede filtrar las citas por día usando un selector de calendario.
     - **Acciones**: Puede **confirmar** o **cancelar** las citas de los usuarios.
 
 ### 2.4. Restricciones
@@ -133,22 +133,59 @@ El moderador se encarga de mantener el orden y la seguridad en la plataforma. Ti
 - **Gestionar Usuarios**:
     - **Vista**: Una interfaz con pestañas para listar a los **Usuarios**, **Profesionales** y **Moderadores** en tablas separadas.
     - **Información Visible**: Nombre, apellido, correo, fecha de ingreso y, para usuarios regulares, su **entorno de entrenamiento**.
-    - **Acciones**: Puede **editar el entorno de entrenamiento** (`casa` o `gimnasio`) de los usuarios con rol 0.
+    - **Acciones**: Puede **editar el entorno de entrenamiento** (`casa` o `gimnasio`) de los usuarios.
 - **Gestionar Registros**:
-    - **Vista**: Dos tarjetas (`Card`), una para el enlace de Profesionales y otra para Moderadores.
-    - **Acciones**: Puede **activar o desactivar** los enlaces de registro especiales para nuevos Profesionales y Moderadores usando un interruptor (`Switch`).
-    - **Historial**: Ve un historial en tablas (`Table`) de todos los usuarios registrados con roles especiales.
+    - **Vista**: Dos tarjetas, una para el enlace de Profesionales y otra para Moderadores.
+    - **Acciones**: Puede **activar o desactivar** los enlaces de registro especiales para nuevos Profesionales y Moderadores usando un interruptor.
+    - **Historial**: Ve un historial en tablas de todos los usuarios registrados con roles especiales.
 - **Historial de Moderación**:
-    - **Vista**: Ve un registro inmutable en una tabla (`Table`) de todas las acciones de moderación realizadas en la plataforma (quién eliminó qué, cuándo y por qué).
+    - **Vista**: Ve un registro inmutable en una tabla de todas las acciones de moderación realizadas en la plataforma (quién eliminó qué, cuándo y por qué).
 
 ### 3.3. Acciones de Moderación en la Comunidad
 - **Comunidad (Feed y Preguntas)** y **Clínica de Técnica**:
     - **Acceso**: Puede ver todo el contenido (publicaciones, preguntas, videos, respuestas).
-    - **Acciones**: Puede **eliminar cualquier publicación, pregunta, video o respuesta** creada por un usuario regular (rol 0).
-    - **Proceso de Eliminación**: Al eliminar, se abre un modal (`ModerationActionDialog`) donde debe proporcionar una **razón** (texto). Esta acción queda registrada en el historial y notifica al usuario afectado.
+    - **Acciones**: Puede **eliminar cualquier publicación, pregunta, video o respuesta** creada por un usuario.
+    - **Proceso de Eliminación**: Al eliminar, se abre un modal donde debe proporcionar una **razón** (texto). Esta acción queda registrada en el historial y notifica al usuario afectado.
 
 ### 3.4. Restricciones
 - **No puede** editar el contenido de los usuarios (solo eliminar).
 - **No puede** crear contenido en nombre de los usuarios o profesionales (recetas, rutinas, anuncios).
 - **No puede** gestionar citas.
 - **No puede** modificar el rol de los usuarios.
+
+---
+
+## 4. Actualizaciones Futuras Planeadas
+
+Esta sección describe las funcionalidades y mejoras que se planean implementar a futuro para enriquecer la experiencia de la plataforma.
+
+### 4.1. Seguimiento de Progreso del Cliente
+- **Formulario Inicial Inmutable**: El formulario de salud que los usuarios llenan al registrarse se convertirá en un registro de "punto de partida" y no podrá ser editado.
+- **Formulario de Seguimiento**: Se creará un segundo formulario, idéntico al inicial, que el usuario podrá llenar y actualizar periódicamente (ej. mensualmente). Se podría implementar un recordatorio automático para incentivar su uso.
+- **Módulo de Progreso Visual**: Se desarrollará una nueva sección en el perfil del usuario donde podrá ver su evolución a lo largo del tiempo. Esto incluirá:
+    - **Gráficos y Comparativas**: Visualizaciones que comparen los datos del formulario inicial con los del formulario de seguimiento (ej. gráfico de evolución de peso, cambio en % de grasa corporal).
+    - **Hitos y Logros**: Un sistema para destacar y celebrar los avances del usuario.
+
+### 4.2. Especialización y Roles Avanzados para Profesionales
+- **Sub-roles de Profesional**: Se definirá un sistema para asignar especialidades a los profesionales (ej. `Nutricionista`, `Entrenador Físico`, `Fisioterapeuta`).
+- **Permisos Granulares**: Se restringirá el acceso a ciertas áreas de gestión basándose en el sub-rol del profesional. Por ejemplo:
+    - Solo los **Nutricionistas** podrán gestionar la sección de `Citas`.
+    - Solo los **Entrenadores Físicos** podrán dar feedback en la `Clínica de la Técnica`.
+    - Esto permitirá una gestión más ordenada y coherente del contenido y la interacción.
+
+### 4.3. Ampliación de Herramientas de Moderación
+- **Gestión de Secciones Adicionales**: Se evaluará qué otras áreas de la plataforma (además de la comunidad) requieren supervisión y se otorgarán los permisos necesarios a los moderadores.
+- **Moderación de Chat en Vivo**: Se implementarán herramientas específicas para la moderación del chat en las `Clases en Vivo`, tales como:
+    - Eliminar mensajes individuales en tiempo real.
+    - Silenciar temporal o permanentemente a un usuario en el chat.
+    - Ver un historial de chat por clase.
+
+### 4.4. Módulo de Análisis para Profesionales
+- **Resumen de la Clínica de Técnica**: Se creará un reporte semanal o mensual automatizado para los profesionales. Este resumen mostrará:
+    - Un ranking de los ejercicios más enviados para corrección.
+    - Un análisis de los errores técnicos más comunes detectados en los videos.
+    - Esto servirá como una herramienta valiosa para identificar patrones y crear contenido educativo enfocado (ej. una clase en vivo sobre "cómo hacer sentadillas correctamente").
+
+### 4.5. Seguridad y Protección de Contenido
+- **Bloqueo de Descargas**: Se investigarán e implementarán soluciones técnicas para deshabilitar la opción de "guardar como" o descargar directamente los videos e imágenes de la plataforma.
+- **Prevención de Capturas de Pantalla**: Se explorarán métodos a nivel de código (CSS y JavaScript) y configuración de servidor para dificultar o impedir la grabación de pantalla y la toma de capturas (screenshots) dentro del sitio web, protegiendo así la propiedad intelectual del contenido.
