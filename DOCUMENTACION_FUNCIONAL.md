@@ -164,12 +164,11 @@ Esta sección describe las funcionalidades y mejoras que se planean implementar 
 - **Formulario de Seguimiento**: Se creará un segundo formulario, idéntico al inicial, que el usuario podrá llenar y actualizar periódicamente (ej. mensualmente). Se podría implementar un recordatorio automático para incentivar su uso.
 - **Módulo de Progreso Visual**: Se desarrollará una nueva sección en el perfil del usuario donde podrá ver su evolución a lo largo del tiempo. Esto incluirá:
     - **Gráficos y Comparativas**: Visualizaciones que comparen los datos del formulario inicial con los del formulario de seguimiento (ej. gráfico de evolución de peso, cambio en % de grasa corporal).
-    - **Hitos y Logros**: Un sistema para destacar y celebrar los avances del usuario.
 
 ### 4.2. Especialización y Roles Avanzados para Profesionales
 - **Sub-roles de Profesional**: Se definirá un sistema para asignar especialidades a los profesionales (ej. `Nutricionista`, `Entrenador Físico`, `Fisioterapeuta`).
 - **Permisos Granulares**: Se restringirá el acceso a ciertas áreas de gestión basándose en el sub-rol del profesional. Por ejemplo:
-    - Solo los **Nutricionistas** podrán gestionar la sección de `Citas`.
+    - Solo la **Nutricionista** podrán gestionar la sección de `Citas`.
     - Solo los **Entrenadores Físicos** podrán dar feedback en la `Clínica de la Técnica`.
     - Esto permitirá una gestión más ordenada y coherente del contenido y la interacción.
 
@@ -178,7 +177,6 @@ Esta sección describe las funcionalidades y mejoras que se planean implementar 
 - **Moderación de Chat en Vivo**: Se implementarán herramientas específicas para la moderación del chat en las `Clases en Vivo`, tales como:
     - Eliminar mensajes individuales en tiempo real.
     - Silenciar temporal o permanentemente a un usuario en el chat.
-    - Ver un historial de chat por clase.
 
 ### 4.4. Módulo de Análisis para Profesionales
 - **Resumen de la Clínica de Técnica**: Se creará un reporte semanal o mensual automatizado para los profesionales. Este resumen mostrará:
@@ -188,4 +186,4 @@ Esta sección describe las funcionalidades y mejoras que se planean implementar 
 
 ### 4.5. Seguridad y Protección de Contenido
 - **Bloqueo de Descargas**: Se investigarán e implementarán soluciones técnicas para deshabilitar la opción de "guardar como" o descargar directamente los videos e imágenes de la plataforma.
-- **Prevención de Capturas de Pantalla**: Se explorarán métodos a nivel de código (CSS y JavaScript) y configuración de servidor para dificultar o impedir la grabación de pantalla y la toma de capturas (screenshots) dentro del sitio web, protegiendo así la propiedad intelectual del contenido.
+- **Prevención de Capturas de Pantalla**: Se explorarán métodos a nivel de código y configuración de servidor para dificultar o impedir la grabación de pantalla y la toma de capturas (screenshots) dentro del sitio web, protegiendo así la propiedad intelectual del contenido.
