@@ -134,8 +134,7 @@ export default function ManageUsersPage() {
   }, [fetchUsers]);
 
   const handleEnvironmentChange = async (userId: string, newEnv: 'casa' | 'gimnasio') => {
-    // Optimistic UI update
-    setUsers(prevUsers => prevUsers.map(u => u.id === userId ? { ...u, entorno: newEnv } : u));
+    // Note: No optimistic UI update this time to ensure we see the real result.
     
     const { error } = await supabase
       .from('usuarios')
@@ -143,11 +142,11 @@ export default function ManageUsersPage() {
       .eq('id', userId);
       
     if (error) {
-      toast({ variant: 'destructive', title: 'Error al actualizar', description: 'No tienes permiso para realizar esta acción.' });
-      // Revert UI on error
-      fetchUsers();
+      toast({ variant: 'destructive', title: 'Error al actualizar', description: 'No se pudo cambiar el entorno. Revisa los permisos de la base de datos.' });
     } else {
       toast({ title: 'Entorno actualizado', description: 'El entorno del usuario ha sido cambiado.' });
+      // Re-fetch the user list to show the updated data
+      await fetchUsers(); 
     }
   };
 
@@ -267,5 +266,3 @@ export default function ManageUsersPage() {
     </AppLayout>
   )
 }
-
-    
