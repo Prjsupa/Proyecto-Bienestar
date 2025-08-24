@@ -11,45 +11,52 @@ El usuario regular es el consumidor principal de la plataforma. Su experiencia e
 ### 1.1. Registro y Flujo Inicial
 - **Registro**: El usuario se registra con nombre, apellido, correo y contraseña. Por defecto, se le asigna el **rol 0**.
 - **Formulario de Salud Obligatorio**: Tras confirmar su correo e iniciar sesión por primera vez, el usuario es redirigido forzosamente a un formulario de salud. No puede acceder a ninguna otra sección de la plataforma hasta que complete y guarde este formulario.
+    - **Campos del Formulario**: Edad, estatura, peso, % de grasa corporal, diagnóstico médico (checkbox y campo "otro"), objetivo principal, días de ejercicio, actividad diaria, restricciones alimentarias, ciclo menstrual, uso de anticonceptivos, diagnóstico ginecológico, nivel de compromiso y entorno de entrenamiento.
 - **Entorno de Entrenamiento**: Una de las preguntas del formulario inicial define su entorno de entrenamiento (`casa` o `gimnasio`), lo que personaliza el contenido que verá.
 
 ### 1.2. Panel de Control (Dashboard)
 - Muestra un saludo personalizado.
-- **Resumen Diario**: Visualiza la "Receta del Día" y la "Rutina del Día" más recientes publicadas por los profesionales.
-- **Próxima Cita**: Muestra la información de su próxima cita agendada o un botón para agendar una si no tiene ninguna.
-- Acceso rápido a las secciones de Recetas, Rutinas y Comunidad.
+- **Resumen Diario**: Visualiza la "Receta del Día" y la "Rutina del Día" en tarjetas (`Card`) que muestran el título, una breve descripción y un enlace para ver más.
+- **Próxima Cita**: Muestra la información de su próxima cita agendada en una tarjeta (`Card`) destacada, incluyendo fecha y estado. Si no tiene ninguna, se muestra un botón para agendar.
+- **Accesos Rápidos**: Botones que enlazan a las secciones de Recetas, Rutinas y Comunidad.
 
 ### 1.3. Contenido
-- **Recetas**: Puede ver todas las recetas marcadas como "visibles" por los profesionales.
-- **Rutinas**: Ve únicamente las rutinas correspondientes a su entorno (`casa` o `gimnasio`) que estén marcadas como "visibles".
+- **Recetas**:
+    - **Vista**: Una cuadrícula de tarjetas de recetas (`RecipeCard`) con imagen, título, categoría y descripción.
+    - **Interacción**: Al hacer clic, se abre un modal (`RecipeDetailModal`) que muestra la imagen, título, descripción completa, categoría, y dos columnas para **ingredientes** y **pasos de preparación**.
+    - **Acceso**: Puede ver todas las recetas marcadas como "visibles" por los profesionales.
+- **Rutinas**:
+    - **Vista**: Una cuadrícula de tarjetas de rutinas (`RoutineCard`) con título, descripción y equipo necesario.
+    - **Interacción**: Al hacer clic, se abre un modal (`RoutineDetailModal`) que muestra el título, descripción, equipo necesario y los **ejercicios** detallados.
+    - **Acceso**: Ve únicamente las rutinas correspondientes a su entorno (`casa` o `gimnasio`) que estén marcadas como "visibles".
 - **Clases en Vivo**:
-    - Ve las clases futuras y las que están actualmente en vivo.
-    - Puede acceder a las grabaciones de clases pasadas hasta su fecha de expiración (15 días después de la emisión).
-    - Puede participar en el chat en tiempo real durante una clase en vivo.
+    - **Vista**: Una cuadrícula de tarjetas de clases (`LiveSessionCard`) con miniatura, título, fecha y hora. Las clases en curso tienen una insignia "EN VIVO".
+    - **Interacción**: Al hacer clic, se abre un modal (`VideoPlayerModal`) que contiene el reproductor de video incrustado y un **chat en vivo** para interactuar durante la transmisión.
+    - **Acceso**: Ve las clases futuras y las que están actualmente en vivo. Puede acceder a las grabaciones de clases pasadas hasta su fecha de expiración (15 días después de la emisión).
 
 ### 1.4. Interacción y Comunidad
 - **Comunidad - Feed**:
-    - Puede crear nuevas publicaciones, incluyendo texto y una imagen opcional.
-    - Puede responder a cualquier publicación.
-    - Puede editar y eliminar **únicamente sus propias** publicaciones y respuestas.
+    - **Crear Publicación**: Puede crear una publicación con un **mensaje** (texto) y adjuntar una **imagen** (opcional).
+    - **Responder**: Puede responder a cualquier publicación.
+    - **Editar/Eliminar**: Puede editar y eliminar **únicamente sus propias** publicaciones y respuestas.
 - **Comunidad - Pregúntale a un Profesional**:
-    - Puede publicar una nueva pregunta para los profesionales, incluyendo texto y una imagen opcional.
-    - Puede responder a las preguntas (generalmente para añadir contexto a su propia pregunta).
-    - Puede editar y eliminar **únicamente sus propias** preguntas.
+    - **Crear Pregunta**: Puede publicar una nueva pregunta con un **mensaje** (texto) y adjuntar una **imagen** (opcional).
+    - **Responder**: Puede responder a las preguntas (generalmente para añadir contexto a su propia pregunta).
+    - **Editar/Eliminar**: Puede editar y eliminar **únicamente sus propias** preguntas.
 - **Clínica de la Técnica**:
-    - Puede subir un video (con una nota opcional) para que un profesional analice su técnica.
-    - Puede ver y responder al feedback que los profesionales dejan en sus videos.
-    - Puede editar y eliminar **únicamente sus propias** publicaciones de video.
+    - **Subir Video**: Puede subir un **video** (requerido) y añadir una **nota** opcional para el profesional.
+    - **Feedback**: Puede ver y responder al feedback que los profesionales dejan en sus videos.
+    - **Editar/Eliminar**: Puede editar y eliminar **únicamente sus propias** publicaciones de video.
 
 ### 1.5. Citas y Perfil
 - **Agendar Cita**:
-    - Puede ver la disponibilidad de los profesionales (excluyendo días y horarios ya ocupados).
-    - Puede agendar una nueva cita en un horario disponible.
-    - Puede posponer o cancelar sus citas existentes.
+    - **Vista**: Un calendario (`Calendar`) donde los días no disponibles (fines de semana, días completos) están deshabilitados.
+    - **Interacción**: Al seleccionar un día válido, se muestra una lista de horarios disponibles. El usuario selecciona día y hora para confirmar.
+    - **Gestión**: Puede posponer (re-agendar) o cancelar sus citas existentes.
 - **Perfil**:
     - Puede ver y actualizar su información personal (nombre, apellido).
-    - Puede acceder y editar sus respuestas del formulario de salud en cualquier momento.
-- **Notificaciones**: Recibe notificaciones cuando un moderador elimina uno de sus contenidos.
+    - Puede acceder y editar las respuestas de su formulario de salud en cualquier momento a través de la misma interfaz de pasos del registro inicial.
+- **Notificaciones**: Recibe notificaciones en un menú desplegable (`DropdownMenu`) cuando un moderador elimina uno de sus contenidos.
 
 ---
 
@@ -58,42 +65,59 @@ El usuario regular es el consumidor principal de la plataforma. Su experiencia e
 El profesional es el creador de contenido y el experto que guía a los usuarios. Tiene permisos elevados para gestionar el contenido de la plataforma.
 
 ### 2.1. Panel de Control (Dashboard)
-- Visualiza estadísticas clave de la plataforma: número total de recetas, rutinas y citas pendientes.
-- Tiene "Acciones Rápidas" para navegar directamente a las secciones de gestión de contenido.
+- Visualiza estadísticas clave: número total de recetas, rutinas y citas pendientes.
+- Tiene "Acciones Rápidas" (botones) para navegar directamente a las secciones de gestión de contenido.
 
 ### 2.2. Gestión de Contenido
 - **Recetas**:
-    - Tiene acceso a un gestor completo de recetas.
-    - Puede **crear, editar y eliminar** cualquier receta.
-    - Puede controlar la visibilidad (`visible` / `oculto`) de cada receta.
-    - Puede filtrar las recetas por estado de visibilidad.
+    - **Vista de Gestión**: Igual que el cliente, pero con filtros para ver contenido "visible", "oculto" o "todo". Las recetas ocultas tienen una distinción visual.
+    - **Crear/Editar**: A través de un modal (`RecipeFormModal`), puede gestionar los siguientes campos:
+        - `Título` (texto)
+        - `Descripción` (texto largo)
+        - `Categoría` (texto)
+        - `Ingredientes` (texto largo)
+        - `Instrucciones` (texto largo, con formato)
+        - `Imagen` (subida de archivo)
+        - `Visible` (interruptor on/off)
+    - **Acciones**: Puede **crear, editar y eliminar** cualquier receta.
 - **Rutinas**:
-    - Tiene acceso a un gestor de rutinas, separado por entorno (`casa` y `gimnasio`).
-    - Puede **crear, editar y eliminar** cualquier rutina en ambos entornos.
-    - Puede controlar la visibilidad (`visible` / `oculto`) de cada rutina.
-    - Puede filtrar las rutinas por estado de visibilidad.
+    - **Vista de Gestión**: Un gestor con pestañas para "Casa" y "Gimnasio". Dentro de cada pestaña, puede filtrar por visibilidad.
+    - **Crear/Editar**: A través de un modal (`RoutineFormModal`), puede gestionar:
+        - `Título` (texto)
+        - `Descripción` (texto largo)
+        - `Equipo` (texto largo)
+        - `Ejercicios` (texto largo)
+        - `Visible` (interruptor on/off)
+        - El `Entorno` (`casa`/`gimnasio`) se asigna automáticamente según la pestaña activa.
+    - **Acciones**: Puede **crear, editar y eliminar** cualquier rutina en ambos entornos.
 - **Clases en Vivo**:
-    - Puede **crear, programar, editar y eliminar** clases en vivo.
-    - Puede añadir el enlace de la transmisión y una imagen en miniatura.
+    - **Crear/Editar**: A través de un modal (`LiveSessionFormModal`), puede gestionar:
+        - `Título` (texto)
+        - `Descripción` (texto largo)
+        - `Enlace del Directo` (URL de YouTube)
+        - `Fecha y Hora` del evento
+        - `Miniatura` (subida de imagen)
+    - **Acciones**: Puede **crear, programar, editar y eliminar** clases en vivo.
 - **Comunidad - Anuncios**:
-    - Es el único rol que puede **crear, editar y eliminar** anuncios en la pestaña "Anuncios de Profesionales".
+    - **Crear Anuncio**: Es el único rol que puede crear anuncios, que consisten en un **mensaje** (texto) y una **imagen** opcional.
+    - **Acciones**: Puede **editar y eliminar** cualquier anuncio.
 
 ### 2.3. Interacción con Usuarios
 - **Comunidad - Pregúntale a un Profesional**:
     - Puede ver todas las preguntas de los usuarios.
-    - Puede publicar respuestas a cualquier pregunta.
+    - Puede publicar respuestas a cualquier pregunta, las cuales se destacan visualmente como respuesta de un profesional.
 - **Clínica de la Técnica**:
     - Puede ver todos los videos subidos por los usuarios.
-    - Puede publicar respuestas de feedback en cualquier video.
+    - Puede publicar respuestas de feedback en cualquier video, las cuales se destacan visualmente.
 - **Gestión de Citas**:
-    - Ve una lista de todas las citas agendadas por los usuarios.
-    - Puede filtrar las citas por día.
-    - Puede **confirmar** o **cancelar** las citas de los usuarios.
+    - **Vista**: Ve una lista de todas las citas agendadas por los usuarios en una tabla (`Table`).
+    - **Filtros**: Puede filtrar las citas por día usando un selector de calendario (`Calendar`).
+    - **Acciones**: Puede **confirmar** o **cancelar** las citas de los usuarios.
 
 ### 2.4. Restricciones
 - No puede modificar perfiles de usuario.
 - No participa en las funciones de moderación de la comunidad (eliminar contenido de otros usuarios).
-- No tiene acceso a las herramientas de moderación (gestión de usuarios, registros, historial).
+- No tiene acceso a las herramientas de moderación.
 
 ---
 
@@ -107,20 +131,21 @@ El moderador se encarga de mantener el orden y la seguridad en la plataforma. Ti
 
 ### 3.2. Herramientas de Moderación
 - **Gestionar Usuarios**:
-    - Puede ver una lista de **todos los usuarios** de la plataforma, separados por rol (Usuarios, Profesionales, Moderadores).
-    - Puede ver el entorno de entrenamiento (`casa` o `gimnasio`) de los usuarios regulares.
-    - Puede **editar el entorno de entrenamiento** de los usuarios con rol 0.
+    - **Vista**: Una interfaz con pestañas para listar a los **Usuarios**, **Profesionales** y **Moderadores** en tablas separadas.
+    - **Información Visible**: Nombre, apellido, correo, fecha de ingreso y, para usuarios regulares, su **entorno de entrenamiento**.
+    - **Acciones**: Puede **editar el entorno de entrenamiento** (`casa` o `gimnasio`) de los usuarios con rol 0.
 - **Gestionar Registros**:
-    - Puede **activar o desactivar** los enlaces de registro especiales para nuevos Profesionales y Moderadores.
-    - Ve un historial de todos los usuarios registrados con roles especiales.
+    - **Vista**: Dos tarjetas (`Card`), una para el enlace de Profesionales y otra para Moderadores.
+    - **Acciones**: Puede **activar o desactivar** los enlaces de registro especiales para nuevos Profesionales y Moderadores usando un interruptor (`Switch`).
+    - **Historial**: Ve un historial en tablas (`Table`) de todos los usuarios registrados con roles especiales.
 - **Historial de Moderación**:
-    - Ve un registro inmutable de todas las acciones de moderación realizadas en la plataforma (quién eliminó qué, cuándo y por qué).
+    - **Vista**: Ve un registro inmutable en una tabla (`Table`) de todas las acciones de moderación realizadas en la plataforma (quién eliminó qué, cuándo y por qué).
 
 ### 3.3. Acciones de Moderación en la Comunidad
 - **Comunidad (Feed y Preguntas)** y **Clínica de Técnica**:
-    - Puede ver todo el contenido (publicaciones, preguntas, videos, respuestas).
-    - Puede **eliminar cualquier publicación, pregunta, video o respuesta** creada por un usuario regular (rol 0).
-    - Al eliminar contenido, debe proporcionar una razón, que queda registrada en el historial y notifica al usuario afectado.
+    - **Acceso**: Puede ver todo el contenido (publicaciones, preguntas, videos, respuestas).
+    - **Acciones**: Puede **eliminar cualquier publicación, pregunta, video o respuesta** creada por un usuario regular (rol 0).
+    - **Proceso de Eliminación**: Al eliminar, se abre un modal (`ModerationActionDialog`) donde debe proporcionar una **razón** (texto). Esta acción queda registrada en el historial y notifica al usuario afectado.
 
 ### 3.4. Restricciones
 - **No puede** editar el contenido de los usuarios (solo eliminar).
