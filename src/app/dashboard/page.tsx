@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -292,6 +293,7 @@ export default function DashboardPage() {
   const [userRole, setUserRole] = useState<number | null>(null);
   const [greeting, setGreeting] = useState("¡Bienvenido!");
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
   
   // State for User Dashboard
   const [dailyRecipe, setDailyRecipe] = useState<Recipe | null>(null);
@@ -315,73 +317,93 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const getUserAndData = async () => {
-      setLoading(true);
-      
       const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setLoading(false);
+        router.push('/login');
+        return;
+      }
+      
       setUser(user);
 
-      if (user) {
-        const { data: profile } = await supabase.from('usuarios').select('rol, name, last_name').eq('id', user.id).single();
-        const role = profile?.rol ?? 0;
-        setUserRole(role);
-
-        const name = profile?.name || user.user_metadata?.name || 'Usuario';
-        const lastName = profile?.last_name || user.user_metadata?.last_name || '';
-        const fullName = `${name} ${lastName}`.trim();
+      const { data: profile } = await supabase.from('usuarios').select('rol, name, last_name').eq('id', user.id).single();
+      const role = profile?.rol ?? 0;
+      setUserRole(role);
+      
+      // For regular users, check if they have filled the form
+      if (role === 0) {
+        const { data: formData, error: formError } = await supabase.from('formulario').select('id').eq('user_id', user.id).maybeSingle();
         
-        const hours = new Date().getHours();
-        if (hours < 12) setGreeting(`¡Buenos días, ${fullName}!`);
-        else if (hours < 18) setGreeting(`¡Buenas tardes, ${fullName}!`);
-        else setGreeting(`¡Buenas noches, ${fullName}!`);
-
-        if (role === 1) { // Professional
-            setStats(prev => ({ ...prev, loading: true }));
-            const { count: recipesCount } = await supabase.from('recetas').select('*', { count: 'exact', head: true });
-            const { count: routinesCount } = await supabase.from('rutinas').select('*', { count: 'exact', head: true });
-            const { count: appointmentsCount } = await supabase.from('cita').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente');
-            setStats(prev => ({
-                ...prev,
-                recipes: recipesCount ?? 0,
-                routines: routinesCount ?? 0,
-                appointments: appointmentsCount ?? 0,
-                loading: false
-            }));
-        } else if (role === 2) { // Moderator
-            setStats(prev => ({ ...prev, loading: true }));
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            const { count: usersCount } = await supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('rol', 0);
-            const { count: modActionsCount } = await supabase.from('accion_moderador').select('*', { count: 'exact', head: true }).gte('fecha', today.toISOString());
-             setStats(prev => ({
-                ...prev,
-                users: usersCount ?? 0,
-                moderation_actions: modActionsCount ?? 0,
-                loading: false
-            }));
-        } else { // Regular User
-            setRecipeLoading(true);
-            setRoutineLoading(true);
-            setAppointmentLoading(true);
-
-            const { data: recipeData } = await supabase.from('recetas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
-            setDailyRecipe(recipeData);
-            setRecipeLoading(false);
-            
-            const { data: routineData } = await supabase.from('rutinas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
-            setDailyRoutine(routineData);
-            setRoutineLoading(false);
-
-            const { data: appointmentData } = await supabase.from('cita').select('*').eq('user_id', user.id).in('estado', ['pendiente', 'confirmada', 'cancelada']).order('fecha_agendada', { ascending: false }).limit(1).single();
-            setAppointment(appointmentData);
-            setAppointmentLoading(false);
+        if (formError && formError.code !== 'PGRST116') { // PGRST116 is "No rows found"
+            console.error("Error checking for health form:", formError);
         }
-
+        
+        if (!formData) {
+            router.push('/health-form');
+            // We don't need to continue loading dashboard data since we're redirecting
+            return;
+        }
       }
+
+      setLoading(true);
+
+      const name = profile?.name || user.user_metadata?.name || 'Usuario';
+      const lastName = profile?.last_name || user.user_metadata?.last_name || '';
+      const fullName = `${name} ${lastName}`.trim();
+      
+      const hours = new Date().getHours();
+      if (hours < 12) setGreeting(`¡Buenos días, ${fullName}!`);
+      else if (hours < 18) setGreeting(`¡Buenas tardes, ${fullName}!`);
+      else setGreeting(`¡Buenas noches, ${fullName}!`);
+
+      if (role === 1) { // Professional
+          setStats(prev => ({ ...prev, loading: true }));
+          const { count: recipesCount } = await supabase.from('recetas').select('*', { count: 'exact', head: true });
+          const { count: routinesCount } = await supabase.from('rutinas').select('*', { count: 'exact', head: true });
+          const { count: appointmentsCount } = await supabase.from('cita').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente');
+          setStats(prev => ({
+              ...prev,
+              recipes: recipesCount ?? 0,
+              routines: routinesCount ?? 0,
+              appointments: appointmentsCount ?? 0,
+              loading: false
+          }));
+      } else if (role === 2) { // Moderator
+          setStats(prev => ({ ...prev, loading: true }));
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          const { count: usersCount } = await supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('rol', 0);
+          const { count: modActionsCount } = await supabase.from('accion_moderador').select('*', { count: 'exact', head: true }).gte('fecha', today.toISOString());
+           setStats(prev => ({
+              ...prev,
+              users: usersCount ?? 0,
+              moderation_actions: modActionsCount ?? 0,
+              loading: false
+          }));
+      } else { // Regular User
+          setRecipeLoading(true);
+          setRoutineLoading(true);
+          setAppointmentLoading(true);
+
+          const { data: recipeData } = await supabase.from('recetas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
+          setDailyRecipe(recipeData);
+          setRecipeLoading(false);
+          
+          const { data: routineData } = await supabase.from('rutinas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
+          setDailyRoutine(routineData);
+          setRoutineLoading(false);
+
+          const { data: appointmentData } = await supabase.from('cita').select('*').eq('user_id', user.id).in('estado', ['pendiente', 'confirmada', 'cancelada']).order('fecha_agendada', { ascending: false }).limit(1).single();
+          setAppointment(appointmentData);
+          setAppointmentLoading(false);
+      }
+
       setLoading(false);
     };
 
     getUserAndData();
-  }, [supabase]);
+  }, [supabase, router]);
   
   if (loading) {
     return (
