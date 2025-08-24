@@ -367,7 +367,6 @@ export default function DashboardPage() {
             setDailyRecipe(recipeData);
             setRecipeLoading(false);
             
-            // For routines, Supabase RLS will handle filtering by 'entorno'
             const { data: routineData } = await supabase.from('rutinas').select('*').eq('visible', true).order('fecha', { ascending: false }).limit(1).single();
             setDailyRoutine(routineData);
             setRoutineLoading(false);
@@ -431,9 +430,5 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
-
-    
-
-    
 
     
