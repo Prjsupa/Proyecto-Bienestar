@@ -328,28 +328,21 @@ export default function DashboardPage() {
       setUser(user);
 
       const { data: profile } = await supabase.from('usuarios').select('rol, name, last_name').eq('id', user.id).single();
-      const role = profile?.rol ?? 0;
-      setUserRole(role);
       
-      // For regular users, check if they have filled the form
-      if (role === 0) {
-        const { data: formData, error: formError } = await supabase.from('formulario').select('id').eq('user_id', user.id).maybeSingle();
-        
-        if (formError && formError.code !== 'PGRST116') { // PGRST116 is "No rows found"
-            console.error("Error checking for health form:", formError);
-        }
-        
-        if (!formData) {
-            router.push('/health-form');
-            // We don't need to continue loading dashboard data since we're redirecting
-            return;
-        }
+      // This check is now handled by the middleware, but we keep it here as a fallback.
+      if (!profile) {
+        console.error("Profile not found, redirecting.");
+        router.push('/login');
+        return;
       }
 
+      const role = profile.rol ?? 0;
+      setUserRole(role);
+      
       setLoading(true);
 
-      const name = profile?.name || user.user_metadata?.name || 'Usuario';
-      const lastName = profile?.last_name || user.user_metadata?.last_name || '';
+      const name = profile.name || user.user_metadata?.name || 'Usuario';
+      const lastName = profile.last_name || user.user_metadata?.last_name || '';
       const fullName = `${name} ${lastName}`.trim();
       
       const hours = new Date().getHours();
@@ -452,5 +445,3 @@ export default function DashboardPage() {
     </AppLayout>
   );
 }
-
-    

@@ -12,6 +12,7 @@ const PROTECTED_ROUTES = [
   "/schedule",
   "/routines",
   "/moderation",
+  "/health-form", // Also protect the form itself
 ];
 
 const MODERATOR_RESTRICTED_ROUTES = [
@@ -34,12 +35,13 @@ export async function middleware(request: NextRequest) {
   );
 
   const isSpecialRegistration = request.nextUrl.pathname.startsWith('/register/');
+  const isHealthFormPage = request.nextUrl.pathname.startsWith('/health-form');
 
   if (!user && isProtectedRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Handle special registration routes regardless of login status
+  // Handle special registration links regardless of login status
   if (isSpecialRegistration) {
     const linkType = request.nextUrl.pathname.split('/')[2];
     if (linkType === 'professional' || linkType === 'moderator') {
@@ -50,8 +52,6 @@ export async function middleware(request: NextRequest) {
         .single();
       
       if (!data?.is_active) {
-        // Redirect to a generic "not found" or "disabled" page,
-        // or just back to the main registration page.
         return NextResponse.redirect(new URL("/register", request.url));
       }
     }
@@ -62,10 +62,23 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     
-    // Role-based restrictions
     const { data: profile } = await supabase.from('usuarios').select('rol').eq('id', user.id).single();
     const userRole = profile?.rol;
 
+    // Gate for regular users who haven't filled the form
+    if (userRole === 0) {
+        const { data: formData, error: formError } = await supabase.from('formulario').select('id').eq('user_id', user.id).maybeSingle();
+        const formFilled = formData && !formError;
+
+        if (!formFilled && !isHealthFormPage) {
+            return NextResponse.redirect(new URL('/health-form', request.url));
+        }
+        if (formFilled && isHealthFormPage) {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
+    }
+    
+    // Role-based restrictions for other routes
     if (userRole === 2) { // Moderator
         const isRestrictedForModerator = MODERATOR_RESTRICTED_ROUTES.some((path) => 
             request.nextUrl.pathname.startsWith(path)
@@ -82,7 +95,6 @@ export async function middleware(request: NextRequest) {
         }
     }
   }
-
 
   return response;
 }
