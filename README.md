@@ -15,67 +15,44 @@ Esta es una aplicación web full-stack construida con Next.js, diseñada como un
 
 ---
 
-## Primeros Pasos
+## Variables de Entorno
 
-Para levantar el entorno de desarrollo localmente, sigue estos pasos.
+Para que la aplicación se conecte correctamente con Supabase, es necesario un archivo `.env.local` en la raíz del proyecto con las siguientes variables:
 
-### 1. Prerrequisitos
-
-- [Node.js](https://nodejs.org/en) (versión 20.x o superior recomendada)
-- `npm` o un gestor de paquetes compatible.
-
-### 2. Instalación
-
-Clona el repositorio e instala las dependencias:
-
-```bash
-npm install
-```
-
-### 3. Variables de Entorno
-
-Para que la aplicación se conecte correctamente con Supabase, necesitas configurar tus credenciales.
-
-1.  Crea un archivo llamado `.env.local` en la raíz del proyecto.
-2.  Añade las siguientes variables con los valores de tu proyecto de Supabase (los puedes encontrar en `Project Settings > API` en tu panel de Supabase):
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=TU_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=TU_SUPABASE_ANON_KEY
-```
-
-**Importante**: El archivo `.env.local` no debe ser versionado en el control de fuentes (ya está incluido en `.gitignore`).
+- `NEXT_PUBLIC_SUPABASE_URL`: La URL de tu proyecto de Supabase.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: La clave anónima (public) de tu proyecto de Supabase.
 
 ---
 
 ## Scripts Disponibles
 
-Puedes ejecutar los siguientes comandos desde la raíz del proyecto:
+Los siguientes comandos se ejecutan desde la raíz del proyecto:
 
 ### `npm run dev`
 
-Inicia el servidor de desarrollo de Next.js en modo "turbopack" para un rendimiento óptimo.
+- **Función**: Inicia el servidor de desarrollo de Next.js en modo "turbopack".
 - **Puerto**: `9002`
-- La aplicación se recargará automáticamente al guardar cambios.
+- **Descripción**: Utilizado para el desarrollo local con recarga automática al guardar cambios.
 
 ### `npm run build`
 
-Compila la aplicación para producción. Este comando genera una versión optimizada de tu aplicación en el directorio `.next`.
+- **Función**: Compila la aplicación para producción.
+- **Descripción**: Genera una versión optimizada de la aplicación en el directorio `.next`.
 
 ### `npm run start`
 
-Inicia un servidor de producción con la versión compilada de la aplicación.
+- **Función**: Inicia un servidor de producción con la versión compilada.
 - **Puerto por defecto**: `9002` (o el especificado en la variable de entorno `PORT`).
-- Debes ejecutar `npm run build` antes de poder usar este comando.
+- **Requisito**: Debes ejecutar `npm run build` antes de usar este comando.
 
 ### `npm run genkit:dev`
 
-Inicia el servidor de desarrollo de Genkit para probar los flujos de IA localmente.
+- **Función**: Inicia el servidor de desarrollo de Genkit para probar los flujos de IA localmente.
 
 ### `npm run lint`
 
-Ejecuta el linter de Next.js (`eslint`) para analizar el código en busca de errores y problemas de estilo.
+- **Función**: Ejecuta el linter de Next.js (`eslint`) para analizar el código en busca de errores y problemas de estilo.
 
 ### `npm run typecheck`
 
-Ejecuta el compilador de TypeScript (`tsc`) para verificar que no haya errores de tipado en el proyecto.
+- **Función**: Ejecuta el compilador de TypeScript (`tsc`) para verificar que no haya errores de tipado en el proyecto.
