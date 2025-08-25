@@ -79,6 +79,7 @@ export default function RegisterProfessionalPage() {
       email: values.email,
       password: values.password,
       options: {
+        emailRedirectTo: 'http://localhost:9002/auth/callback',
         data: {
           name: values.name,
           last_name: values.last_name,
