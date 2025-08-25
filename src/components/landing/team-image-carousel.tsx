@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 const SUPABASE_STORAGE_URL = 'https://jqdbhsicpfdpzifphdft.supabase.co/storage/v1/object/public';
 
 export function TeamImageCarousel() {
-  const [isUniformsInFront, setIsUniformsInFront] = useState(true);
+  const [isUniformsInFront, setIsUniformsInFront] = useState(false);
 
   return (
     <div 
