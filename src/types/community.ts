@@ -132,4 +132,6 @@ export type ChatMessage = {
     receiver_id: string;
     message: string;
     sender?: Author;
+    status?: 'sending' | 'delivered' | 'failed';
+    optimisticId?: string;
 }

@@ -4,8 +4,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useEventListener } from 'usehooks-ts'
 
 import { AppLayout } from '@/components/app-layout';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -94,11 +95,18 @@ export default function ConsultasPage() {
     }, [supabase, router]);
     
     useEffect(() => {
-        if(currentUser && pathname === '/consultas'){
+        if(currentUser){
             fetchInitialData(currentUser);
         }
-    }, [currentUser, pathname, fetchInitialData])
+    }, [currentUser, fetchInitialData])
 
+    // Refetch data when window becomes visible (e.g., user navigates back)
+    const onVisibilityChange = () => {
+        if (document.visibilityState === 'visible' && currentUser) {
+            fetchInitialData(currentUser);
+        }
+    };
+    useEventListener('visibilitychange', onVisibilityChange);
 
     const handleStartConversation = async (professionalId: string) => {
         if (!currentUser) return;

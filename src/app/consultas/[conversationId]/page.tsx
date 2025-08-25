@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Clock, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChatMessage, Conversation, Author } from '@/types/community';
 
@@ -59,12 +59,16 @@ export default function ChatPage() {
         if (error) {
             toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los mensajes.' });
         } else {
-            setMessages(data as any[]);
+            setMessages(data.map(m => ({ ...m, status: 'delivered' })) as any[]);
         }
     }, [supabase, conversationId, toast]);
 
-    const markAsRead = useCallback(async (role: number) => {
+    const markAsRead = useCallback(async (role: number, convo: Conversation) => {
         if (role === null) return;
+        const needsUpdate = role === 0 ? convo.unread_by_user : convo.unread_by_professional;
+        
+        if (!needsUpdate) return; // Don't update if already read
+
         const fieldToUpdate = role === 0 ? 'unread_by_user' : 'unread_by_professional';
         
         const { error } = await supabase
@@ -74,9 +78,6 @@ export default function ChatPage() {
             
         if(error) {
             console.error("Error marking as read", error);
-        } else {
-             // Optimistically update the conversation state as well
-             setConversation(prev => prev ? { ...prev, [fieldToUpdate]: false } : null);
         }
     }, [supabase, conversationId]);
 
@@ -111,7 +112,7 @@ export default function ChatPage() {
 
             await fetchMessages();
             if (role !== null) {
-              await markAsRead(role);
+              await markAsRead(role, currentConvo);
             }
             setLoading(false);
         };
@@ -129,15 +130,17 @@ export default function ChatPage() {
                 table: 'mensajes_chat',
                 filter: `conversation_id=eq.${conversationId}`
             }, (payload) => {
-                const newMessage = payload.new as ChatMessage;
-                // Add message to view if it's not from the current user
+                const newMessage = { ...payload.new, status: 'delivered' } as ChatMessage;
+
                 if(newMessage.sender_id !== currentUser.id) {
                     setMessages(prev => [...prev, newMessage]);
-                }
-                
-                // If the current user is the one receiving the message, mark it as read.
-                if (newMessage.receiver_id === currentUser.id && userRole !== null) {
-                  markAsRead(userRole);
+                    // Mark as read immediately if the user is in the chat
+                    if (userRole !== null && conversation) {
+                        markAsRead(userRole, { ...conversation, unread_by_user: true, unread_by_professional: true });
+                    }
+                } else {
+                    // Update status of optimistic message
+                    setMessages(prev => prev.map(m => m.id === newMessage.optimisticId ? newMessage : m));
                 }
             })
             .subscribe();
@@ -145,7 +148,7 @@ export default function ChatPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [conversationId, supabase, currentUser, userRole, markAsRead]);
+    }, [conversationId, supabase, currentUser, userRole, markAsRead, conversation]);
     
     useEffect(() => {
         if (scrollAreaRef.current) {
@@ -164,17 +167,18 @@ export default function ChatPage() {
     const onSubmit = async (values: z.infer<typeof chatSchema>) => {
         if (!currentUser || !conversation || userRole === null) return;
         
-        const tempMessageId = Math.random().toString();
+        const tempId = `optimistic-${Date.now()}`;
         const optimisticMessage: ChatMessage = {
-            id: tempMessageId,
+            id: tempId,
+            optimisticId: tempId,
             conversation_id: conversationId,
             sender_id: currentUser.id,
             receiver_id: otherParticipant!.id,
             message: values.message,
             created_at: new Date().toISOString(),
+            status: 'sending',
         };
         
-        // Optimistic UI update
         setMessages(prev => [...prev, optimisticMessage]);
         form.reset();
 
@@ -189,11 +193,8 @@ export default function ChatPage() {
 
         if (error) {
             toast({ variant: 'destructive', title: 'Error al enviar', description: error.message });
-            // Revert optimistic update
-            setMessages(prev => prev.filter(m => m.id !== tempMessageId));
+            setMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
         }
-        // No need to do anything on success, the message is already in view.
-        // The realtime subscription handles receiving messages from others.
     };
     
     if (loading) {
@@ -254,9 +255,21 @@ export default function ChatPage() {
                                             <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                                         </div>
                                     </div>
-                                    <p className={cn("text-xs text-muted-foreground mt-1", isCurrentUser ? "text-right" : "text-left")}>
-                                        {format(new Date(msg.created_at), "HH:mm")}
-                                    </p>
+                                    {isCurrentUser && (
+                                        <div className="flex items-center justify-end gap-1 mt-1">
+                                            <p className="text-xs text-muted-foreground">
+                                                {format(new Date(msg.created_at), "HH:mm")}
+                                            </p>
+                                            {msg.status === 'sending' && <Clock className="h-3 w-3 text-muted-foreground" />}
+                                            {msg.status === 'delivered' && <Check className="h-3 w-3 text-muted-foreground" />}
+                                            {msg.status === 'failed' && <span className="text-xs text-destructive">Fallo</span>}
+                                        </div>
+                                    )}
+                                    {!isCurrentUser && (
+                                         <p className="text-xs text-muted-foreground mt-1">
+                                            {format(new Date(msg.created_at), "HH:mm")}
+                                        </p>
+                                    )}
                                 </div>
                             );
                         })}
