@@ -42,23 +42,20 @@ export default function CommunityPage() {
         </div>
 
         <Tabs defaultValue="feed" className="w-full">
-          <ScrollArea className="w-full whitespace-nowrap rounded-lg">
-            <TabsList className="inline-grid w-max grid-cols-3">
-              <TabsTrigger value="feed">
-                <Users className="w-4 h-4 mr-2" />
+            <TabsList className="grid w-full grid-cols-1 md:w-max md:grid-cols-3 h-auto md:h-10">
+              <TabsTrigger value="feed" className="flex gap-2">
+                <Users className="w-4 h-4" />
                 Comunidad
               </TabsTrigger>
-              <TabsTrigger value="q-and-a">
-                <Sparkles className="w-4 h-4 mr-2" />
+              <TabsTrigger value="q-and-a" className="flex gap-2">
+                <Sparkles className="w-4 h-4" />
                 Pregúntale a un Profesional
               </TabsTrigger>
-              <TabsTrigger value="announcements">
-                <Megaphone className="w-4 h-4 mr-2" />
+              <TabsTrigger value="announcements" className="flex gap-2">
+                <Megaphone className="w-4 h-4" />
                 Anuncios
               </TabsTrigger>
             </TabsList>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
           
           <TabsContent value="feed" className="mt-6">
             <FeedTab />
