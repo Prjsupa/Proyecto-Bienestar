@@ -304,65 +304,67 @@ export default function TechniqueClinicPage() {
         </div>
         
         <div className="grid grid-cols-1 gap-8 items-start">
-            <Card className="mb-8">
-                <CardHeader>
-                <CardTitle>Analiza tu Técnica</CardTitle>
-                <CardDescription>Sube un video corto de tu ejercicio para que un profesional lo revise.</CardDescription>
-                </CardHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleSubmit)}>
-                        <CardContent className="space-y-4">
-                            <FormField
-                                control={form.control}
-                                name="video"
-                                render={() => (
-                                    <FormItem>
-                                        <div 
-                                            className="border-2 border-dashed border-muted-foreground/30 rounded-lg aspect-video flex flex-col items-center justify-center text-center p-4 cursor-pointer hover:border-primary transition-colors"
-                                            onClick={handleUploadClick}
-                                        >
-                                            <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            className="hidden"
-                                            accept="video/*"
-                                            />
-                                            {videoPreview ? (
-                                            <video src={videoPreview} className="w-full h-full object-cover rounded-md" controls />
-                                            ) : (
-                                            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                                                <Upload className="w-8 h-8" />
-                                                <span className="font-semibold">Haz clic para subir un video</span>
-                                                <span className="text-xs">MP4, AVI, MOV hasta 50MB</span>
+            {userRole === 0 && (
+                <Card className="mb-8">
+                    <CardHeader>
+                    <CardTitle>Analiza tu Técnica</CardTitle>
+                    <CardDescription>Sube un video corto de tu ejercicio para que un profesional lo revise.</CardDescription>
+                    </CardHeader>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(handleSubmit)}>
+                            <CardContent className="space-y-4">
+                                <FormField
+                                    control={form.control}
+                                    name="video"
+                                    render={() => (
+                                        <FormItem>
+                                            <div 
+                                                className="border-2 border-dashed border-muted-foreground/30 rounded-lg aspect-video flex flex-col items-center justify-center text-center p-4 cursor-pointer hover:border-primary transition-colors"
+                                                onClick={handleUploadClick}
+                                            >
+                                                <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                onChange={handleFileChange}
+                                                className="hidden"
+                                                accept="video/*"
+                                                />
+                                                {videoPreview ? (
+                                                <video src={videoPreview} className="w-full h-full object-cover rounded-md" controls />
+                                                ) : (
+                                                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                                    <Upload className="w-8 h-8" />
+                                                    <span className="font-semibold">Haz clic para subir un video</span>
+                                                    <span className="text-xs">MP4, AVI, MOV hasta 50MB</span>
+                                                </div>
+                                                )}
                                             </div>
-                                            )}
-                                        </div>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        
-                            <FormField
-                                control={form.control}
-                                name="nota"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <Textarea placeholder="Añade una nota o pregunta para el coach (opcional)..." rows={3} {...field}/>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </CardContent>
-                        <CardFooter>
-                        <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={form.formState.isSubmitting}>
-                            <Send className="w-4 h-4 mr-2"/>
-                            {form.formState.isSubmitting ? 'Enviando...' : 'Enviar para Revisión'}
-                        </Button>
-                        </CardFooter>
-                    </form>
-                </Form>
-            </Card>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            
+                                <FormField
+                                    control={form.control}
+                                    name="nota"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <Textarea placeholder="Añade una nota o pregunta para el coach (opcional)..." rows={3} {...field}/>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </CardContent>
+                            <CardFooter>
+                            <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={form.formState.isSubmitting}>
+                                <Send className="w-4 h-4 mr-2"/>
+                                {form.formState.isSubmitting ? 'Enviando...' : 'Enviar para Revisión'}
+                            </Button>
+                            </CardFooter>
+                        </form>
+                    </Form>
+                </Card>
+            )}
 
             <div className="space-y-6">
                  {loading ? renderSkeletons() : posts.length > 0 ? posts.map((post) => {

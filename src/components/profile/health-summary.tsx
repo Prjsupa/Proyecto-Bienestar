@@ -12,12 +12,12 @@ interface HealthSummaryProps {
 
 function SummaryItem({ label, value }: { label: string; value: string | number | null | undefined | string[] }) {
     const displayValue = Array.isArray(value) ? value.join(', ') : value;
-    if (!displayValue) return null;
+    if (value === null || value === undefined || value === '') return null;
 
     return (
         <div className="flex flex-col sm:flex-row sm:items-center py-3">
             <dt className="sm:w-1/3 font-semibold text-muted-foreground">{label}</dt>
-            <dd className="sm:w-2/3 text-foreground">{displayValue}</dd>
+            <dd className="sm:w-2/3 text-foreground">{String(displayValue)}</dd>
         </div>
     );
 }

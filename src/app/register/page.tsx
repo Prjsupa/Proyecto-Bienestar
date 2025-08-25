@@ -105,14 +105,12 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
-      <Link
-        href="/"
-        className="absolute top-4 left-4 flex items-center gap-2 text-foreground font-bold"
-      >
-        <Logo />
-        <span className="font-logo tracking-widest text-lg">MARIVI POWER</span>
-      </Link>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-secondary p-4">
+        <div className="mb-8 text-center">
+            <Link href="/" className="inline-flex items-center justify-center gap-2 text-foreground font-bold" aria-label="Inicio">
+                <Logo />
+            </Link>
+        </div>
 
       <Card className="w-full max-w-md">
         <CardHeader>

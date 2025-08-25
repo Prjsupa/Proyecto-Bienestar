@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Leaf, Dumbbell, UtensilsCrossed, Users, Check } from 'lucide-react';
+import { Leaf, Dumbbell, UtensilsCrossed, Users, Check, LogIn, UserPlus } from 'lucide-react';
 import { Logo } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -23,16 +23,15 @@ const premiumPlan = {
 
 const SUPABASE_STORAGE_URL = 'https://jqdbhsicpfdpzifphdft.supabase.co/storage/v1/object/public';
 
-export default function LandingPage() {
-  return (
-    <div className="flex flex-col min-h-screen bg-background">
+function LandingPageHeader() {
+    return (
       <header className="h-16 flex items-center border-b sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
         <div className="container flex items-center justify-between">
             <Link href="/" className="flex items-center justify-center gap-2 font-bold text-lg" aria-label="Inicio">
                 <Logo />
                 <span className="font-logo tracking-widest text-xl">MARIVI POWER</span>
             </Link>
-            <nav className="flex items-center gap-2 sm:gap-4">
+            <nav className="hidden md:flex items-center gap-2 sm:gap-4">
                 <ThemeToggle />
                 <Button variant="ghost" asChild>
                     <Link href="/login">
@@ -45,9 +44,40 @@ export default function LandingPage() {
                     </Link>
                 </Button>
             </nav>
+            <div className="md:hidden">
+              <ThemeToggle />
+            </div>
         </div>
       </header>
-      <main className="flex-1">
+    );
+}
+
+function MobileCtaBar() {
+  return (
+    <div className="md:hidden fixed bottom-0 left-0 z-50 w-full p-4 bg-background/80 backdrop-blur-sm border-t">
+      <div className="grid grid-cols-2 gap-4">
+        <Button variant="outline" asChild>
+          <Link href="/login">
+            <LogIn className="w-4 h-4 mr-2" />
+            Iniciar Sesión
+          </Link>
+        </Button>
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
+          <Link href="/register">
+             <UserPlus className="w-4 h-4 mr-2" />
+            Comenzar
+          </Link>
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+export default function LandingPage() {
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <LandingPageHeader />
+      <main className="flex-1 mb-20 md:mb-0">
         <section className="w-full py-20 md:py-32 lg:py-40 relative overflow-hidden">
             <div 
                 className="absolute inset-0 bg-repeat bg-center opacity-5 dark:opacity-[0.02]" 
@@ -74,14 +104,6 @@ export default function LandingPage() {
                         className="w-1/2 drop-shadow-lg invert dark:invert-0"
                     />
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-start">
-                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
-                    <Link href="/register">
-                      Únete Ahora
-                    </Link>
-                  </Button>
-                </div>
-                 
               </div>
               <div className="flex items-center justify-center">
                 <Image
@@ -222,6 +244,7 @@ export default function LandingPage() {
             <p className="text-xs text-primary-foreground/70">Todos los derechos reservados a Marivi Barrios 2025&copy;</p>
         </div>
       </footer>
+      <MobileCtaBar />
     </div>
   );
 }
