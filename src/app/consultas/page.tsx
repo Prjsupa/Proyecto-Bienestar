@@ -44,28 +44,20 @@ export default function ConsultasPage() {
             setLoading(false);
             return;
         }
-        setUserRole(profile.rol);
+        const role = profile.rol;
+        setUserRole(role);
 
-        let rpcCall = '';
-        let params = {};
+        let rpcCall = role === 0 ? 'get_conversations_for_user' : 'get_conversations_for_professional';
+        let params = role === 0 ? { u_id: user.id } : { p_id: user.id };
 
-        if (profile.rol === 0) { // User
-            rpcCall = 'get_conversations_for_user';
-            params = { u_id: user.id };
-        } else if (profile.rol === 1) { // Professional
-            rpcCall = 'get_conversations_for_professional';
-            params = { p_id: user.id };
+        const { data, error } = await supabase.rpc(rpcCall, params);
+        if (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar tus conversaciones.' });
+        } else {
+            setConversations(data as Conversation[]);
         }
-
-        if (rpcCall) {
-            const { data, error } = await supabase.rpc(rpcCall, params);
-            if (error) {
-                console.error(error);
-                toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar tus conversaciones.' });
-            } else {
-                setConversations(data as Conversation[]);
-            }
-        }
+        
         setLoading(false);
     }, [supabase, toast]);
 
@@ -99,6 +91,31 @@ export default function ConsultasPage() {
             fetchInitialData(currentUser);
         }
     }, [currentUser, fetchInitialData])
+
+    // Realtime subscription for conversation list updates
+    useEffect(() => {
+        if (!currentUser) return;
+
+        const channel = supabase
+            .channel('public:conversaciones')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'conversaciones',
+                // RLS on the server will handle filtering, but we can add a client-side check too
+            }, (payload) => {
+                const updatedConvo = payload.new as Conversation;
+                // Only update if the current user is part of this conversation
+                if (updatedConvo.user_id === currentUser.id || updatedConvo.professional_id === currentUser.id) {
+                     fetchInitialData(currentUser); // Refetch all conversations on any change
+                }
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [currentUser, supabase, fetchInitialData]);
 
     // Refetch data when window becomes visible (e.g., user navigates back)
     const onVisibilityChange = () => {
