@@ -80,8 +80,6 @@ export default function LandingPage() {
                       Únete Ahora
                     </Link>
                   </Button>
-                  <Button size="lg" variant="outline" asChild>
-                  </Button>
                 </div>
                  
               </div>
