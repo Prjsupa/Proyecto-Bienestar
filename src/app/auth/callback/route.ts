@@ -14,7 +14,6 @@ export async function GET(request: Request) {
   }
 
   // URL to redirect to after sign in process completes.
-  // Use a fixed path relative to the current origin to avoid port issues.
-  const redirectUrl = new URL('/auth/callback/confirmed', request.url);
+  const redirectUrl = new URL('/auth/callback/confirmed', requestUrl.origin);
   return NextResponse.redirect(redirectUrl);
 }

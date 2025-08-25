@@ -61,7 +61,6 @@ export default function RegisterPage() {
           last_name: values.last_name,
           rol: 0,
         },
-        emailRedirectTo: 'http://localhost:9002/auth/callback',
       },
     })
 
