@@ -63,25 +63,25 @@ export default function ChatPage() {
         }
     }, [supabase, conversationId, toast]);
 
-    const markAsRead = useCallback(async (currentRole: number, convo: Conversation) => {
-        if (currentRole === null || !convo) return;
-    
-        const fieldToUpdate = currentRole === 0 ? 'unread_by_user' : 'unread_by_professional';
-        const needsUpdate = convo[fieldToUpdate];
+    const markAsRead = useCallback(async () => {
+        if (userRole === null || !conversation) return;
+        
+        const fieldToUpdate = userRole === 0 ? 'unread_by_user' : 'unread_by_professional';
+        const needsUpdate = conversation[fieldToUpdate];
     
         if (!needsUpdate) return;
     
         const { error } = await supabase
             .from('conversaciones')
             .update({ [fieldToUpdate]: false })
-            .eq('id', convo.id);
+            .eq('id', conversation.id);
     
         if (error) {
             console.error("Error marking as read", error);
         } else {
             setConversation(prev => prev ? { ...prev, [fieldToUpdate]: false } : null);
         }
-    }, [supabase]);
+    }, [supabase, userRole, conversation]);
 
     useEffect(() => {
         const getUserAndConversation = async () => {
@@ -113,13 +113,16 @@ export default function ChatPage() {
             setOtherParticipant(other);
 
             await fetchMessages();
-            if (role !== null) {
-              await markAsRead(role, currentConvo);
-            }
             setLoading(false);
         };
         getUserAndConversation();
-    }, [conversationId, router, supabase, toast, fetchMessages, markAsRead]);
+    }, [conversationId, router, supabase, toast, fetchMessages]);
+
+    useEffect(() => {
+      if (conversation && userRole !== null) {
+        markAsRead();
+      }
+    }, [conversation, userRole, markAsRead]);
 
     useEffect(() => {
         if (!currentUser) return;
@@ -149,12 +152,8 @@ export default function ChatPage() {
 
                 if(newMessage.sender_id !== currentUser.id) {
                     setMessages(prev => [...prev, newMessage]);
-                    // Mark as read immediately if the user is in the chat
-                    if (userRole !== null && conversation) {
-                        await markAsRead(userRole, conversation);
-                    }
+                    await markAsRead();
                 } else {
-                    // Update status of optimistic message
                     setMessages(prev => prev.map(m => m.optimisticId === `optimistic-${payload.new.id}` ? newMessage : m));
                 }
             })
@@ -163,7 +162,7 @@ export default function ChatPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [conversationId, supabase, currentUser, userRole, conversation, markAsRead]);
+    }, [conversationId, supabase, currentUser, markAsRead]);
     
     useEffect(() => {
         if (scrollAreaRef.current) {
@@ -213,10 +212,10 @@ export default function ChatPage() {
             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
         } else {
              setMessages(prev => prev.map(m => m.id === tempId ? { ...m, optimisticId: `optimistic-${insertData.id}` } : m));
-             if (userRole === 1) {
+             if (userRole === 1) { // If sender is a professional
                 await supabase
                     .from('conversaciones')
-                    .update({ unread_by_professional: false })
+                    .update({ unread_by_professional: false }) // Explicitly set their own unread to false
                     .eq('id', conversationId);
              }
         }
