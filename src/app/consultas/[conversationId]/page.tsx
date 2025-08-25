@@ -59,27 +59,30 @@ export default function ChatPage() {
         if (error) {
             toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los mensajes.' });
         } else {
-            setMessages(data.map(m => ({ ...m, status: 'delivered' })) as any[]);
+            setMessages(data.map(m => ({ ...m, status: 'delivered' })));
         }
     }, [supabase, conversationId, toast]);
 
-    const markAsRead = useCallback(async (role: number, convo: Conversation) => {
-        if (role === null) return;
-        const needsUpdate = role === 0 ? convo.unread_by_user : convo.unread_by_professional;
-        
-        if (!needsUpdate) return; // Don't update if already read
-
+    const markAsRead = useCallback(async (role: number) => {
+        if (role === null || !conversation) return;
+    
         const fieldToUpdate = role === 0 ? 'unread_by_user' : 'unread_by_professional';
-        
+        const needsUpdate = conversation[fieldToUpdate];
+    
+        if (!needsUpdate) return;
+    
         const { error } = await supabase
             .from('conversaciones')
             .update({ [fieldToUpdate]: false })
             .eq('id', conversationId);
-            
-        if(error) {
+    
+        if (error) {
             console.error("Error marking as read", error);
+        } else {
+            // Optimistically update local state
+            setConversation(prev => prev ? { ...prev, [fieldToUpdate]: false } : null);
         }
-    }, [supabase, conversationId]);
+    }, [supabase, conversationId, conversation]);
 
     useEffect(() => {
         const getUserAndConversation = async () => {
@@ -112,7 +115,7 @@ export default function ChatPage() {
 
             await fetchMessages();
             if (role !== null) {
-              await markAsRead(role, currentConvo);
+              await markAsRead(role);
             }
             setLoading(false);
         };
@@ -135,12 +138,12 @@ export default function ChatPage() {
                 if(newMessage.sender_id !== currentUser.id) {
                     setMessages(prev => [...prev, newMessage]);
                     // Mark as read immediately if the user is in the chat
-                    if (userRole !== null && conversation) {
-                        markAsRead(userRole, { ...conversation, unread_by_user: true, unread_by_professional: true });
+                    if (userRole !== null) {
+                        markAsRead(userRole);
                     }
                 } else {
                     // Update status of optimistic message
-                    setMessages(prev => prev.map(m => m.id === newMessage.optimisticId ? newMessage : m));
+                    setMessages(prev => prev.map(m => m.optimisticId === `optimistic-${payload.new.id}` ? newMessage : m));
                 }
             })
             .subscribe();
@@ -148,7 +151,7 @@ export default function ChatPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [conversationId, supabase, currentUser, userRole, markAsRead, conversation]);
+    }, [conversationId, supabase, currentUser, userRole, markAsRead]);
     
     useEffect(() => {
         if (scrollAreaRef.current) {
@@ -189,11 +192,18 @@ export default function ChatPage() {
                 sender_id: currentUser.id,
                 receiver_id: otherParticipant!.id,
                 message: values.message,
-            });
+            })
+            .select()
+            .single();
 
         if (error) {
             toast({ variant: 'destructive', title: 'Error al enviar', description: error.message });
             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
+        } else {
+             // The realtime subscription will handle updating the message status
+             // from 'sending' to 'delivered'. We just need to link the optimistic
+             // message to the real one.
+             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, optimisticId: `optimistic-${error.id}` } : m));
         }
     };
     
