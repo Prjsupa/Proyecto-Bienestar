@@ -348,7 +348,7 @@ export function FeedTab() {
                         </Button>
                     </div>
                 )}
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     <FormField
                     control={postForm.control}
                     name="file"
@@ -372,7 +372,7 @@ export function FeedTab() {
                     )}
                     />
 
-                    <Button type="submit" disabled={postForm.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                    <Button type="submit" disabled={postForm.formState.isSubmitting} className="bg-accent text-accent-foreground hover:bg-accent/90 w-full sm:w-auto">
                     {postForm.formState.isSubmitting ? 'Publicando...' : 'Publicar'}
                     </Button>
                 </div>
