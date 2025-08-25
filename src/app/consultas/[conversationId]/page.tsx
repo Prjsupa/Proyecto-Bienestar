@@ -63,11 +63,11 @@ export default function ChatPage() {
         }
     }, [supabase, conversationId, toast]);
 
-    const markAsRead = useCallback(async (role: number) => {
-        if (role === null || !conversation) return;
+    const markAsRead = useCallback(async (role: number, convo: Conversation | null) => {
+        if (role === null || !convo) return;
     
         const fieldToUpdate = role === 0 ? 'unread_by_user' : 'unread_by_professional';
-        const needsUpdate = conversation[fieldToUpdate];
+        const needsUpdate = convo[fieldToUpdate];
     
         if (!needsUpdate) return;
     
@@ -79,10 +79,9 @@ export default function ChatPage() {
         if (error) {
             console.error("Error marking as read", error);
         } else {
-            // Optimistically update local state
             setConversation(prev => prev ? { ...prev, [fieldToUpdate]: false } : null);
         }
-    }, [supabase, conversationId, conversation]);
+    }, [supabase, conversationId]);
 
     useEffect(() => {
         const getUserAndConversation = async () => {
@@ -115,7 +114,7 @@ export default function ChatPage() {
 
             await fetchMessages();
             if (role !== null) {
-              await markAsRead(role);
+              await markAsRead(role, currentConvo);
             }
             setLoading(false);
         };
@@ -139,7 +138,10 @@ export default function ChatPage() {
                     setMessages(prev => [...prev, newMessage]);
                     // Mark as read immediately if the user is in the chat
                     if (userRole !== null) {
-                        markAsRead(userRole);
+                        setConversation(prevConvo => {
+                           markAsRead(userRole, prevConvo);
+                           return prevConvo;
+                        });
                     }
                 } else {
                     // Update status of optimistic message
@@ -201,8 +203,6 @@ export default function ChatPage() {
             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
         } else {
              setMessages(prev => prev.map(m => m.id === tempId ? { ...m, optimisticId: `optimistic-${insertData.id}` } : m));
-             // If the sender is a professional, immediately mark the conversation as read for them
-             // to counteract the trigger that marks it as unread.
              if (userRole === 1) {
                 await supabase
                     .from('conversaciones')
