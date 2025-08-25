@@ -9,7 +9,7 @@ Este documento detalla las funcionalidades, capacidades y restricciones para cad
 El usuario regular es el consumidor principal de la plataforma. Su experiencia está centrada en el consumo de contenido y la interacción para alcanzar sus metas de bienestar.
 
 ### 1.1. Registro y Flujo Inicial
-- **Registro**: El usuario se registra con nombre, apellido, correo y contraseña. Por defecto, se le asigna el **rol 0**.
+- **Registro**: El usuario se registra con nombre, apellido, correo y contraseña.
 - **Formulario de Salud Obligatorio**: Tras confirmar su correo e iniciar sesión por primera vez, el usuario es redirigido forzosamente a un formulario de salud. No puede acceder a ninguna otra sección de la plataforma hasta que complete y guarde este formulario.
     - **Campos del Formulario**: Edad, estatura, peso, % de grasa corporal, diagnóstico médico (checkbox y campo "otro"), objetivo principal, días de ejercicio, actividad diaria, restricciones alimentarias, ciclo menstrual, uso de anticonceptivos, diagnóstico ginecológico, nivel de compromiso y entorno de entrenamiento.
 - **Entorno de Entrenamiento**: Una de las preguntas del formulario inicial define su entorno de entrenamiento (`casa` o `gimnasio`), lo que personaliza el contenido que verá.
