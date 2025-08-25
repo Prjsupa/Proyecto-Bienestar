@@ -79,6 +79,7 @@ export default function ChatPage() {
         if (error) {
             console.error("Error marking as read", error);
         } else {
+            // Optimistically update the state
             setConversation(prev => prev ? { ...prev, [fieldToUpdate]: false } : null);
         }
     }, [supabase, conversationId]);
@@ -139,7 +140,7 @@ export default function ChatPage() {
                     // Mark as read immediately if the user is in the chat
                     if (userRole !== null) {
                         setConversation(prevConvo => {
-                           markAsRead(userRole, prevConvo);
+                           if(prevConvo) markAsRead(userRole, prevConvo);
                            return prevConvo;
                         });
                     }
@@ -203,6 +204,8 @@ export default function ChatPage() {
             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
         } else {
              setMessages(prev => prev.map(m => m.id === tempId ? { ...m, optimisticId: `optimistic-${insertData.id}` } : m));
+             // After a professional sends a message, immediately mark the conversation as read for them
+             // to counteract the trigger that marks it unread for the receiver.
              if (userRole === 1) {
                 await supabase
                     .from('conversaciones')
