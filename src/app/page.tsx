@@ -181,7 +181,7 @@ export default function LandingPage() {
         <section id="team" className="w-full py-12 md:py-24 lg:py-32 bg-background">
             <div className="container px-4 md:px-6">
                 <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 items-center">
-                    <div className="flex flex-col gap-4 order-2 lg:order-1">
+                    <div className="flex flex-col gap-4 order-2 lg:order-2">
                         <div className="space-y-4">
                             <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline border w-fit">Nuestro Equipo</div>
                             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">Expertos Dedicados a Tu Bienestar</h2>
@@ -190,14 +190,22 @@ export default function LandingPage() {
                             </p>
                         </div>
                     </div>
-                    <div className="relative h-80 md:h-96 w-full order-1 lg:order-2">
+                    <div className="grid grid-cols-2 gap-4 order-1 lg:order-1">
                         <Image
                             src={`${SUPABASE_STORAGE_URL}/logos.marivi/personal_bata.jpg`}
                             alt="Equipo de profesionales con batas"
-                            layout="fill"
-                            objectFit="cover"
-                            className="rounded-xl shadow-lg w-full h-full"
+                            width={400}
+                            height={500}
+                            className="rounded-xl shadow-lg w-full h-auto object-cover aspect-[4/5]"
                             data-ai-hint="team professional"
+                        />
+                         <Image
+                            src={`${SUPABASE_STORAGE_URL}/logos.marivi/marivi-personal.jpeg`}
+                            alt="Marivi con su equipo"
+                            width={400}
+                            height={500}
+                            className="rounded-xl shadow-lg w-full h-auto object-cover aspect-[4/5] mt-8"
+                            data-ai-hint="team fitness professional"
                         />
                     </div>
                 </div>
