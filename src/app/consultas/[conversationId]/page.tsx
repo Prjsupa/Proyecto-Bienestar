@@ -185,7 +185,7 @@ export default function ChatPage() {
         setMessages(prev => [...prev, optimisticMessage]);
         form.reset();
 
-        const { error } = await supabase
+        const { data: insertData, error } = await supabase
             .from('mensajes_chat')
             .insert({
                 conversation_id: conversationId,
@@ -200,10 +200,15 @@ export default function ChatPage() {
             toast({ variant: 'destructive', title: 'Error al enviar', description: error.message });
             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
         } else {
-             // The realtime subscription will handle updating the message status
-             // from 'sending' to 'delivered'. We just need to link the optimistic
-             // message to the real one.
-             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, optimisticId: `optimistic-${error.id}` } : m));
+             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, optimisticId: `optimistic-${insertData.id}` } : m));
+             // If the sender is a professional, immediately mark the conversation as read for them
+             // to counteract the trigger that marks it as unread.
+             if (userRole === 1) {
+                await supabase
+                    .from('conversaciones')
+                    .update({ unread_by_professional: false })
+                    .eq('id', conversationId);
+             }
         }
     };
     
