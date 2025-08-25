@@ -216,14 +216,16 @@ export default function ChatPage() {
         } else {
              // This associates the temporary ID with the permanent one
              setMessages(prev => prev.map(m => m.id === tempId ? { ...m, optimisticId: `optimistic-${insertData.id}` } : m));
-
+             
+             // If the sender is a professional, mark the conversation as read for them immediately
              if (userRole === 1) {
-                const { error: rpcError } = await supabase.rpc('marcar_conversacion_como_leida_profesional', {
-                    c_id: conversationId,
-                });
-
-                if (rpcError) {
-                    console.error("Error calling RPC to mark as read:", rpcError);
+                const { error: updateError } = await supabase
+                    .from('conversaciones')
+                    .update({ unread_by_professional: false })
+                    .eq('id', conversationId);
+                
+                if (updateError) {
+                    console.error("Error setting professional unread to false:", updateError.message);
                 } else {
                     setConversation(prev => prev ? { ...prev, unread_by_professional: false } : null);
                 }
@@ -345,5 +347,3 @@ export default function ChatPage() {
         </AppLayout>
     );
 }
-
-    
