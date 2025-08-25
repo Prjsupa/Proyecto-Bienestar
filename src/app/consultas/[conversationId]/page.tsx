@@ -63,25 +63,25 @@ export default function ChatPage() {
         }
     }, [supabase, conversationId, toast]);
 
-    const markAsRead = useCallback(async () => {
-        if (userRole === null || !conversation) return;
+    const markAsRead = useCallback(async (currentRole: number, currentConvo: Conversation) => {
+        if (currentRole === null || !currentConvo) return;
         
-        const fieldToUpdate = userRole === 0 ? 'unread_by_user' : 'unread_by_professional';
-        const needsUpdate = conversation[fieldToUpdate];
+        const fieldToUpdate = currentRole === 0 ? 'unread_by_user' : 'unread_by_professional';
+        const needsUpdate = currentConvo[fieldToUpdate];
     
         if (!needsUpdate) return;
     
         const { error } = await supabase
             .from('conversaciones')
             .update({ [fieldToUpdate]: false })
-            .eq('id', conversation.id);
+            .eq('id', currentConvo.id);
     
         if (error) {
             console.error("Error marking as read", error);
         } else {
             setConversation(prev => prev ? { ...prev, [fieldToUpdate]: false } : null);
         }
-    }, [supabase, userRole, conversation]);
+    }, [supabase]);
 
     useEffect(() => {
         const getUserAndConversation = async () => {
@@ -114,15 +114,13 @@ export default function ChatPage() {
 
             await fetchMessages();
             setLoading(false);
+            
+            if (role !== null) {
+                await markAsRead(role, currentConvo);
+            }
         };
         getUserAndConversation();
-    }, [conversationId, router, supabase, toast, fetchMessages]);
-
-    useEffect(() => {
-      if (conversation && userRole !== null) {
-        markAsRead();
-      }
-    }, [conversation, userRole, markAsRead]);
+    }, [conversationId, router, supabase, toast, fetchMessages, markAsRead]);
 
     useEffect(() => {
         if (!currentUser) return;
@@ -152,9 +150,14 @@ export default function ChatPage() {
 
                 if(newMessage.sender_id !== currentUser.id) {
                     setMessages(prev => [...prev, newMessage]);
-                    await markAsRead();
+                    if (userRole !== null && conversation !== null) {
+                        await markAsRead(userRole, conversation);
+                    }
                 } else {
-                    setMessages(prev => prev.map(m => m.optimisticId === `optimistic-${payload.new.id}` ? newMessage : m));
+                    // Update the optimistic message with the real one from the DB
+                    setMessages(prev => prev.map(m => 
+                        m.optimisticId === `optimistic-${payload.new.id}` ? newMessage : m
+                    ));
                 }
             })
             .subscribe();
@@ -162,7 +165,7 @@ export default function ChatPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [conversationId, supabase, currentUser, markAsRead]);
+    }, [conversationId, supabase, currentUser, userRole, conversation, markAsRead]);
     
     useEffect(() => {
         if (scrollAreaRef.current) {
@@ -211,12 +214,19 @@ export default function ChatPage() {
             toast({ variant: 'destructive', title: 'Error al enviar', description: error.message });
             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
         } else {
+             // This associates the temporary ID with the permanent one
              setMessages(prev => prev.map(m => m.id === tempId ? { ...m, optimisticId: `optimistic-${insertData.id}` } : m));
-             if (userRole === 1) { // If sender is a professional
-                await supabase
-                    .from('conversaciones')
-                    .update({ unread_by_professional: false }) // Explicitly set their own unread to false
-                    .eq('id', conversationId);
+
+             if (userRole === 1) {
+                const { error: rpcError } = await supabase.rpc('marcar_conversacion_como_leida_profesional', {
+                    c_id: conversationId,
+                });
+
+                if (rpcError) {
+                    console.error("Error calling RPC to mark as read:", rpcError);
+                } else {
+                    setConversation(prev => prev ? { ...prev, unread_by_professional: false } : null);
+                }
              }
         }
     };
@@ -335,3 +345,5 @@ export default function ChatPage() {
         </AppLayout>
     );
 }
+
+    
