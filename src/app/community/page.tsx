@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Check, MessageCircle, Paperclip, X, Annoyed, Image as ImageIcon, MessageSquare } from "lucide-react";
+import { Check, MessageCircle, Paperclip, X, Annoyed, Image as ImageIcon, MessageSquare, Users, Sparkles, Megaphone } from "lucide-react";
 import Image from "next/image";
 
 import { AppLayout } from "@/components/app-layout";
@@ -27,6 +27,7 @@ import type { CommunityPost, QAPost, ProfessionalPost, Reply } from "@/types/com
 import { FeedTab } from "@/components/community/feed-tab";
 import { QATab } from "@/components/community/qa-tab";
 import { AnnouncementsTab } from "@/components/community/announcements-tab";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export default function CommunityPage() {
 
@@ -41,11 +42,23 @@ export default function CommunityPage() {
         </div>
 
         <Tabs defaultValue="feed" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="feed">Comunidad</TabsTrigger>
-            <TabsTrigger value="q-and-a">Pregúntale a un Profesional</TabsTrigger>
-            <TabsTrigger value="announcements">Anuncios de Profesionales</TabsTrigger>
-          </TabsList>
+          <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+            <TabsList className="inline-grid w-max grid-cols-3">
+              <TabsTrigger value="feed">
+                <Users className="w-4 h-4 mr-2" />
+                Comunidad
+              </TabsTrigger>
+              <TabsTrigger value="q-and-a">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Pregúntale a un Profesional
+              </TabsTrigger>
+              <TabsTrigger value="announcements">
+                <Megaphone className="w-4 h-4 mr-2" />
+                Anuncios
+              </TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
           
           <TabsContent value="feed" className="mt-6">
             <FeedTab />
