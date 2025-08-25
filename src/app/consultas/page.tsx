@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEventListener } from 'usehooks-ts'
 
@@ -27,12 +27,10 @@ export default function ConsultasPage() {
     const [userRole, setUserRole] = useState<number | null>(null);
     const [conversations, setConversations] = useState<Conversation[]>([]);
     
-    // For starting a new conversation
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [professionals, setProfessionals] = useState<Author[]>([]);
 
     const router = useRouter();
-    const pathname = usePathname();
     const { toast } = useToast();
     const supabase = createClient();
 
@@ -92,7 +90,6 @@ export default function ConsultasPage() {
         }
     }, [currentUser, fetchInitialData])
 
-    // Realtime subscription for conversation list updates
     useEffect(() => {
         if (!currentUser) return;
 
@@ -102,12 +99,10 @@ export default function ConsultasPage() {
                 event: '*',
                 schema: 'public',
                 table: 'conversaciones',
-                // RLS on the server will handle filtering, but we can add a client-side check too
             }, (payload) => {
                 const updatedConvo = payload.new as Conversation;
-                // Only update if the current user is part of this conversation
                 if (updatedConvo.user_id === currentUser.id || updatedConvo.professional_id === currentUser.id) {
-                     fetchInitialData(currentUser); // Refetch all conversations on any change
+                     fetchInitialData(currentUser);
                 }
             })
             .subscribe();
@@ -117,7 +112,6 @@ export default function ConsultasPage() {
         };
     }, [currentUser, supabase, fetchInitialData]);
 
-    // Refetch data when window becomes visible (e.g., user navigates back)
     const onVisibilityChange = () => {
         if (document.visibilityState === 'visible' && currentUser) {
             fetchInitialData(currentUser);
@@ -127,7 +121,7 @@ export default function ConsultasPage() {
 
     const handleStartConversation = async (professionalId: string) => {
         if (!currentUser) return;
-        setIsModalOpen(false); // Close modal immediately
+        setIsModalOpen(false);
 
         const { data, error } = await supabase
             .rpc('get_or_create_conversation', { p_id: professionalId, u_id: currentUser.id });

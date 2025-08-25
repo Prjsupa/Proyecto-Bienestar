@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send, Clock, Check } from 'lucide-react';
+import { ArrowLeft, Send, Clock, Check, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChatMessage, Conversation, Author } from '@/types/community';
 
@@ -52,7 +52,7 @@ export default function ChatPage() {
     const fetchMessages = useCallback(async () => {
         const { data, error } = await supabase
             .from('mensajes_chat')
-            .select('*, sender:sender_id(*)')
+            .select('*, sender:sender_id(id, name, last_name)')
             .eq('conversation_id', conversationId)
             .order('created_at', { ascending: true });
         
@@ -63,7 +63,7 @@ export default function ChatPage() {
         }
     }, [supabase, conversationId, toast]);
 
-    const markAsRead = useCallback(async (role: number, convoId: string) => {
+    const markAsRead = useCallback(async (role: number) => {
         if (role === null) return;
     
         const fieldToUpdate = role === 0 ? 'unread_by_user' : 'unread_by_professional';
@@ -71,13 +71,14 @@ export default function ChatPage() {
         const { error } = await supabase
             .from('conversaciones')
             .update({ [fieldToUpdate]: false })
-            .eq('id', convoId);
+            .eq('id', conversationId);
     
         if (error) {
             console.error("Error marking as read", error);
-            // Don't toast here to avoid bothering the user
+            // This might fail if RLS prevents it, but we try anyway.
+            // Don't toast here to avoid bothering the user.
         }
-    }, [supabase]);
+    }, [supabase, conversationId]);
 
     useEffect(() => {
         const getUserAndConversation = async () => {
@@ -109,11 +110,15 @@ export default function ChatPage() {
             setOtherParticipant(other);
 
             await fetchMessages();
-            setLoading(false);
             
             if (role !== null) {
-                await markAsRead(role, currentConvo.id);
+                const unread = role === 0 ? currentConvo.unread_by_user : currentConvo.unread_by_professional;
+                if (unread) {
+                   await markAsRead(role);
+                }
             }
+
+            setLoading(false);
         };
         getUserAndConversation();
     }, [conversationId, router, supabase, toast, fetchMessages, markAsRead]);
@@ -131,25 +136,20 @@ export default function ChatPage() {
             }, async (payload) => {
                  const { data: authorData, error: authorError } = await supabase
                     .from('usuarios')
-                    .select('*')
+                    .select('id, name, last_name')
                     .eq('id', payload.new.sender_id)
                     .single();
 
-                let newMessage: ChatMessage;
-                if (authorError) {
-                    console.error("Error fetching author for new message:", authorError);
-                    newMessage = { ...payload.new, status: 'delivered' } as ChatMessage;
-                } else {
-                    newMessage = { ...payload.new, sender: authorData, status: 'delivered' } as ChatMessage;
-                }
-
+                const newMessage = { 
+                    ...payload.new, 
+                    sender: authorData || undefined, 
+                    status: 'delivered' 
+                } as ChatMessage;
 
                 if(newMessage.sender_id !== currentUser.id) {
                     setMessages(prev => [...prev, newMessage]);
-                    // Mark as read when a new message arrives and the user is on the page
-                    await markAsRead(userRole, conversationId);
+                    await markAsRead(userRole);
                 } else {
-                    // Update the optimistic message with the real one from the DB
                     setMessages(prev => prev.map(m => 
                         m.optimisticId === `optimistic-${payload.new.id}` ? newMessage : m
                     ));
@@ -177,7 +177,7 @@ export default function ChatPage() {
     };
 
     const onSubmit = async (values: z.infer<typeof chatSchema>) => {
-        if (!currentUser || !conversation || userRole === null) return;
+        if (!currentUser || !conversation || !otherParticipant || userRole === null) return;
         
         const tempId = `optimistic-${Date.now()}`;
         const optimisticMessage: ChatMessage = {
@@ -185,10 +185,15 @@ export default function ChatPage() {
             optimisticId: tempId,
             conversation_id: conversationId,
             sender_id: currentUser.id,
-            receiver_id: otherParticipant!.id,
+            receiver_id: otherParticipant.id,
             message: values.message,
             created_at: new Date().toISOString(),
             status: 'sending',
+            sender: {
+                id: currentUser.id,
+                name: currentUser.user_metadata.name,
+                last_name: currentUser.user_metadata.last_name,
+            }
         };
         
         setMessages(prev => [...prev, optimisticMessage]);
@@ -199,18 +204,19 @@ export default function ChatPage() {
             .insert({
                 conversation_id: conversationId,
                 sender_id: currentUser.id,
-                receiver_id: otherParticipant!.id,
+                receiver_id: otherParticipant.id,
                 message: values.message,
             })
-            .select()
+            .select('id')
             .single();
 
         if (error) {
             toast({ variant: 'destructive', title: 'Error al enviar', description: error.message });
             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
         } else {
-             // This associates the temporary ID with the permanent one
              setMessages(prev => prev.map(m => m.id === tempId ? { ...m, optimisticId: `optimistic-${insertData.id}` } : m));
+             // After sending, ensure the sender's own conversation is marked as read.
+             await markAsRead(userRole);
         }
     };
     
@@ -272,17 +278,14 @@ export default function ChatPage() {
                                             <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
                                         </div>
                                     </div>
-                                    {isCurrentUser && (
-                                        <div className="flex items-center justify-end gap-1 mt-1">
-                                            <p className="text-xs text-muted-foreground">
-                                                {format(new Date(msg.created_at), "HH:mm")}
-                                            </p>
-                                            {msg.status === 'sending' && <Clock className="h-3 w-3 text-muted-foreground" />}
-                                            {msg.status === 'delivered' && <Check className="h-3 w-3 text-muted-foreground" />}
-                                            {msg.status === 'failed' && <span className="text-xs text-destructive">Fallo</span>}
+                                    {isCurrentUser ? (
+                                        <div className="flex items-center justify-end gap-1 mt-1 text-xs text-muted-foreground">
+                                            <span>{format(new Date(msg.created_at), "HH:mm")}</span>
+                                            {msg.status === 'sending' && <Clock className="h-3 w-3" />}
+                                            {msg.status === 'delivered' && <Check className="h-3 w-3" />}
+                                            {msg.status === 'failed' && <XCircle className="h-3 w-3 text-destructive" />}
                                         </div>
-                                    )}
-                                    {!isCurrentUser && (
+                                    ) : (
                                          <p className="text-xs text-muted-foreground mt-1">
                                             {format(new Date(msg.created_at), "HH:mm")}
                                         </p>
