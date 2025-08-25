@@ -79,7 +79,7 @@ export default function RegisterModeratorPage() {
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `/auth/callback`,
         data: {
           name: values.name,
           last_name: values.last_name,
