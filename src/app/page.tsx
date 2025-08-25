@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Leaf, Dumbbell, UtensilsCrossed, Users, Check, LogIn, UserPlus, HeartPulse } from 'lucide-react';
 import { Logo } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { TeamImageCarousel } from '@/components/landing/team-image-carousel';
 
 const premiumPlan = {
     name: "Premium",
@@ -181,25 +182,10 @@ export default function LandingPage() {
         <section id="team" className="w-full py-12 md:py-24 lg:py-32 bg-background">
             <div className="container px-4 md:px-6">
                 <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 items-center">
-                    <div className="relative min-h-[300px] sm:min-h-[450px] lg:order-1 order-1">
-                        <Image
-                            src={`${SUPABASE_STORAGE_URL}/logos.marivi/personal_uniforme.jpg`}
-                            alt="Equipo de profesionales con uniformes"
-                            width={400}
-                            height={500}
-                            className="rounded-xl shadow-lg w-full sm:w-2/3 h-auto object-cover aspect-auto absolute right-0 top-0"
-                            data-ai-hint="team fitness professional"
-                        />
-                         <Image
-                            src={`${SUPABASE_STORAGE_URL}/logos.marivi/personal_bata.jpg`}
-                            alt="Equipo de profesionales con batas"
-                            width={500}
-                            height={400}
-                            className="rounded-xl shadow-lg w-full sm:w-2/3 h-auto object-cover aspect-auto absolute left-0 bottom-0"
-                            data-ai-hint="team professional"
-                        />
+                    <div className="lg:order-1 order-2">
+                        <TeamImageCarousel />
                     </div>
-                     <div className="flex flex-col gap-4 order-2 lg:order-2">
+                     <div className="flex flex-col gap-4 order-1 lg:order-2">
                         <div className="space-y-4">
                             <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline border w-fit">Nuestro Equipo</div>
                             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">Expertos Dedicados a Tu Bienestar</h2>
