@@ -79,7 +79,7 @@ export default function RegisterModeratorPage() {
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: `/auth/callback`,
+        emailRedirectTo: 'https://6000-firebase-studio-1753376594897.cluster-2xid2zxbenc4ixa74rpk7q7fyk.cloudworkstations.dev/auth/callback',
         data: {
           name: values.name,
           last_name: values.last_name,
