@@ -19,8 +19,8 @@ Esta es una aplicación web full-stack construida con Next.js, diseñada como un
 
 Para que la aplicación se conecte correctamente con Supabase, es necesario un archivo `.env.local` en la raíz del proyecto con las siguientes variables:
 
-- `NEXT_PUBLIC_SUPABASE_URL`: La URL de tu proyecto de Supabase.
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: La clave anónima (public) de tu proyecto de Supabase.
+- `NEXT_PUBLIC_SUPABASE_URL`: https://jqdbhsicpfdpzifphdft.supabase.co
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxZGJoc2ljcGZkcHppZnBoZGZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5MjEzMDgsImV4cCI6MjA2OTQ5NzMwOH0.4xgvV3hedf7Z_WyhK0eXBmoXA9vBy-pfSgTblg6QvwE
 
 ---
 

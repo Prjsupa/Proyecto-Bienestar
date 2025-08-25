@@ -1,5 +1,4 @@
 
-
 export type Author = {
     id: string;
     name: string | null;
@@ -26,25 +25,6 @@ export type CommunityPost = {
   usuarios: Author | null;
   comunidad_respuestas: Reply[];
 };
-
-export type ProfessionalReply = {
-    id: string;
-    post_id: string;
-    user_id: string;
-    mensaje: string;
-    fecha: string;
-    usuarios: Author | null;
-}
-
-export type ProfessionalQuestion = {
-    id: string;
-    fecha: string;
-    user_id: string;
-    mensaje: string;
-    img_url: string | null;
-    usuarios: Author | null;
-    respuesta_profesional: ProfessionalReply[];
-}
 
 export type AnnouncementPost = {
   id: string;
@@ -129,4 +109,27 @@ export type LiveChatMessage = {
     mensaje: string;
     fecha: string;
     usuarios: Author | null;
+}
+
+export type Conversation = {
+    id: string;
+    created_at: string;
+    user_id: string;
+    professional_id: string;
+    last_message_preview: string | null;
+    last_message_at: string;
+    unread_by_user: boolean;
+    unread_by_professional: boolean;
+    user: Author;
+    professional: Author;
+}
+
+export type ChatMessage = {
+    id: string;
+    created_at: string;
+    conversation_id: string;
+    sender_id: string;
+    receiver_id: string;
+    message: string;
+    sender?: Author;
 }

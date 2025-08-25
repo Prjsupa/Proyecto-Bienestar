@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Leaf, Dumbbell, UtensilsCrossed, Users, Check, LogIn, UserPlus } from 'lucide-react';
+import { Leaf, Dumbbell, UtensilsCrossed, Users, Check, LogIn, UserPlus, HeartPulse } from 'lucide-react';
 import { Logo } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -107,7 +107,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center justify-center">
                 <Image
-                    src={`${SUPABASE_STORAGE_URL}/logos.marivi/marivi_inicio.jpg`}
+                    src={`${SUPABASE_STORAGE_URL}/logos.marivi/marivi_inicio.JPG`}
                     width="600"
                     height="800"
                     alt="Marivi Barrios sonriendo"
@@ -177,6 +177,39 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+        
+        <section id="team" className="w-full py-12 md:py-24 lg:py-32 bg-background">
+            <div className="container px-4 md:px-6">
+                <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+                    <div className="space-y-4">
+                        <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline border">Nuestro Equipo</div>
+                        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">Expertos Dedicados a Tu Bienestar</h2>
+                        <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed font-body">
+                          Contamos con los mejores profesionales, capacitados y comprometidos con tu transformación. Nuestro equipo combina la experiencia clínica con la pasión por el fitness para ofrecerte un acompañamiento integral y resultados reales.
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Image
+                            src={`${SUPABASE_STORAGE_URL}/logos.marivi/personal_bata.jpg`}
+                            width={400}
+                            height={500}
+                            alt="Equipo de profesionales con batas"
+                            data-ai-hint="team professional"
+                            className="mx-auto rounded-xl object-cover w-full h-full aspect-[4/5] shadow-lg"
+                        />
+                        <Image
+                             src={`${SUPABASE_STORAGE_URL}/logos.marivi/personal_uniforme.jpg`}
+                             width={400}
+                             height={500}
+                             alt="Equipo de profesionales con uniformes"
+                             data-ai-hint="team professional"
+                             className="mx-auto rounded-xl object-cover w-full h-full aspect-[4/5] shadow-lg"
+                        />
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-secondary/30 to-background">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
