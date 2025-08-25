@@ -195,7 +195,7 @@ export default function LandingPage() {
                             height={500}
                             alt="Equipo de profesionales con batas"
                             data-ai-hint="team professional"
-                            className="mx-auto rounded-xl object-cover w-full h-auto aspect-video shadow-lg"
+                            className="mx-auto rounded-xl object-cover w-full h-auto shadow-lg"
                         />
                         <Image
                              src={`${SUPABASE_STORAGE_URL}/logos.marivi/personal_uniforme.jpg`}
@@ -203,7 +203,7 @@ export default function LandingPage() {
                              height={500}
                              alt="Equipo de profesionales con uniformes"
                              data-ai-hint="team professional"
-                             className="mx-auto rounded-xl object-cover w-full h-auto aspect-video shadow-lg"
+                             className="mx-auto rounded-xl object-cover w-full h-auto shadow-lg"
                         />
                     </div>
                 </div>
