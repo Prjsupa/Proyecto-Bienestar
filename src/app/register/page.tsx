@@ -56,7 +56,7 @@ export default function RegisterPage() {
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: 'http://localhost:9002/auth/callback',
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           name: values.name,
           last_name: values.last_name,
