@@ -181,30 +181,30 @@ export default function LandingPage() {
         <section id="team" className="w-full py-12 md:py-24 lg:py-32 bg-background">
             <div className="container px-4 md:px-6">
                 <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 items-center">
-                    <div className="flex flex-col gap-4 order-2 lg:order-2">
+                    <div className="flex flex-col gap-4 order-2 lg:order-1">
                         <div className="space-y-4">
                             <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline border w-fit">Nuestro Equipo</div>
                             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">Expertos Dedicados a Tu Bienestar</h2>
-                            <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed font-body">
+                            <p className="max-w-[600px] text-muted-foreground md:text-lg/relaxed font-body">
                               Contamos con los mejores profesionales, capacitados y comprometidos con tu transformación. Nuestro equipo combina la experiencia clínica con la pasión por el fitness para ofrecerte un acompañamiento integral y resultados reales.
                             </p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 order-1 lg:order-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 order-1 lg:order-2">
                         <Image
                             src={`${SUPABASE_STORAGE_URL}/logos.marivi/personal_bata.jpg`}
                             alt="Equipo de profesionales con batas"
-                            width={400}
-                            height={500}
-                            className="rounded-xl shadow-lg w-full h-auto object-cover aspect-[4/5]"
+                            width={500}
+                            height={400}
+                            className="rounded-xl shadow-lg w-full h-auto object-cover aspect-auto"
                             data-ai-hint="team professional"
                         />
                          <Image
-                            src={`${SUPABASE_STORAGE_URL}/logos.marivi/marivi-personal.jpeg`}
-                            alt="Marivi con su equipo"
+                            src={`${SUPABASE_STORAGE_URL}/logos.marivi/personal_uniforme.jpg`}
+                            alt="Equipo de profesionales con uniformes"
                             width={400}
                             height={500}
-                            className="rounded-xl shadow-lg w-full h-auto object-cover aspect-[4/5] mt-8"
+                            className="rounded-xl shadow-lg w-full h-auto object-cover aspect-[4/5] sm:mt-8"
                             data-ai-hint="team fitness professional"
                         />
                     </div>
