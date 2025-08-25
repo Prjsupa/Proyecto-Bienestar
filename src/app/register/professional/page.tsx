@@ -84,7 +84,7 @@ export default function RegisterProfessionalPage() {
           last_name: values.last_name,
           rol: 1, // Asignar Rol de Profesional
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: 'http://localhost:9002/auth/callback',
       },
     })
 

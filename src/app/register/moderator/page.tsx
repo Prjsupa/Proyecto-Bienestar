@@ -84,7 +84,7 @@ export default function RegisterModeratorPage() {
           last_name: values.last_name,
           rol: 2, // Asignar Rol de Moderador
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: 'http://localhost:9002/auth/callback',
       },
     })
 
