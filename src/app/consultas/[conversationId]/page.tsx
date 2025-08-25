@@ -52,7 +52,7 @@ export default function ChatPage() {
     const fetchMessages = useCallback(async () => {
         const { data, error } = await supabase
             .from('mensajes_chat')
-            .select('*')
+            .select('*, sender:sender_id(*)')
             .eq('conversation_id', conversationId)
             .order('created_at', { ascending: true });
         
@@ -63,10 +63,10 @@ export default function ChatPage() {
         }
     }, [supabase, conversationId, toast]);
 
-    const markAsRead = useCallback(async (role: number, convo: Conversation | null) => {
-        if (role === null || !convo) return;
+    const markAsRead = useCallback(async (currentRole: number, convo: Conversation) => {
+        if (currentRole === null || !convo) return;
     
-        const fieldToUpdate = role === 0 ? 'unread_by_user' : 'unread_by_professional';
+        const fieldToUpdate = currentRole === 0 ? 'unread_by_user' : 'unread_by_professional';
         const needsUpdate = convo[fieldToUpdate];
     
         if (!needsUpdate) return;
@@ -74,15 +74,14 @@ export default function ChatPage() {
         const { error } = await supabase
             .from('conversaciones')
             .update({ [fieldToUpdate]: false })
-            .eq('id', conversationId);
+            .eq('id', convo.id);
     
         if (error) {
             console.error("Error marking as read", error);
         } else {
-            // Optimistically update the state
             setConversation(prev => prev ? { ...prev, [fieldToUpdate]: false } : null);
         }
-    }, [supabase, conversationId]);
+    }, [supabase]);
 
     useEffect(() => {
         const getUserAndConversation = async () => {
@@ -132,17 +131,27 @@ export default function ChatPage() {
                 schema: 'public',
                 table: 'mensajes_chat',
                 filter: `conversation_id=eq.${conversationId}`
-            }, (payload) => {
-                const newMessage = { ...payload.new, status: 'delivered' } as ChatMessage;
+            }, async (payload) => {
+                 const { data: authorData, error: authorError } = await supabase
+                    .from('usuarios')
+                    .select('*')
+                    .eq('id', payload.new.sender_id)
+                    .single();
+
+                let newMessage: ChatMessage;
+                if (authorError) {
+                    console.error("Error fetching author for new message:", authorError);
+                    newMessage = { ...payload.new, status: 'delivered' } as ChatMessage;
+                } else {
+                    newMessage = { ...payload.new, sender: authorData, status: 'delivered' } as ChatMessage;
+                }
+
 
                 if(newMessage.sender_id !== currentUser.id) {
                     setMessages(prev => [...prev, newMessage]);
                     // Mark as read immediately if the user is in the chat
-                    if (userRole !== null) {
-                        setConversation(prevConvo => {
-                           if(prevConvo) markAsRead(userRole, prevConvo);
-                           return prevConvo;
-                        });
+                    if (userRole !== null && conversation) {
+                        await markAsRead(userRole, conversation);
                     }
                 } else {
                     // Update status of optimistic message
@@ -154,7 +163,7 @@ export default function ChatPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [conversationId, supabase, currentUser, userRole, markAsRead]);
+    }, [conversationId, supabase, currentUser, userRole, conversation, markAsRead]);
     
     useEffect(() => {
         if (scrollAreaRef.current) {
@@ -204,8 +213,6 @@ export default function ChatPage() {
             setMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
         } else {
              setMessages(prev => prev.map(m => m.id === tempId ? { ...m, optimisticId: `optimistic-${insertData.id}` } : m));
-             // After a professional sends a message, immediately mark the conversation as read for them
-             // to counteract the trigger that marks it unread for the receiver.
              if (userRole === 1) {
                 await supabase
                     .from('conversaciones')
