@@ -13,6 +13,8 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  // URL to redirect to after sign in process completes
-  return NextResponse.redirect(`${requestUrl.origin}/auth/callback/confirmed`);
+  // URL to redirect to after sign in process completes.
+  // Use a fixed path relative to the current origin to avoid port issues.
+  const redirectUrl = new URL('/auth/callback/confirmed', request.url);
+  return NextResponse.redirect(redirectUrl);
 }
