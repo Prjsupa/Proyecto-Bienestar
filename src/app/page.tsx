@@ -188,14 +188,14 @@ export default function LandingPage() {
                           Contamos con los mejores profesionales, capacitados y comprometidos con tu transformación. Nuestro equipo combina la experiencia clínica con la pasión por el fitness para ofrecerte un acompañamiento integral y resultados reales.
                         </p>
                     </div>
-                    <div className="grid grid-cols-1 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
                         <Image
                             src={`${SUPABASE_STORAGE_URL}/logos.marivi/personal_bata.jpg`}
                             width={800}
                             height={500}
                             alt="Equipo de profesionales con batas"
                             data-ai-hint="team professional"
-                            className="mx-auto rounded-xl object-cover w-full h-auto shadow-lg"
+                            className="mx-auto rounded-xl object-contain w-full h-auto shadow-lg"
                         />
                         <Image
                              src={`${SUPABASE_STORAGE_URL}/logos.marivi/personal_uniforme.jpg`}
@@ -203,7 +203,7 @@ export default function LandingPage() {
                              height={500}
                              alt="Equipo de profesionales con uniformes"
                              data-ai-hint="team professional"
-                             className="mx-auto rounded-xl object-cover w-full h-auto shadow-lg"
+                             className="mx-auto rounded-xl object-contain w-full h-auto shadow-lg"
                         />
                     </div>
                 </div>
