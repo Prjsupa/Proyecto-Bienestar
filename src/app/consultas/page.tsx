@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
@@ -28,7 +28,7 @@ export default function ConsultasPage() {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [professionals, setProfessionals] = useState<Author[]>([]);
+    const [allProfessionals, setAllProfessionals] = useState<Author[]>([]);
 
     const router = useRouter();
     const { toast } = useToast();
@@ -56,21 +56,20 @@ export default function ConsultasPage() {
             setConversations(data as Conversation[]);
         }
         
+        if (role === 0) {
+            const { data: professionalsData, error: professionalsError } = await supabase
+                .from('usuarios')
+                .select('id, name, last_name, rol, titulo')
+                .eq('rol', 1);
+            if (professionalsError) {
+                toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los profesionales.' });
+            } else {
+                setAllProfessionals(professionalsData);
+            }
+        }
+
         setLoading(false);
     }, [supabase, toast]);
-
-    const fetchProfessionals = useCallback(async () => {
-        const { data, error } = await supabase
-            .from('usuarios')
-            .select('id, name, last_name, rol, titulo')
-            .eq('rol', 1);
-        if (error) {
-            toast({ variant: 'destructive', title: 'Error', description: 'No se pudieron cargar los profesionales.' });
-        } else {
-            setProfessionals(data);
-        }
-    }, [supabase, toast]);
-
 
     useEffect(() => {
         const getUser = async () => {
@@ -138,9 +137,14 @@ export default function ConsultasPage() {
         if (name) return name.substring(0, 2).toUpperCase();
         return "U";
     };
+
+    const professionalsToChatWith = useMemo(() => {
+        if (userRole !== 0) return [];
+        const existingProfessionalIds = new Set(conversations.map(c => c.professional_id));
+        return allProfessionals.filter(p => !existingProfessionalIds.has(p.id));
+    }, [allProfessionals, conversations, userRole]);
     
-    const handleNewConversationClick = async () => {
-        await fetchProfessionals();
+    const handleNewConversationClick = () => {
         setIsModalOpen(true);
     }
 
@@ -177,7 +181,7 @@ export default function ConsultasPage() {
                         }
                     </CardDescription>
                 </div>
-                {role === 0 && (
+                {role === 0 && professionalsToChatWith.length > 0 && (
                     <Button onClick={handleNewConversationClick}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nueva Consulta
@@ -240,7 +244,7 @@ export default function ConsultasPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 py-4 max-h-[60vh] overflow-y-auto">
-                         {professionals.map(pro => (
+                         {professionalsToChatWith.map(pro => (
                             <button 
                                 key={pro.id} 
                                 className="w-full text-left p-4 rounded-lg border flex items-center gap-4 hover:bg-muted/50 transition-colors"
@@ -256,6 +260,9 @@ export default function ConsultasPage() {
                                 <MessageSquareText className="w-5 h-5 text-muted-foreground" />
                             </button>
                         ))}
+                         {professionalsToChatWith.length === 0 && (
+                            <p className="text-center text-muted-foreground py-8">Ya tienes una conversación con todos los profesionales.</p>
+                         )}
                     </div>
                 </DialogContent>
             </Dialog>
