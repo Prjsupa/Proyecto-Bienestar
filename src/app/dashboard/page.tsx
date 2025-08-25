@@ -211,7 +211,7 @@ function ProfessionalDashboard({ greeting, stats }: { greeting: string, stats: a
                     <CardTitle>Acciones Rápidas</CardTitle>
                     <CardDescription>Crea y gestiona el contenido de la plataforma desde aquí.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {quickActions.map(action => (
                         <Button key={action.href} asChild variant="outline" className="justify-start h-12 text-base">
                             <Link href={action.href}>
