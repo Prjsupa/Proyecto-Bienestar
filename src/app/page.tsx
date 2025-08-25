@@ -181,13 +181,6 @@ export default function LandingPage() {
         <section id="team" className="w-full py-12 md:py-24 lg:py-32 bg-background">
             <div className="container px-4 md:px-6">
                 <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 items-center">
-                    <div className="space-y-4 flex flex-col justify-center">
-                        <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline border w-fit">Nuestro Equipo</div>
-                        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">Expertos Dedicados a Tu Bienestar</h2>
-                        <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed font-body">
-                          Contamos con los mejores profesionales, capacitados y comprometidos con tu transformación. Nuestro equipo combina la experiencia clínica con la pasión por el fitness para ofrecerte un acompañamiento integral y resultados reales.
-                        </p>
-                    </div>
                     <div className="flex gap-4">
                         <div className="w-1/2 h-64 md:h-80 relative">
                             <Image
@@ -209,6 +202,13 @@ export default function LandingPage() {
                                  data-ai-hint="team professional"
                             />
                         </div>
+                    </div>
+                    <div className="space-y-4 flex flex-col justify-center">
+                        <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-headline border w-fit">Nuestro Equipo</div>
+                        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">Expertos Dedicados a Tu Bienestar</h2>
+                        <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed font-body">
+                          Contamos con los mejores profesionales, capacitados y comprometidos con tu transformación. Nuestro equipo combina la experiencia clínica con la pasión por el fitness para ofrecerte un acompañamiento integral y resultados reales.
+                        </p>
                     </div>
                 </div>
             </div>
