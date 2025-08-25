@@ -39,10 +39,10 @@ El usuario regular es el consumidor principal de la plataforma. Su experiencia e
     - **Crear Publicación**: Puede crear una publicación con un **mensaje** (texto) y adjuntar una **imagen** (opcional).
     - **Responder**: Puede responder a cualquier publicación.
     - **Editar/Eliminar**: Puede editar y eliminar **únicamente sus propias** publicaciones y respuestas.
-- **Comunidad - Pregúntale a un Profesional**:
-    - **Crear Pregunta**: Puede publicar una nueva pregunta con un **mensaje** (texto) y adjuntar una **imagen** (opcional).
-    - **Responder**: Puede responder a las preguntas (generalmente para añadir contexto a su propia pregunta).
-    - **Editar/Eliminar**: Puede editar y eliminar **únicamente sus propias** preguntas.
+- **Consultas Privadas (Chat 1 a 1)**:
+    - **Iniciar Conversación**: Puede iniciar una conversación privada con un profesional. Solo puede tener **un chat activo por profesional**.
+    - **Crear Nueva Consulta**: El botón para iniciar una nueva consulta solo mostrará a los profesionales con los que aún no tiene un chat. Si ya tiene un chat con todos los profesionales disponibles, el botón se ocultará.
+    - **Interacción**: Puede enviar y recibir mensajes de texto en un chat privado.
 - **Clínica de la Técnica**:
     - **Subir Video**: Puede subir un **video** (requerido) y añadir una **nota** opcional para el profesional.
     - **Feedback**: Puede ver y responder al feedback que los profesionales dejan en sus videos.
@@ -56,7 +56,10 @@ El usuario regular es el consumidor principal de la plataforma. Su experiencia e
 - **Perfil**:
     - Puede ver y actualizar su información personal (nombre, apellido).
     - Puede acceder y editar las respuestas de su formulario de salud en cualquier momento a través de la misma interfaz de pasos del registro inicial.
-- **Notificaciones**: Recibe notificaciones en un menú desplegable  cuando un moderador elimina uno de sus contenidos, y cuando alguien a respondido a su publicación (sea en cualquier subsección de Comunidad o de la Clínica de la Técnica).
+- **Notificaciones**: Recibe notificaciones en un menú desplegable cuando:
+    - Un moderador elimina uno de sus contenidos.
+    - Alguien ha respondido a su publicación en la Comunidad o en la Clínica de la Técnica.
+    - Un profesional le ha respondido en una **Consulta Privada**.
 
 ---
 
@@ -103,9 +106,10 @@ El profesional es el creador de contenido y el experto que guía a los usuarios.
     - **Acciones**: Puede **editar y eliminar** cualquier anuncio propio.
 
 ### 2.3. Interacción con Usuarios
-- **Comunidad - Pregúntale a un Profesional**:
-    - Puede ver todas las preguntas de los usuarios.
-    - Puede publicar respuestas a cualquier pregunta, las cuales se destacan visualmente como respuesta de un profesional.
+- **Consultas Privadas (Chat 1 a 1)**:
+    - **Vista de Gestión**: Puede ver todas las conversaciones privadas que los usuarios han iniciado con él.
+    - **Interacción**: Puede responder a cualquier usuario dentro del chat privado.
+    - **Notificaciones**: Recibe notificaciones cuando un usuario le envía un nuevo mensaje.
 - **Clínica de la Técnica**:
     - Puede ver todos los videos subidos por los usuarios.
     - Puede publicar respuestas de feedback en cualquier video, las cuales se destacan visualmente.
@@ -142,15 +146,16 @@ El moderador se encarga de mantener el orden y la seguridad en la plataforma. Ti
     - **Vista**: Ve un registro inmutable en una tabla de todas las acciones de moderación realizadas en la plataforma (quién eliminó qué, cuándo y por qué).
 
 ### 3.3. Acciones de Moderación en la Comunidad
-- **Comunidad (Feed y Preguntas)** y **Clínica de Técnica**:
+- **Comunidad (Feed)** y **Clínica de Técnica**:
     - **Acceso**: Puede ver todo el contenido (publicaciones, preguntas, videos, respuestas).
-    - **Acciones**: Puede **eliminar cualquier publicación, pregunta, video o respuesta** creada por un usuario.
+    - **Acciones**: Puede **eliminar cualquier publicación, video o respuesta** creada por un usuario.
     - **Proceso de Eliminación**: Al eliminar, se abre un modal donde debe proporcionar una **razón** (texto). Esta acción queda registrada en el historial y notifica al usuario afectado.
 
 ### 3.4. Restricciones
 - **No puede** editar el contenido de los usuarios (solo eliminar).
 - **No puede** crear contenido en nombre de los usuarios o profesionales (recetas, rutinas, anuncios).
 - **No puede** gestionar citas.
+- **No puede** acceder ni participar en las **Consultas Privadas**.
 - **No puede** modificar el rol de los usuarios.
 
 ---
