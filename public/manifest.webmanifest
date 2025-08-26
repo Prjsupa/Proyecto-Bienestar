@@ -1,0 +1,23 @@
+{
+  "name": "Marivi Power",
+  "short_name": "Marivi Power",
+  "description": "Tu viaje hacia una vida más saludable comienza aquí.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#B70000",
+  "icons": [
+    {
+      "src": "https://jqdbhsicpfdpzifphdft.supabase.co/storage/v1/object/public/logos.marivi/iso%20rojo@3x.png?width=192&height=192",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://jqdbhsicpfdpzifphdft.supabase.co/storage/v1/object/public/logos.marivi/iso%20rojo@3x.png?width=512&height=512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
