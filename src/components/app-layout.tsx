@@ -11,18 +11,17 @@ import {
   Menu,
   Video,
   CalendarPlus,
-  ChevronDown,
   Shield,
   UserCog,
   UserPlus,
-  FileText,
   MessageSquare,
   LayoutGrid,
   HeartPulse,
   UserCircle,
-  Plus,
-  X,
   Download,
+  LayoutDashboard,
+  BookMarked,
+  Trophy
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -59,15 +58,22 @@ import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent } f
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const allNavItems = [
-  { href: "/dashboard", icon: Home, label: "Panel" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
   { href: "/recipes", icon: UtensilsCrossed, label: "Recetas" },
-  { href: "/routines", icon: Dumbbell, label: "Rutinas" },
+  { href: "/routines", icon: Trophy, label: "Rutinas" },
   { href: "/profile", icon: UserCircle, label: "Perfil" },
   { href: "/live", icon: Video, label: "En Vivo" },
   { href: "/community", icon: Users, label: "Comunidad" },
   { href: "/technique-clinic", icon: HeartPulse, label: "Clínica de Técnica" },
   { href: "/consultas", icon: MessageSquare, label: "Consultas", roles: [0, 1] },
   { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita", roles: [0, 1] },
+];
+
+const mobileBottomNavItems = [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
+    { href: "/recipes", icon: BookMarked, label: "Recetas" },
+    { href: "/routines", icon: Trophy, label: "Rutinas" },
+    { href: "/profile", icon: UserCircle, label: "Perfil" },
 ];
 
 const moderatorNavItems = [
@@ -191,10 +197,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const navItems = useMemo(() => {
     if (userRole === null) return [];
     return allNavItems.filter(item => {
-        if (!item.roles) return true; // Visible para todos si no se especifican roles
+        if (!item.roles) return true;
         return item.roles.includes(userRole);
     });
   }, [userRole]);
+
+   const mobileSideNavItems = useMemo(() => {
+    if (userRole === null) return [];
+    const bottomNavHrefs = new Set(mobileBottomNavItems.map(i => i.href));
+    return allNavItems.filter(item => {
+        if (bottomNavHrefs.has(item.href)) return false;
+        if (!item.roles) return true;
+        return item.roles.includes(userRole);
+    });
+   }, [userRole]);
+
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -315,6 +332,64 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </>
   );
 
+  const mobileSideMenuContent = (
+    <>
+      <SidebarHeader>
+        <Link href="/dashboard" className="flex items-center gap-2 font-bold">
+          <Logo />
+          <span className="font-logo tracking-widest text-lg">MARIVI POWER</span>
+        </Link>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          {mobileSideNavItems.map((item) =>
+            <SidebarMenuItem key={item.href}>
+                <SheetClose asChild>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                    >
+                        <Link href={item.href} className="flex items-center gap-2">
+                        <item.icon />
+                        <span>{item.label}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SheetClose>
+            </SidebarMenuItem>
+          )}
+        </SidebarMenu>
+         {userRole === 2 && (
+            <SidebarMenu className="mt-auto pt-4 border-t">
+                <p className="px-4 text-xs font-semibold text-muted-foreground/80 tracking-wider uppercase mb-2">
+                    Moderación
+                </p>
+                {moderatorNavItems.map(item => (
+                    <SidebarMenuItem key={item.href}>
+                        <SheetClose asChild>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={pathname === item.href}
+                            >
+                            <Link href={item.href} className="flex items-center gap-2">
+                                <item.icon />
+                                <span>{item.label}</span>
+                            </Link>
+                            </SidebarMenuButton>
+                        </SheetClose>
+                    </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+        )}
+      </SidebarContent>
+      <SidebarFooter>
+          <div className="flex flex-col gap-2">
+            <InstallAppButton />
+            <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start">Cerrar Sesión</Button>
+          </div>
+      </SidebarFooter>
+    </>
+  )
+
   if (isMobile) {
     return (
         <div className="flex flex-col min-h-screen">
@@ -329,7 +404,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <SheetContent side="left" className="flex flex-col p-0 w-72">
                         <SidebarProvider>
                             <Sidebar side="left" variant="sidebar" collapsible="none">
-                                {sidebarContent}
+                                {mobileSideMenuContent}
                             </Sidebar>
                         </SidebarProvider>
                     </SheetContent>
@@ -342,7 +417,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <ThemeToggle />
                 </div>
             </header>
-            <main className="flex-1 p-4">{children}</main>
+            <main className="flex-1 p-4 pb-24">{children}</main>
+            <nav className="fixed bottom-0 left-0 right-0 z-40 h-16 border-t bg-background/80 backdrop-blur-sm">
+                <div className="grid h-full max-w-lg grid-cols-4 mx-auto">
+                    {mobileBottomNavItems.map(item => {
+                        const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                        return (
+                            <Link key={item.href} href={item.href} className={cn("inline-flex flex-col items-center justify-center font-medium px-2 hover:bg-muted", isActive ? "text-primary" : "text-muted-foreground")}>
+                                <item.icon className="w-5 h-5 mb-1" />
+                                <span className="text-xs">{item.label}</span>
+                            </Link>
+                        )
+                    })}
+                </div>
+            </nav>
         </div>
     );
   }
@@ -364,5 +452,3 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
-
-    
