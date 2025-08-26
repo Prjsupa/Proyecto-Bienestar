@@ -47,7 +47,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Logo } from "./icons";
 import { createClient } from "@/utils/supabase/client";
@@ -59,15 +59,15 @@ import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent } f
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const allNavItems = [
-  { href: "/dashboard", icon: Home, label: "Panel", mobile: true },
-  { href: "/recipes", icon: UtensilsCrossed, label: "Recetas", mobile: true },
-  { href: "/routines", icon: Dumbbell, label: "Rutinas", mobile: true },
-  { href: "/profile", icon: UserCircle, label: "Perfil", mobile: true },
-  { href: "/live", icon: Video, label: "En Vivo", mobile: false },
-  { href: "/community", icon: Users, label: "Comunidad", mobile: false },
-  { href: "/technique-clinic", icon: HeartPulse, label: "Clínica de Técnica", mobile: false },
-  { href: "/consultas", icon: MessageSquare, label: "Consultas", roles: [0, 1], mobile: false },
-  { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita", roles: [0, 1], mobile: false },
+  { href: "/dashboard", icon: Home, label: "Panel" },
+  { href: "/recipes", icon: UtensilsCrossed, label: "Recetas" },
+  { href: "/routines", icon: Dumbbell, label: "Rutinas" },
+  { href: "/profile", icon: UserCircle, label: "Perfil" },
+  { href: "/live", icon: Video, label: "En Vivo" },
+  { href: "/community", icon: Users, label: "Comunidad" },
+  { href: "/technique-clinic", icon: HeartPulse, label: "Clínica de Técnica" },
+  { href: "/consultas", icon: MessageSquare, label: "Consultas", roles: [0, 1] },
+  { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita", roles: [0, 1] },
 ];
 
 const moderatorNavItems = [
@@ -76,9 +76,8 @@ const moderatorNavItems = [
     { href: "/moderation/history", icon: Shield, label: "Historial de Moderación"}
 ];
 
-function MobileBottomNav({ userRole }: { userRole: number | null }) {
-    const pathname = usePathname();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+function InstallAppButton() {
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [installInstructionsOpen, setInstallInstructionsOpen] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -87,12 +86,14 @@ function MobileBottomNav({ userRole }: { userRole: number | null }) {
         const handleBeforeInstallPrompt = (e: Event) => {
             e.preventDefault();
             setDeferredPrompt(e);
-            setShowInstallPrompt(true);
+            if(window.matchMedia('(display-mode: standalone)').matches === false) {
+              setShowInstallPrompt(true);
+            }
         };
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
         return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     }, []);
-    
+
     const handleInstallClick = async () => {
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
         if (isIOS) {
@@ -109,74 +110,22 @@ function MobileBottomNav({ userRole }: { userRole: number | null }) {
         } else {
            setInstallInstructionsOpen(true);
         }
-        setIsMenuOpen(false);
     };
-
-
-    const navItems = useMemo(() => {
-        if (userRole === null) return { mobile: [], desktop: [] };
-        const filtered = allNavItems.filter(item => {
-            if (!item.roles) return true;
-            return item.roles.includes(userRole);
-        });
-        return {
-            mobile: filtered.filter(item => item.mobile),
-            desktop: filtered.filter(item => !item.mobile)
-        };
-    }, [userRole]);
-
-    const fabMenuitems = [
-        ...navItems.desktop,
-        ...moderatorNavItems.filter(() => userRole === 2)
-    ];
-
-    if (userRole === null) return null;
+    
+    if(!showInstallPrompt && !/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+      return null;
+    }
 
     return (
         <>
-            <footer className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-background/80 backdrop-blur-sm border-t z-50 flex justify-around items-center">
-                {navItems.mobile.map(item => (
-                    <Link href={item.href} key={item.href} className={cn(
-                        "flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground transition-colors",
-                        (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))) && "text-primary"
-                    )}>
-                        <item.icon className="w-6 h-6" />
-                        <span className="text-xs">{item.label}</span>
-                    </Link>
-                ))}
-            </footer>
-
-            {/* FAB and Menu */}
-            <div className="md:hidden fixed bottom-6 right-1/2 translate-x-1/2 z-50 flex flex-col items-center">
-                 {isMenuOpen && (
-                    <div className="absolute bottom-full mb-4 w-56 bg-background rounded-xl shadow-lg border p-2">
-                        <div className="grid grid-cols-2 gap-2">
-                            {fabMenuitems.map(item => (
-                                <Link key={item.href} href={item.href} className="flex flex-col items-center p-2 rounded-lg hover:bg-muted">
-                                    <item.icon className="w-5 h-5 mb-1" />
-                                    <span className="text-xs text-center">{item.label}</span>
-                                </Link>
-                            ))}
-                             {(showInstallPrompt || /iPad|iPhone|iPod/.test(navigator.userAgent)) && (
-                                <button onClick={handleInstallClick} className="flex flex-col items-center p-2 rounded-lg hover:bg-muted text-primary">
-                                    <Download className="w-5 h-5 mb-1" />
-                                    <span className="text-xs text-center">Instalar App</span>
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
-                <Button 
-                    size="icon" 
-                    className={cn(
-                        "rounded-full w-16 h-16 shadow-lg transition-transform duration-300",
-                        isMenuOpen ? "bg-destructive hover:bg-destructive/90 rotate-45" : "bg-primary hover:bg-primary/90"
-                    )}
-                    onClick={() => setIsMenuOpen(prev => !prev)}
-                >
-                    <Plus className="w-8 h-8" />
-                </Button>
-            </div>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={handleInstallClick}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Instalar Aplicación
+            </Button>
             
              <Dialog open={installInstructionsOpen} onOpenChange={setInstallInstructionsOpen}>
                 <DialogContent>
@@ -194,7 +143,7 @@ function MobileBottomNav({ userRole }: { userRole: number | null }) {
                 </DialogContent>
             </Dialog>
         </>
-    );
+    )
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -265,7 +214,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     
   const userInitials = getInitials(user?.user_metadata?.name || '', user?.user_metadata?.last_name || '');
 
-  const desktopSidebarContent = (
+  const sidebarContent = (
     <>
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2 font-bold group-data-[collapsible=icon]:justify-center">
@@ -277,16 +226,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarMenu>
           {navItems.map((item) =>
             <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
-                tooltip={item.label}
-              >
-                <Link href={item.href} className="flex items-center gap-2">
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
+                <SheetClose asChild>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                        tooltip={item.label}
+                    >
+                        <Link href={item.href} className="flex items-center gap-2">
+                        <item.icon />
+                        <span>{item.label}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SheetClose>
             </SidebarMenuItem>
           )}
         </SidebarMenu>
@@ -297,16 +248,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </p>
                 {moderatorNavItems.map(item => (
                     <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton
-                            asChild
-                            isActive={pathname === item.href}
-                            tooltip={item.label}
-                        >
-                        <Link href={item.href} className="flex items-center gap-2">
-                            <item.icon />
-                            <span>{item.label}</span>
-                        </Link>
-                        </SidebarMenuButton>
+                        <SheetClose asChild>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={pathname === item.href}
+                                tooltip={item.label}
+                            >
+                            <Link href={item.href} className="flex items-center gap-2">
+                                <item.icon />
+                                <span>{item.label}</span>
+                            </Link>
+                            </SidebarMenuButton>
+                        </SheetClose>
                     </SidebarMenuItem>
                 ))}
             </SidebarMenu>
@@ -322,38 +275,41 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
             </div>
          ) : user ? (
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-accent hover:text-accent-foreground">
-                        <Avatar>
-                            <AvatarImage src={user.user_metadata?.avatar_url} alt={displayName} />
-                            <AvatarFallback>{userInitials}</AvatarFallback>
-                        </Avatar>
-                        <div className="group-data-[collapsible=icon]:hidden">
-                            <p className="font-semibold text-sm truncate">{displayName}</p>
-                            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            <div className="flex flex-col gap-2">
+                <InstallAppButton />
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <div className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-accent hover:text-accent-foreground">
+                            <Avatar>
+                                <AvatarImage src={user.user_metadata?.avatar_url} alt={displayName} />
+                                <AvatarFallback>{userInitials}</AvatarFallback>
+                            </Avatar>
+                            <div className="group-data-[collapsible=icon]:hidden">
+                                <p className="font-semibold text-sm truncate">{displayName}</p>
+                                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                            </div>
                         </div>
-                    </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{displayName}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
-                        </p>
-                    </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">Perfil</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
-                        Cerrar Sesión
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                        <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">{displayName}</p>
+                            <p className="text-xs leading-none text-muted-foreground">
+                            {user.email}
+                            </p>
+                        </div>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/profile">Perfil</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleSignOut}>
+                            Cerrar Sesión
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
          ) : null}
       </SidebarFooter>
     </>
@@ -362,8 +318,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   if (isMobile) {
     return (
         <div className="flex flex-col min-h-screen">
-            <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-4">
-                 <Link href="/dashboard" className="flex items-center gap-2 font-bold">
+             <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-4">
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <Menu className="h-6 w-6" />
+                            <span className="sr-only">Abrir menú</span>
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="flex flex-col p-0 w-72">
+                        <SidebarProvider>
+                            <Sidebar side="left" variant="sidebar" collapsible="none">
+                                {sidebarContent}
+                            </Sidebar>
+                        </SidebarProvider>
+                    </SheetContent>
+                </Sheet>
+                 <Link href="/dashboard" className="flex items-center gap-2 font-bold absolute left-1/2 -translate-x-1/2">
                     <Logo />
                 </Link>
                 <div className="flex items-center gap-2">
@@ -371,8 +342,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <ThemeToggle />
                 </div>
             </header>
-            <main className="flex-1 p-4 pb-28">{children}</main>
-            <MobileBottomNav userRole={userRole} />
+            <main className="flex-1 p-4">{children}</main>
         </div>
     );
   }
@@ -380,28 +350,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar side="left" variant="sidebar" collapsible="icon">
-        {desktopSidebarContent}
+        {sidebarContent}
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6">
-          <div className="md:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Alternar menú de navegación</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="flex flex-col p-0 w-72">
-                 <SidebarProvider>
-                  <Sidebar side="left" variant="sidebar" collapsible="none">
-                    {desktopSidebarContent}
-                  </Sidebar>
-                </SidebarProvider>
-              </SheetContent>
-            </Sheet>
-          </div>
-
           <div className="flex w-full items-center justify-end gap-2">
              <NotificationsDropdown />
              <ThemeToggle />
@@ -412,3 +364,5 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
+
+    
