@@ -61,7 +61,6 @@ const allNavItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
   { href: "/recipes", icon: UtensilsCrossed, label: "Recetas" },
   { href: "/routines", icon: Trophy, label: "Rutinas" },
-  { href: "/profile", icon: UserCircle, label: "Perfil" },
   { href: "/live", icon: Video, label: "En Vivo" },
   { href: "/community", icon: Users, label: "Comunidad" },
   { href: "/technique-clinic", icon: HeartPulse, label: "Clínica de Técnica" },
@@ -382,10 +381,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         )}
       </SidebarContent>
       <SidebarFooter>
-          <div className="flex flex-col gap-2">
-            <InstallAppButton />
-            <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start">Cerrar Sesión</Button>
-          </div>
+        <div className="flex flex-col gap-2">
+          <SheetClose asChild>
+            <Link href="/profile">
+                <Button variant="ghost" className="w-full justify-start">Perfil</Button>
+            </Link>
+          </SheetClose>
+          <InstallAppButton />
+          <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start">Cerrar Sesión</Button>
+        </div>
       </SidebarFooter>
     </>
   )
@@ -418,12 +422,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
             </header>
             <main className="flex-1 p-4 pb-24">{children}</main>
-            <nav className="fixed bottom-0 left-0 right-0 z-40 h-16 border-t bg-background/80 backdrop-blur-sm">
+            <nav className="fixed bottom-0 left-0 right-0 z-40 h-20 border-t bg-background/80 backdrop-blur-sm pb-2">
                 <div className="grid h-full max-w-lg grid-cols-4 mx-auto">
                     {mobileBottomNavItems.map(item => {
                         const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
                         return (
-                            <Link key={item.href} href={item.href} className={cn("inline-flex flex-col items-center justify-center font-medium px-2 hover:bg-muted", isActive ? "text-primary" : "text-muted-foreground")}>
+                            <Link key={item.href} href={item.href} className={cn("inline-flex flex-col items-center justify-center font-medium px-2 pt-2 hover:bg-muted", isActive ? "text-primary" : "text-muted-foreground")}>
                                 <item.icon className="w-5 h-5 mb-1" />
                                 <span className="text-xs">{item.label}</span>
                             </Link>
@@ -452,3 +456,5 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
+
+    

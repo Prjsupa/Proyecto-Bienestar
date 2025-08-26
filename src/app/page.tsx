@@ -1,4 +1,6 @@
 
+"use client";
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -55,7 +57,7 @@ function LandingPageHeader() {
 
 function MobileCtaBar() {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 z-50 w-full p-4 bg-background/80 backdrop-blur-sm border-t">
+    <div className="md:hidden fixed bottom-0 left-0 z-50 w-full px-4 pt-4 pb-8 bg-background/80 backdrop-blur-sm border-t">
       <div className="grid grid-cols-2 gap-4">
         <Button variant="outline" asChild>
           <Link href="/login">
@@ -269,3 +271,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
