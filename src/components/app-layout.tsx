@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -16,6 +17,12 @@ import {
   UserPlus,
   FileText,
   MessageSquare,
+  LayoutGrid,
+  HeartPulse,
+  UserCircle,
+  Plus,
+  X,
+  Download,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -40,11 +47,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Logo } from "./icons";
@@ -53,24 +55,147 @@ import { Skeleton } from "./ui/skeleton";
 import { cn } from "@/lib/utils";
 import { NotificationsDropdown } from "./notifications-dropdown";
 import { ThemeToggle } from "./theme-toggle";
-
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent } from "./ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const allNavItems = [
-  { href: "/dashboard", icon: Home, label: "Panel" },
-  { href: "/recipes", icon: UtensilsCrossed, label: "Recetas" },
-  { href: "/routines", icon: Dumbbell, label: "Rutinas" },
-  { href: "/live", icon: Video, label: "En Vivo" },
-  { href: "/community", icon: Users, label: "Comunidad" },
-  { href: "/technique-clinic", icon: Dumbbell, label: "Clínica de la Técnica" },
-  { href: "/consultas", icon: MessageSquare, label: "Consultas", roles: [0, 1] },
-  { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita", roles: [0, 1] },
+  { href: "/dashboard", icon: Home, label: "Panel", mobile: true },
+  { href: "/recipes", icon: UtensilsCrossed, label: "Recetas", mobile: true },
+  { href: "/routines", icon: Dumbbell, label: "Rutinas", mobile: true },
+  { href: "/profile", icon: UserCircle, label: "Perfil", mobile: true },
+  { href: "/live", icon: Video, label: "En Vivo", mobile: false },
+  { href: "/community", icon: Users, label: "Comunidad", mobile: false },
+  { href: "/technique-clinic", icon: HeartPulse, label: "Clínica de Técnica", mobile: false },
+  { href: "/consultas", icon: MessageSquare, label: "Consultas", roles: [0, 1], mobile: false },
+  { href: "/schedule", icon: CalendarPlus, label: "Agendar Cita", roles: [0, 1], mobile: false },
 ];
 
 const moderatorNavItems = [
     { href: "/moderation/users", icon: UserCog, label: "Gestionar Usuarios"},
     { href: "/moderation/registrations", icon: UserPlus, label: "Gestionar Registros"},
     { href: "/moderation/history", icon: Shield, label: "Historial de Moderación"}
-]
+];
+
+function MobileBottomNav({ userRole }: { userRole: number | null }) {
+    const pathname = usePathname();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+    const [installInstructionsOpen, setInstallInstructionsOpen] = useState(false);
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+            setShowInstallPrompt(true);
+        };
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    }, []);
+    
+    const handleInstallClick = async () => {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+        if (isIOS) {
+            setInstallInstructionsOpen(true);
+        } else if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                console.log('User accepted the A2HS prompt');
+            } else {
+                console.log('User dismissed the A2HS prompt');
+            }
+            setDeferredPrompt(null);
+        } else {
+           setInstallInstructionsOpen(true);
+        }
+        setIsMenuOpen(false);
+    };
+
+
+    const navItems = useMemo(() => {
+        if (userRole === null) return { mobile: [], desktop: [] };
+        const filtered = allNavItems.filter(item => {
+            if (!item.roles) return true;
+            return item.roles.includes(userRole);
+        });
+        return {
+            mobile: filtered.filter(item => item.mobile),
+            desktop: filtered.filter(item => !item.mobile)
+        };
+    }, [userRole]);
+
+    const fabMenuitems = [
+        ...navItems.desktop,
+        ...moderatorNavItems.filter(() => userRole === 2)
+    ];
+
+    if (userRole === null) return null;
+
+    return (
+        <>
+            <footer className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-background/80 backdrop-blur-sm border-t z-50 flex justify-around items-center">
+                {navItems.mobile.map(item => (
+                    <Link href={item.href} key={item.href} className={cn(
+                        "flex flex-col items-center justify-center gap-1 w-full h-full text-muted-foreground transition-colors",
+                        (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))) && "text-primary"
+                    )}>
+                        <item.icon className="w-6 h-6" />
+                        <span className="text-xs">{item.label}</span>
+                    </Link>
+                ))}
+            </footer>
+
+            {/* FAB and Menu */}
+            <div className="md:hidden fixed bottom-6 right-1/2 translate-x-1/2 z-50 flex flex-col items-center">
+                 {isMenuOpen && (
+                    <div className="absolute bottom-full mb-4 w-56 bg-background rounded-xl shadow-lg border p-2">
+                        <div className="grid grid-cols-2 gap-2">
+                            {fabMenuitems.map(item => (
+                                <Link key={item.href} href={item.href} className="flex flex-col items-center p-2 rounded-lg hover:bg-muted">
+                                    <item.icon className="w-5 h-5 mb-1" />
+                                    <span className="text-xs text-center">{item.label}</span>
+                                </Link>
+                            ))}
+                             {(showInstallPrompt || /iPad|iPhone|iPod/.test(navigator.userAgent)) && (
+                                <button onClick={handleInstallClick} className="flex flex-col items-center p-2 rounded-lg hover:bg-muted text-primary">
+                                    <Download className="w-5 h-5 mb-1" />
+                                    <span className="text-xs text-center">Instalar App</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+                <Button 
+                    size="icon" 
+                    className={cn(
+                        "rounded-full w-16 h-16 shadow-lg transition-transform duration-300",
+                        isMenuOpen ? "bg-destructive hover:bg-destructive/90 rotate-45" : "bg-primary hover:bg-primary/90"
+                    )}
+                    onClick={() => setIsMenuOpen(prev => !prev)}
+                >
+                    <Plus className="w-8 h-8" />
+                </Button>
+            </div>
+            
+             <Dialog open={installInstructionsOpen} onOpenChange={setInstallInstructionsOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Instalar Aplicación</DialogTitle>
+                        <DialogDescription>
+                            Para instalar la aplicación en tu iPhone o iPad, sigue estos pasos:
+                        </DialogDescription>
+                    </DialogHeader>
+                    <ol className="list-decimal list-inside space-y-2 mt-4">
+                        <li>Toca el ícono de **Compartir** en la barra de herramientas de Safari.</li>
+                        <li>Desplázate hacia abajo y selecciona **"Añadir a la pantalla de inicio"**.</li>
+                        <li>Toca **"Añadir"** en la esquina superior derecha.</li>
+                    </ol>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+}
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -78,6 +203,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
   const supabase = createClient();
 
   useEffect(() => {
@@ -139,7 +265,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     
   const userInitials = getInitials(user?.user_metadata?.name || '', user?.user_metadata?.last_name || '');
 
-  const sidebarContent = (
+  const desktopSidebarContent = (
     <>
       <SidebarHeader>
         <Link href="/dashboard" className="flex items-center gap-2 font-bold group-data-[collapsible=icon]:justify-center">
@@ -233,10 +359,28 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </>
   );
 
+  if (isMobile) {
+    return (
+        <div className="flex flex-col min-h-screen">
+            <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b bg-background/80 backdrop-blur-sm px-4">
+                 <Link href="/dashboard" className="flex items-center gap-2 font-bold">
+                    <Logo />
+                </Link>
+                <div className="flex items-center gap-2">
+                    <NotificationsDropdown />
+                    <ThemeToggle />
+                </div>
+            </header>
+            <main className="flex-1 p-4 pb-28">{children}</main>
+            <MobileBottomNav userRole={userRole} />
+        </div>
+    );
+  }
+
   return (
     <SidebarProvider>
       <Sidebar side="left" variant="sidebar" collapsible="icon">
-        {sidebarContent}
+        {desktopSidebarContent}
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6">
@@ -251,7 +395,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SheetContent side="left" className="flex flex-col p-0 w-72">
                  <SidebarProvider>
                   <Sidebar side="left" variant="sidebar" collapsible="none">
-                    {sidebarContent}
+                    {desktopSidebarContent}
                   </Sidebar>
                 </SidebarProvider>
               </SheetContent>
