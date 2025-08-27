@@ -388,7 +388,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>
           </SheetClose>
           <InstallAppButton />
-          <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start">Cerrar Sesión</Button>
+          <SheetClose asChild>
+            <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start">Cerrar Sesión</Button>
+          </SheetClose>
         </div>
       </SidebarFooter>
     </>
@@ -456,5 +458,3 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </SidebarProvider>
   );
 }
-
-    
