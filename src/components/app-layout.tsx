@@ -242,18 +242,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarMenu>
           {navItems.map((item) =>
             <SidebarMenuItem key={item.href}>
-                <SheetClose asChild>
-                    <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
-                        tooltip={item.label}
-                    >
-                        <Link href={item.href} className="flex items-center gap-2">
-                        <item.icon />
-                        <span>{item.label}</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SheetClose>
+                <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                    tooltip={item.label}
+                >
+                    <Link href={item.href} className="flex items-center gap-2">
+                    <item.icon />
+                    <span>{item.label}</span>
+                    </Link>
+                </SidebarMenuButton>
             </SidebarMenuItem>
           )}
         </SidebarMenu>
@@ -264,18 +262,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </p>
                 {moderatorNavItems.map(item => (
                     <SidebarMenuItem key={item.href}>
-                        <SheetClose asChild>
-                            <SidebarMenuButton
-                                asChild
-                                isActive={pathname === item.href}
-                                tooltip={item.label}
-                            >
-                            <Link href={item.href} className="flex items-center gap-2">
-                                <item.icon />
-                                <span>{item.label}</span>
-                            </Link>
-                            </SidebarMenuButton>
-                        </SheetClose>
+                        <SidebarMenuButton
+                            asChild
+                            isActive={pathname === item.href}
+                            tooltip={item.label}
+                        >
+                        <Link href={item.href} className="flex items-center gap-2">
+                            <item.icon />
+                            <span>{item.label}</span>
+                        </Link>
+                        </SidebarMenuButton>
                     </SidebarMenuItem>
                 ))}
             </SidebarMenu>
