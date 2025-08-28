@@ -24,6 +24,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Send, Clock, Check, XCircle, Paperclip, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChatMessage, Conversation, Author } from '@/types/community';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 
 const chatSchema = z.object({
@@ -45,6 +46,7 @@ export default function ChatPage() {
     const [otherParticipant, setOtherParticipant] = useState<Author | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [viewingImage, setViewingImage] = useState<string | null>(null);
     
     const params = useParams();
     const conversationId = params.conversationId as string;
@@ -328,14 +330,16 @@ export default function ChatPage() {
                                     <div className={cn("flex items-end gap-2", isCurrentUser ? "justify-end" : "justify-start")}>
                                         <div className={cn("max-w-[75%] p-3 rounded-xl space-y-2", isCurrentUser ? "bg-primary text-primary-foreground rounded-br-none" : "bg-background rounded-bl-none border")}>
                                             {msg.img_url && (
-                                                <Image 
-                                                    src={msg.img_url} 
-                                                    alt="Imagen adjunta" 
-                                                    width={300} 
-                                                    height={300} 
-                                                    className="rounded-md object-cover" 
-                                                    data-ai-hint="medical photo"
-                                                />
+                                                <button onClick={() => setViewingImage(msg.img_url!)} className="cursor-pointer">
+                                                    <Image 
+                                                        src={msg.img_url} 
+                                                        alt="Imagen adjunta" 
+                                                        width={300} 
+                                                        height={300} 
+                                                        className="rounded-md object-cover" 
+                                                        data-ai-hint="medical photo"
+                                                    />
+                                                </button>
                                             )}
                                             {msg.message && <p className="text-sm whitespace-pre-wrap">{msg.message}</p>}
                                         </div>
@@ -421,8 +425,23 @@ export default function ChatPage() {
                     </Form>
                 </div>
             </div>
+
+            <Dialog open={!!viewingImage} onOpenChange={() => setViewingImage(null)}>
+                <DialogContent className="p-0 border-0 max-w-screen-lg bg-transparent shadow-none">
+                    <Image
+                        src={viewingImage || ''}
+                        alt="Vista ampliada"
+                        width={1200}
+                        height={800}
+                        className="rounded-lg object-contain w-full h-auto max-h-[90vh]"
+                    />
+                </DialogContent>
+            </Dialog>
+
         </AppLayout>
     );
 }
+
+    
 
     
