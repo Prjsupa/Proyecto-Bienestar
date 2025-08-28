@@ -24,7 +24,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Send, Clock, Check, XCircle, Paperclip, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChatMessage, Conversation, Author } from '@/types/community';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 
 const chatSchema = z.object({
@@ -428,20 +428,21 @@ export default function ChatPage() {
 
             <Dialog open={!!viewingImage} onOpenChange={() => setViewingImage(null)}>
                 <DialogContent className="p-0 border-0 max-w-screen-lg bg-transparent shadow-none">
-                    <Image
-                        src={viewingImage || ''}
-                        alt="Vista ampliada"
-                        width={1200}
-                        height={800}
-                        className="rounded-lg object-contain w-full h-auto max-h-[90vh]"
-                    />
+                    <DialogTitle className="sr-only">Vista ampliada de la imagen</DialogTitle>
+                    {viewingImage && (
+                        <Image
+                            src={viewingImage}
+                            alt="Vista ampliada"
+                            width={1200}
+                            height={800}
+                            className="rounded-lg object-contain w-full h-auto max-h-[90vh]"
+                        />
+                    )}
                 </DialogContent>
             </Dialog>
 
         </AppLayout>
     );
 }
-
-    
 
     
