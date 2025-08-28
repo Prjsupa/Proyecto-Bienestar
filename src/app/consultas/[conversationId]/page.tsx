@@ -12,6 +12,7 @@ import * as z from 'zod';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { AppLayout } from '@/components/app-layout';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,14 +21,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send, Clock, Check, XCircle } from 'lucide-react';
+import { ArrowLeft, Send, Clock, Check, XCircle, Paperclip, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChatMessage, Conversation, Author } from '@/types/community';
 
 
 const chatSchema = z.object({
-    message: z.string().min(1, 'El mensaje no puede estar vacío').max(1000, 'El mensaje no puede exceder los 1000 caracteres.'),
+    message: z.string().max(1000, 'El mensaje no puede exceder los 1000 caracteres.'),
+    file: z.any().optional(),
+}).refine(data => data.message || data.file, {
+    message: 'El mensaje o la imagen no pueden estar vacíos.',
+    path: ['message'],
 });
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export default function ChatPage() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -36,10 +43,13 @@ export default function ChatPage() {
     const [userRole, setUserRole] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [otherParticipant, setOtherParticipant] = useState<Author | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     
     const params = useParams();
     const conversationId = params.conversationId as string;
     const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
     const router = useRouter();
     const supabase = createClient();
@@ -134,7 +144,7 @@ export default function ChatPage() {
                 table: 'mensajes_chat',
                 filter: `conversation_id=eq.${conversationId}`
             }, async (payload) => {
-                 const { data: authorData, error: authorError } = await supabase
+                 const { data: authorData } = await supabase
                     .from('usuarios')
                     .select('id, name, last_name')
                     .eq('id', payload.new.sender_id)
@@ -176,9 +186,33 @@ export default function ChatPage() {
         return "U";
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (!file.type.startsWith("image/")) {
+                toast({ variant: "destructive", title: "Archivo inválido", description: "Solo se permiten imágenes." });
+                return;
+            }
+            if (file.size > MAX_FILE_SIZE) {
+                toast({ variant: "destructive", title: "Archivo demasiado grande", description: `La imagen no puede exceder ${MAX_FILE_SIZE / 1024 / 1024}MB.` });
+                return;
+            }
+            setSelectedFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+    
+    const removeImagePreview = () => {
+        setSelectedFile(null);
+        setImagePreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+
     const onSubmit = async (values: z.infer<typeof chatSchema>) => {
         if (!currentUser || !conversation || !otherParticipant || userRole === null) return;
         
+        let imageUrl: string | undefined = undefined;
+
         const tempId = `optimistic-${Date.now()}`;
         const optimisticMessage: ChatMessage = {
             id: tempId,
@@ -187,6 +221,7 @@ export default function ChatPage() {
             sender_id: currentUser.id,
             receiver_id: otherParticipant.id,
             message: values.message,
+            img_url: imagePreview || undefined,
             created_at: new Date().toISOString(),
             status: 'sending',
             sender: {
@@ -198,6 +233,22 @@ export default function ChatPage() {
         
         setMessages(prev => [...prev, optimisticMessage]);
         form.reset();
+        removeImagePreview();
+
+        if (selectedFile) {
+            const filePath = `${conversationId}/${currentUser.id}/${Date.now()}_${selectedFile.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('conversaciones')
+                .upload(filePath, selectedFile);
+            
+            if (uploadError) {
+                toast({ variant: 'destructive', title: 'Error al subir imagen', description: uploadError.message });
+                setMessages(prev => prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m));
+                return;
+            }
+            const { data: { publicUrl } } = supabase.storage.from('conversaciones').getPublicUrl(filePath);
+            imageUrl = publicUrl;
+        }
 
         const { data: insertData, error } = await supabase
             .from('mensajes_chat')
@@ -206,6 +257,7 @@ export default function ChatPage() {
                 sender_id: currentUser.id,
                 receiver_id: otherParticipant.id,
                 message: values.message,
+                img_url: imageUrl,
             })
             .select('id')
             .single();
@@ -274,8 +326,18 @@ export default function ChatPage() {
                                         </div>
                                     )}
                                     <div className={cn("flex items-end gap-2", isCurrentUser ? "justify-end" : "justify-start")}>
-                                        <div className={cn("max-w-[75%] p-3 rounded-xl", isCurrentUser ? "bg-primary text-primary-foreground rounded-br-none" : "bg-background rounded-bl-none border")}>
-                                            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                                        <div className={cn("max-w-[75%] p-3 rounded-xl space-y-2", isCurrentUser ? "bg-primary text-primary-foreground rounded-br-none" : "bg-background rounded-bl-none border")}>
+                                            {msg.img_url && (
+                                                <Image 
+                                                    src={msg.img_url} 
+                                                    alt="Imagen adjunta" 
+                                                    width={300} 
+                                                    height={300} 
+                                                    className="rounded-md object-cover" 
+                                                    data-ai-hint="medical photo"
+                                                />
+                                            )}
+                                            {msg.message && <p className="text-sm whitespace-pre-wrap">{msg.message}</p>}
                                         </div>
                                     </div>
                                     {isCurrentUser ? (
@@ -296,6 +358,19 @@ export default function ChatPage() {
                     </div>
                 </ScrollArea>
                 <div className="p-4 border-t bg-background">
+                    {imagePreview && (
+                        <div className="relative w-24 h-24 mb-4 rounded-md overflow-hidden">
+                            <Image src={imagePreview} alt="Vista previa" layout="fill" objectFit="cover" />
+                            <Button 
+                                variant="destructive" 
+                                size="icon" 
+                                className="absolute top-1 right-1 h-6 w-6"
+                                onClick={removeImagePreview}
+                            >
+                                <X className="h-4 w-4"/>
+                            </Button>
+                        </div>
+                    )}
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-start gap-4">
                             <FormField
@@ -304,18 +379,36 @@ export default function ChatPage() {
                                 render={({ field }) => (
                                     <FormItem className="flex-1">
                                         <FormControl>
-                                            <Textarea
-                                                placeholder="Escribe tu mensaje..."
-                                                className="resize-none"
-                                                rows={2}
-                                                {...field}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                                        e.preventDefault();
-                                                        form.handleSubmit(onSubmit)();
-                                                    }
-                                                }}
-                                            />
+                                            <div className="relative">
+                                                <Textarea
+                                                    placeholder="Escribe tu mensaje..."
+                                                    className="resize-none pr-12"
+                                                    rows={2}
+                                                    {...field}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                                            e.preventDefault();
+                                                            form.handleSubmit(onSubmit)();
+                                                        }
+                                                    }}
+                                                />
+                                                <Button 
+                                                    type="button" 
+                                                    variant="ghost" 
+                                                    size="icon"
+                                                    className="absolute bottom-2 right-2 h-8 w-8"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                >
+                                                    <Paperclip className="h-5 w-5" />
+                                                </Button>
+                                                <input 
+                                                    type="file" 
+                                                    ref={fileInputRef} 
+                                                    className="hidden" 
+                                                    accept="image/*"
+                                                    onChange={handleFileChange}
+                                                />
+                                            </div>
                                         </FormControl>
                                     </FormItem>
                                 )}
@@ -331,3 +424,5 @@ export default function ChatPage() {
         </AppLayout>
     );
 }
+
+    

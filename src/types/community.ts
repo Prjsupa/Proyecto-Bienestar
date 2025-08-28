@@ -131,7 +131,10 @@ export type ChatMessage = {
     sender_id: string;
     receiver_id: string;
     message: string;
+    img_url?: string;
     sender?: Author;
     status?: 'sending' | 'delivered' | 'failed';
     optimisticId?: string;
 }
+
+    
