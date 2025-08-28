@@ -25,6 +25,22 @@ const nextConfig: NextConfig = {
     ],
   },
   output: 'standalone',
+  // Configuración para Docker
+  experimental: {
+    outputFileTracingRoot: undefined,
+  },
+  // Asegurar que los paths se resuelvan correctamente
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
